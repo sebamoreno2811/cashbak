@@ -9,7 +9,7 @@ export default function Home() {
     <main className="min-h-screen bg-white">
       <div className="container px-4 py-8 mx-auto">
         <h1 className="mb-8 text-3xl font-bold text-center">
-          <img src={"/img/logo.png"} alt={"hola"} className="block w-1/4 h-auto mx-auto mt-0 mb-0 mix-blend-multiply" />
+          <img src={"/img/logo.png"} alt={"hola"} className="mx-auto h-auto mix-blend-multiply w-72 sm:w-96 md:w-[30rem] lg:w-[36rem] mb-0 mt-0" />
         </h1>
 
         <div className="p-4 mb-8 bg-white rounded-lg shadow-lg">
