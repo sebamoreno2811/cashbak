@@ -1,0 +1,54 @@
+import ProductSlider from "@/components/product-slider"
+import { ProductSelection } from "@/components/product-selection"
+import { products } from "@/lib/products"
+import BetSelector from "@/components/bet-selector"
+import { calculateMaxCashback } from "@/lib/cashback-calculator"
+
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-white">
+      <div className="container px-4 py-8 mx-auto">
+        <h1 className="mb-8 text-3xl font-bold text-center">
+          <img src={"/img/logo.png"} alt={"hola"} className="block w-1/4 h-auto mx-auto mt-0 mb-0 mix-blend-multiply" />
+        </h1>
+
+        <div className="p-4 mb-8 bg-white rounded-lg shadow-lg">
+          <ProductSelection />
+
+          <div
+            id="cashback-display"
+            className="flex items-center justify-center w-full h-20 mb-6 text-xl font-semibold bg-gray-100 rounded-lg"
+          >
+            Calculando CashBak...
+          </div>
+
+          <ProductSlider />
+        </div>
+
+        <section className="mt-16">
+          <h2 className="mb-6 text-2xl font-bold">Todos los Productos</h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {products.map((product) => (
+              <a key={product.id} href={`/product/${product.id}`} className="group">
+                <div className="overflow-hidden transition-all duration-300 bg-white rounded-lg shadow-md hover:shadow-xl">
+                  <div className="overflow-hidden aspect-square">
+                    <img
+                      src={product.image || "/placeholder.svg"}
+                      alt={product.name}
+                      className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="mb-2 text-lg font-semibold">{product.name}</h3>
+                    <p className="text-gray-700">${product.price.toLocaleString()}</p>
+                    <div className="mt-2 font-medium text-emerald-600">CashBak: hasta {calculateMaxCashback(product.category)}%</div>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      </div>
+    </main>
+  )
+}
