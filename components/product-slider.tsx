@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button"
 import { products } from "@/lib/products"
 import { useProductSelection } from "@/hooks/use-product-selection"
 import { calculateCashback } from "@/lib/cashback-calculator"
+import { useBetOption } from "@/hooks/use-bet-option"
 
 export default function ProductSlider() {
   const sliderRef = useRef<HTMLDivElement>(null)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [totalSlides, setTotalSlides] = useState(3)
-  const { selectedOption } = useProductSelection()
+  const { selectedOption } = useBetOption()
   
 
   // Group products by category for slides

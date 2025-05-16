@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { products } from "@/lib/products"
 import { calculateCashback } from "@/lib/cashback-calculator"
+import { useBetOption } from "@/hooks/use-bet-option"
 import { ArrowLeft, ShoppingCart } from "lucide-react"
 import BetSelector from "@/components/bet-selector"
 
@@ -13,7 +14,7 @@ export default function ProductPage() {
   const params = useParams()
   const router = useRouter()
   const [product, setProduct] = useState<any>(null)
-  const [selectedOption, setSelectedOption] = useState("1")
+  const { selectedOption, setSelectedOption } = useBetOption()
   const [cashback, setCashback] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const getYouTubeEmbedUrl = (url: string) => {

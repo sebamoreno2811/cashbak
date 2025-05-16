@@ -2,6 +2,7 @@
 "use client"
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useBetOption } from "@/hooks/use-bet-option"
 import { bets } from "@/lib/bets"
 
 type BetSelectorProps = {
@@ -10,6 +11,7 @@ type BetSelectorProps = {
 }
 
 export default function BetSelector({ value, onChange }: BetSelectorProps) {
+  const { selectedOption, setSelectedOption } = useBetOption()
   return (
     <div className="mb-6">
       <h3 className="mb-2 text-lg font-medium">Selecciona tu CashBak</h3>

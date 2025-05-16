@@ -8,9 +8,17 @@
 // Función para calcular descuento basado en cuota y margen
 
 import { bets } from "@/lib/bets"
+import { products } from "@/lib/products"
 
-export function descuentoSegunCuota(cuota: number, margen: number): number {
-  const resultado = 0.6 * margen * cuota - margen
+function getPricesAndCostsByCategory(category: number): { price: number, cost: number } | undefined {
+  const product = products.find(product => product.category === category)
+  return product ? { price: product.price, cost: product.cost } : undefined
+}
+
+export function descuentoSegunCuota(cuota: number, precioVenta: number, precioCompra: number): number {
+  //const resultado = 0.6 * margen * cuota - margen
+
+  const resultado = cuota * (precioVenta - precioCompra - (0.5*precioCompra)) / precioVenta
   return Math.min(1, Math.max(0, resultado))
 }
 
@@ -21,23 +29,11 @@ export function calculateCashback(option: number, category: number): number {
   const cuota = bet?.odd ?? 0 // Si no se encuentra, usar 0
 
   // Define margen basado en la categoría
-  let margen = 0
-  switch (category) {
-    case 1:
-      margen = 0.57
-      break
-    case 2:
-      margen = 0.5625
-      break
-    case 3:
-      margen = 0.6
-      break
-    default:
-      margen = 0
-  }
-
+  const priceAndCost = getPricesAndCostsByCategory(category)
+  const precioVenta = priceAndCost?.price ?? 0
+  const precioCompra = priceAndCost?.cost ?? 0
   // Calcular cashback usando la función descuentoSegunCuota
-  return Math.floor(descuentoSegunCuota(cuota, margen) * 100)
+  return Math.floor(descuentoSegunCuota(cuota,  precioVenta, precioCompra) * 100)
 }
 
 // Obtener todas las opciones de apuesta disponibles

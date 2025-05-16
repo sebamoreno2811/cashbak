@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, ReactNode } from "react"
 
 type ProductSelectionContextType = {
   selectedOption: string
@@ -11,6 +11,12 @@ const ProductSelectionContext = createContext<ProductSelectionContextType | unde
 
 export function ProductSelectionProvider({ children }: { children: ReactNode }) {
   const [selectedOption, setSelectedOption] = useState("1")
+  useEffect(() => {
+    const stored = localStorage.getItem("selectedOption")
+    if (stored) {
+      setSelectedOption(stored)
+    }
+  }, [])
 
   return (
     <ProductSelectionContext.Provider value={{ selectedOption, setSelectedOption }}>

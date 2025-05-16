@@ -5,10 +5,11 @@ import { useProductSelection } from "@/hooks/use-product-selection"
 import { useState, useEffect } from "react"
 import { calculateCashback } from "@/lib/cashback-calculator"
 import BetSelector from "./bet-selector"
+import { useBetOption } from "@/hooks/use-bet-option"
 
 
 export function ProductSelection() {
-  const { selectedOption, setSelectedOption } = useProductSelection()
+  const { selectedOption, setSelectedOption } = useBetOption()
   const [product, setProduct] = useState<any>(null)
   const [cashback, setCashback] = useState(0)
 

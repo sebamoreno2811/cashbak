@@ -11,14 +11,14 @@ export type Bets = {
     {
         id: 1,
         name: "Palestino gana a Cruzeiro",
-        odd: 3.55,
+        odd: 2,
         date: "2025-05-14",
         active: 1
     },
     {
         id: 2,
         name: "Colo Colo gana a Racing",
-        odd: 7.3,
+        odd: 4.55,
         date: "2025-05-14",
         active: 1
     },
