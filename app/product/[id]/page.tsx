@@ -7,8 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { products } from "@/lib/products"
 import { calculateCashback } from "@/lib/cashback-calculator"
 import { useBetOption } from "@/hooks/use-bet-option"
-import { ArrowLeft, ShoppingCart } from "lucide-react"
+import { useCart } from "@/hooks/use-cart"
+import { ArrowLeft, ShoppingCart, Check } from "lucide-react"
 import BetSelector from "@/components/bet-selector"
+import { toast } from "@/hooks/use-toast"
 
 export default function ProductPage() {
   const params = useParams()
@@ -17,10 +19,13 @@ export default function ProductPage() {
   const { selectedOption, setSelectedOption } = useBetOption()
   const [cashback, setCashback] = useState(0)
   const [quantity, setQuantity] = useState(1)
+  const [addedToCart, setAddedToCart] = useState(false)
+  const { addItem } = useCart()
+
   const getYouTubeEmbedUrl = (url: string) => {
-    const match = url.match(/(?:\?v=|\/embed\/|\.be\/)([\w\-]{11})/);
-    return match ? `https://www.youtube.com/embed/${match[1]}` : "";
-  };
+    const match = url.match(/(?:\?v=|\/embed\/|\.be\/)([\w-]{11})/)
+    return match ? `https://www.youtube.com/embed/${match[1]}` : ""
+  }
 
   useEffect(() => {
     const productId = params.id
@@ -39,6 +44,26 @@ export default function ProductPage() {
       const newCashback = calculateCashback(Number.parseFloat(value), product.category)
       setCashback(newCashback)
     }
+  }
+
+  const handleAddToCart = () => {
+    if (!product) return
+
+    addItem(product.id, quantity, selectedOption)
+
+    // Mostrar animación de éxito
+    setAddedToCart(true)
+    setTimeout(() => setAddedToCart(false), 1500)
+
+    // Mostrar notificación
+    toast({
+      title: "Producto agregado al carrito",
+      description: `${quantity} x ${product.name}`,
+    })
+  }
+
+  const handleGoToCart = () => {
+    router.push("/cart")
   }
 
   if (!product) {
@@ -75,7 +100,8 @@ export default function ProductPage() {
           <div className="p-4 mt-4 border rounded-lg border-emerald-200 bg-emerald-50">
             <p className="text-lg font-semibold text-green-900">CashBak del: {cashback.toFixed(0)}%</p>
             <p className="mt-1 text-sm text-green-800">
-              Recibirás ${Math.ceil((product.price * cashback) / 100)} de vuelta, en caso de que se cumpla el evento seleccionado.
+              Recibirás ${Math.ceil((product.price * cashback) / 100)} de vuelta, en caso de que se cumpla el evento
+              seleccionado.
             </p>
           </div>
 
@@ -95,12 +121,32 @@ export default function ProductPage() {
               </Select>
             </div>
 
-            <Button className="flex-1 bg-green-900 hover:bg-emerald-700">
-              <ShoppingCart className="mr-2 size-4" /> Añadir al carrito
+            <Button
+              className={`flex-1 ${addedToCart ? "bg-emerald-600" : "bg-green-900 hover:bg-emerald-700"}`}
+              onClick={handleAddToCart}
+              disabled={addedToCart}
+            >
+              {addedToCart ? (
+                <>
+                  <Check className="mr-2 size-4" /> Agregado
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="mr-2 size-4" /> Añadir al carrito
+                </>
+              )}
             </Button>
           </div>
 
-          <div className="text-sm text-gray-500">
+          <Button
+            variant="outline"
+            className="w-full mt-2 border-green-900 text-green-900 hover:bg-green-50"
+            onClick={handleGoToCart}
+          >
+            Ver carrito
+          </Button>
+
+          <div className="mt-4 text-sm text-gray-500">
             <p>Envío gratis en compras superiores a $50.000</p>
             <p>Garantía de devolución de 30 días</p>
           </div>
@@ -108,9 +154,7 @@ export default function ProductPage() {
       </div>
       {product.videoUrl && (
         <div className="mt-8 mb-6">
-          <h1 className="mb-4 text-3xl font-bold text-center text-gray-800">
-            Mejores momentos de esta camiseta
-          </h1>
+          <h1 className="mb-4 text-3xl font-bold text-center text-gray-800">Mejores momentos de esta camiseta</h1>
           <div className="overflow-hidden shadow-lg aspect-video rounded-xl">
             <iframe
               className="w-full h-full"
