@@ -1,9 +1,10 @@
 "use server"
 
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createClient } from "@/utils/supabase/server"
 import type { CheckoutFormData } from "@/types/checkout"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { cookies } from "next/headers"
 
 export async function saveCheckoutData(
   formData: CheckoutFormData,
@@ -13,10 +14,21 @@ export async function saveCheckoutData(
 ) {
   try {
     console.log("Iniciando guardado de datos de checkout:", formData)
-    const supabase = createServerSupabaseClient()
+    const cookieStore = cookies()
+    const supabase = createClient(cookieStore)
+
+    // Verificar la conexión a Supabase
+    const { data: connectionTest, error: connectionError } = await supabase.from("customers").select("count").limit(1)
+
+    if (connectionError) {
+      console.error("Error de conexión a Supabase:", connectionError)
+      return { success: false, error: "Error de conexión a la base de datos. Por favor, intenta nuevamente." }
+    }
+
+    console.log("Conexión a Supabase exitosa:", connectionTest)
 
     // Insertar cliente
-    const customerResponse = await supabase
+    const { data: customerData, error: customerError } = await supabase
       .from("customers")
       .upsert(
         {
@@ -26,47 +38,50 @@ export async function saveCheckoutData(
         },
         {
           onConflict: "email",
-          returning: "representation",
         },
       )
       .select("id")
       .single()
 
-    if (customerResponse.error) {
-      console.error("Error al guardar cliente:", customerResponse.error)
-      throw customerResponse.error
+    if (customerError) {
+      console.error("Error al guardar cliente:", customerError)
+      return { success: false, error: `Error al guardar cliente: ${customerError.message}` }
     }
 
-    const customerId = customerResponse.data.id
+    if (!customerData || !customerData.id) {
+      console.error("No se pudo obtener el ID del cliente")
+      return { success: false, error: "No se pudo obtener el ID del cliente" }
+    }
+
+    const customerId = customerData.id
     console.log("Cliente guardado:", customerId)
 
     // Insertar cuenta bancaria
-    const bankResponse = await supabase
+    const { data: bankData, error: bankError } = await supabase
       .from("bank_accounts")
       .upsert(
         {
           customer_id: customerId,
           bank_name: formData.bankName,
           account_type: formData.accountType,
-          account_number: Number.parseInt(formData.accountNumber),
+          account_number: formData.accountNumber,
           rut: formData.rut,
         },
         {
           onConflict: "customer_id, bank_name, account_number",
-          returning: "representation",
         },
       )
       .select()
 
-    if (bankResponse.error) {
-      console.error("Error al guardar cuenta bancaria:", bankResponse.error)
-      throw bankResponse.error
+    if (bankError) {
+      console.error("Error al guardar cuenta bancaria:", bankError)
+      return { success: false, error: `Error al guardar cuenta bancaria: ${bankError.message}` }
     }
 
-    console.log("Cuenta bancaria guardada:", bankResponse.data)
+    console.log("Cuenta bancaria guardada:", bankData)
 
     // Crear orden
-    const orderResponse = await supabase
+    const { data: orderData, error: orderError } = await supabase
       .from("orders")
       .insert({
         customer_id: customerId,
@@ -78,12 +93,17 @@ export async function saveCheckoutData(
       .select("id")
       .single()
 
-    if (orderResponse.error) {
-      console.error("Error al crear orden:", orderResponse.error)
-      throw orderResponse.error
+    if (orderError) {
+      console.error("Error al crear orden:", orderError)
+      return { success: false, error: `Error al crear orden: ${orderError.message}` }
     }
 
-    const orderId = orderResponse.data.id
+    if (!orderData || !orderData.id) {
+      console.error("No se pudo obtener el ID de la orden")
+      return { success: false, error: "No se pudo obtener el ID de la orden" }
+    }
+
+    const orderId = orderData.id
     console.log("Orden creada:", orderId)
 
     // Insertar items de la orden
@@ -98,20 +118,23 @@ export async function saveCheckoutData(
       cashback_percentage: item.cashbackPercentage,
     }))
 
-    const itemsResponse = await supabase.from("order_items").insert(orderItems)
+    const { error: itemsError } = await supabase.from("order_items").insert(orderItems)
 
-    if (itemsResponse.error) {
-      console.error("Error al guardar items de la orden:", itemsResponse.error)
-      throw itemsResponse.error
+    if (itemsError) {
+      console.error("Error al guardar items de la orden:", itemsError)
+      return { success: false, error: `Error al guardar items de la orden: ${itemsError.message}` }
     }
 
     console.log("Items de la orden guardados")
 
     revalidatePath("/checkout")
     return { success: true, orderId }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error al guardar datos de checkout:", error)
-    return { success: false, error: "Error al procesar la orden. Por favor, intenta nuevamente." }
+    return {
+      success: false,
+      error: `Error al procesar la orden: ${error.message || "Error desconocido"}. Por favor, intenta nuevamente.`,
+    }
   }
 }
 
