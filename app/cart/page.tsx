@@ -25,14 +25,7 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     setIsProcessing(true)
-
-    // Simulación de procesamiento de pago
-    setTimeout(() => {
-      alert("¡Compra realizada con éxito! Gracias por tu compra.")
-      clearCart()
-      router.push("/")
-      setIsProcessing(false)
-    }, 1500)
+    router.push("/checkout")
   }
 
   if (items.length === 0) {

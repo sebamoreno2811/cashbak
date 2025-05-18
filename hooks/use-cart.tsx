@@ -27,6 +27,7 @@ type CartContextType = {
     betName: string
     subtotal: number
     cashbackAmount: number
+    cashbackPercentage: number
   }
 }
 
@@ -146,6 +147,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       betName: bet?.name || "Opción no disponible",
       subtotal,
       cashbackAmount,
+      cashbackPercentage: item.cashbackPercentage,
     }
   }
 
