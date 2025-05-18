@@ -1,12 +1,8 @@
 "use client"
-
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useProductSelection } from "@/hooks/use-product-selection"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { calculateCashback } from "@/lib/cashback-calculator"
 import BetSelector from "./bet-selector"
 import { useBetOption } from "@/hooks/use-bet-option"
-
 
 export function ProductSelection() {
   const { selectedOption, setSelectedOption } = useBetOption()
@@ -29,7 +25,6 @@ export function ProductSelection() {
 
       // Calculate cashback after a small delay
       setTimeout(() => {
-      
         const cashback = Math.trunc(calculateCashback(Number.parseFloat(value), slideCategory))
         cashbackDisplay.textContent = `CashBak del: ${Math.trunc(cashback)}%`
       }, 500)
@@ -45,3 +40,5 @@ export function ProductSelection() {
     </div>
   )
 }
+
+export default ProductSelection
