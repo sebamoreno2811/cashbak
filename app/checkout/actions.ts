@@ -3,7 +3,9 @@
 import { createServerClient } from "@/utils/supabase/server"
 import type { CheckoutFormData } from "@/types/checkout"
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
+
+// Modificar la función saveCheckoutData para que no redirija automáticamente
+// y solo guarde los datos en Supabase
 
 export async function saveCheckoutData(
   formData: CheckoutFormData,
@@ -119,8 +121,8 @@ export async function saveCheckoutData(
           customer_id: customerId,
           order_total: cartTotal,
           cashback_amount: cashbackTotal,
-          order_status: "pending",
-          payment_status: "pending",
+          order_status: "completed", // Cambiado de "pending" a "completed" ya que el pago ya fue exitoso
+          payment_status: "paid", // Cambiado de "pending" a "paid" ya que el pago ya fue exitoso
         })
         .select("id")
         .single()
@@ -179,22 +181,3 @@ export async function saveCheckoutData(
   }
 }
 
-export async function processPayment(orderId: string) {
-  try {
-    // Aquí se implementaría la integración con el sistema de pagos
-    console.log("Procesando pago para la orden:", orderId)
-
-    // Actualizar el estado de la orden a "processing"
-    const supabase = createServerClient()
-    const { error } = await supabase.from("orders").update({ payment_status: "processing" }).eq("id", orderId)
-
-    if (error) {
-      console.error("Error al actualizar estado de pago:", error)
-    }
-
-    redirect("/checkout/success?orderId=" + orderId)
-  } catch (error) {
-    console.error("Error al procesar pago:", error)
-    redirect("/checkout?error=payment-failed")
-  }
-}

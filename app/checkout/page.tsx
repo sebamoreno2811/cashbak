@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, CreditCard, User, Building, AlertCircle } from "lucide-react"
-import { saveCheckoutData, processPayment } from "./actions"
+import { saveCheckoutData } from "./actions"
 import type { CheckoutFormData, FormErrors } from "@/types/checkout"
 
 const BANK_OPTIONS = [
@@ -167,10 +167,30 @@ export default function CheckoutPage() {
     }
   }
 
+  // Reemplazar la función handlePayment actual con esta:
   const handlePayment = async () => {
-    if (orderId) {
-      clearCart() // Limpiar el carrito antes de redirigir
-      await processPayment(orderId)
+    if (!orderId) {
+      // Almacenar los datos temporalmente en sessionStorage para recuperarlos después del pago
+      sessionStorage.setItem("checkoutFormData", JSON.stringify(formData))
+      sessionStorage.setItem(
+        "checkoutCartItems",
+        JSON.stringify(
+          items.map((item) => {
+            const details = getItemDetails(item)
+            return {
+              ...item,
+              product: details.product,
+              betName: details.betName,
+              cashbackPercentage: details.cashbackPercentage,
+            }
+          }),
+        ),
+      )
+      sessionStorage.setItem("checkoutCartTotal", getCartTotal().toString())
+      sessionStorage.setItem("checkoutCashbackTotal", getTotalCashback().toString())
+
+      // El formulario de Webpay se enviará automáticamente
+      ;(document.getElementById("webpayForm") as HTMLFormElement)?.submit()
     }
   }
 
@@ -368,12 +388,14 @@ export default function CheckoutPage() {
           {/* Paso 3: Confirmación y Pago */}
           {step === 3 && (
             <div className="space-y-6">
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                 <h2 className="flex items-center text-xl font-semibold text-green-800">
                   <AlertCircle className="mr-2 size-5" />
-                  Información guardada correctamente
+                  Información lista para procesar
                 </h2>
-                <p className="mt-2 text-green-700">Tus datos han sido guardados. Ahora puedes proceder al pago.</p>
+                <p className="mt-2 text-green-700">
+                  Tus datos están listos. Haz clic en el botón de Webpay para realizar el pago.
+                </p>
               </div>
 
               <div className="p-4 border border-gray-200 rounded-lg">
@@ -394,16 +416,33 @@ export default function CheckoutPage() {
                 <Button type="button" variant="outline" onClick={handlePrevStep}>
                   Volver
                 </Button>
-                <Button type="button" className="bg-green-900 hover:bg-emerald-700" onClick={handlePayment}>
-                  Ir a Pagar
-                </Button>
+                <div className="flex items-center">
+                  <form
+                    id="webpayForm"
+                    name="rec20108_btn1"
+                    method="post"
+                    action="https://www.webpay.cl/backpub/external/form-pay"
+                  >
+                    <input type="hidden" name="idFormulario" value="281911" />
+                    <input type="hidden" name="monto" value={getCartTotal()} />
+                    <input
+                      type="image"
+                      title="Pagar con Webpay"
+                      name="button1"
+                      src="https://www.webpay.cl/assets/img/boton_webpaycl.svg"
+                      value="Pagar con Webpay"
+                      className="cursor-pointer"
+                      onClick={() => handlePayment()}
+                    />
+                  </form>
+                </div>
               </div>
             </div>
           )}
         </div>
 
         {/* Resumen del carrito */}
-        <div className="mt-8 p-6 bg-white rounded-lg shadow-lg">
+        <div className="p-6 mt-8 bg-white rounded-lg shadow-lg">
           <h2 className="mb-4 text-lg font-semibold">Resumen de tu compra</h2>
           <div className="space-y-4">
             {items.map((item, index) => {
