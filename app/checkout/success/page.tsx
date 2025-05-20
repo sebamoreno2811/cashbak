@@ -30,12 +30,15 @@ export default function CheckoutSuccessPage() {
 
         // Verificar si el pago fue completado según el indicador de Webpay
         const paymentCompleted = localStorage.getItem(`payment_completed_${orderId}`)
+        const paymentDetails = localStorage.getItem(`payment_details_${orderId}`)
 
         if (paymentCompleted !== "true") {
           setError("No se ha confirmado el pago para esta orden")
           setIsProcessing(false)
           return
         }
+
+        console.log("Detalles del pago:", paymentDetails ? JSON.parse(paymentDetails) : "No disponible")
 
         // Recuperar los datos almacenados en localStorage
         const formDataStr = localStorage.getItem("checkout_form_data")
@@ -65,6 +68,7 @@ export default function CheckoutSuccessPage() {
             localStorage.removeItem("checkout_cashback_total")
             localStorage.removeItem("checkout_order_id")
             localStorage.removeItem(`payment_completed_${orderId}`)
+            localStorage.removeItem(`payment_details_${orderId}`)
           } else {
             setError(result.error || "Error al guardar los datos de la orden")
           }
