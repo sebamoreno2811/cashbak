@@ -28,6 +28,15 @@ export default function CheckoutSuccessPage() {
       try {
         setIsProcessing(true)
 
+        // Verificar si el pago fue completado según el indicador de Webpay
+        const paymentCompleted = localStorage.getItem(`payment_completed_${orderId}`)
+
+        if (paymentCompleted !== "true") {
+          setError("No se ha confirmado el pago para esta orden")
+          setIsProcessing(false)
+          return
+        }
+
         // Recuperar los datos almacenados en localStorage
         const formDataStr = localStorage.getItem("checkout_form_data")
         const cartItemsStr = localStorage.getItem("checkout_cart_items")
@@ -55,6 +64,7 @@ export default function CheckoutSuccessPage() {
             localStorage.removeItem("checkout_cart_total")
             localStorage.removeItem("checkout_cashback_total")
             localStorage.removeItem("checkout_order_id")
+            localStorage.removeItem(`payment_completed_${orderId}`)
           } else {
             setError(result.error || "Error al guardar los datos de la orden")
           }

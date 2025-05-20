@@ -156,39 +156,74 @@ export default function CheckoutPage() {
     }
   }
 
+  // Modificar la función handlePayment para usar la API de Webpay
   const handlePayment = async () => {
-    // Generar un ID de orden único
-    const uniqueOrderId = `order-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
-    setOrderId(uniqueOrderId)
-    setPaymentInitiated(true)
+    try {
+      // Generar un ID de orden único
+      const uniqueOrderId = `order-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
+      setOrderId(uniqueOrderId)
+      setPaymentInitiated(true)
 
-    // Almacenar los datos temporalmente en localStorage para recuperarlos después del pago
-    localStorage.setItem("checkout_form_data", JSON.stringify(formData))
-    localStorage.setItem(
-      "checkout_cart_items",
-      JSON.stringify(
-        items.map((item) => {
-          const details = getItemDetails(item)
-          return {
-            ...item,
-            product: details.product,
-            betName: details.betName,
-            cashbackPercentage: details.cashbackPercentage,
-          }
+      // Almacenar los datos temporalmente en localStorage para recuperarlos después del pago
+      localStorage.setItem("checkout_form_data", JSON.stringify(formData))
+      localStorage.setItem(
+        "checkout_cart_items",
+        JSON.stringify(
+          items.map((item) => {
+            const details = getItemDetails(item)
+            return {
+              ...item,
+              product: details.product,
+              betName: details.betName,
+              cashbackPercentage: details.cashbackPercentage,
+            }
+          }),
+        ),
+      )
+
+      // Guardar los totales
+      const cartTotal = getCartTotal()
+      const cashbackTotal = getTotalCashback()
+      localStorage.setItem("checkout_cart_total", cartTotal.toString())
+      localStorage.setItem("checkout_cashback_total", cashbackTotal.toString())
+      localStorage.setItem("checkout_order_id", uniqueOrderId)
+
+      // Iniciar transacción con Webpay
+      const response = await fetch("/api/webpay/initiate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cartTotal,
+          orderId: uniqueOrderId,
         }),
-      ),
-    )
+      })
 
-    // Guardar los totales
-    const cashbackTotal = getTotalCashback()
-    localStorage.setItem("checkout_cart_total", getCartTotal().toString())
-    localStorage.setItem("checkout_cashback_total", cashbackTotal.toString())
-    localStorage.setItem("checkout_order_id", uniqueOrderId)
+      if (!response.ok) {
+        throw new Error("Error al iniciar el pago con Webpay")
+      }
 
-    // Enviar el formulario de Webpay
-    const webpayForm = document.getElementById("webpayForm") as HTMLFormElement
-    if (webpayForm) {
-      webpayForm.submit()
+      const data = await response.json()
+
+      // Crear y enviar formulario para redireccionar a Webpay
+      const form = document.createElement("form")
+      form.method = "POST"
+      form.action = data.url
+      form.style.display = "none"
+
+      const tokenInput = document.createElement("input")
+      tokenInput.type = "hidden"
+      tokenInput.name = "token_ws"
+      tokenInput.value = data.token
+
+      form.appendChild(tokenInput)
+      document.body.appendChild(form)
+      form.submit()
+    } catch (error) {
+      console.error("Error al iniciar el pago:", error)
+      setPaymentError("Error al iniciar el pago. Por favor, intenta nuevamente.")
+      setPaymentInitiated(false)
     }
   }
 
@@ -551,26 +586,14 @@ export default function CheckoutPage() {
                         <Button type="button" variant="outline" onClick={handlePrevStep}>
                           Volver
                         </Button>
-                        <div className="flex items-center">
-                          <form
-                            id="webpayForm"
-                            name="rec20108_btn1"
-                            method="post"
-                            action="https://www.webpay.cl/backpub/external/form-pay"
-                          >
-                            <input type="hidden" name="idFormulario" value="281911" />
-                            <input type="hidden" name="monto" value={getCartTotal()} />
-                            <input
-                              type="image"
-                              title="Pagar con Webpay"
-                              name="button1"
-                              src="https://www.webpay.cl/assets/img/boton_webpaycl.svg"
-                              value="Pagar con Webpay"
-                              className="cursor-pointer"
-                              onClick={() => handlePayment()}
-                            />
-                          </form>
-                        </div>
+                        <Button
+                          onClick={handlePayment}
+                          className="bg-green-900 hover:bg-emerald-700"
+                          disabled={isSubmitting}
+                        >
+                          <CreditCard className="mr-2 size-4" />
+                          Pagar con Webpay
+                        </Button>
                       </div>
                     </>
                   )}
