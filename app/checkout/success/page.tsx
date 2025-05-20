@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -10,55 +10,67 @@ import { saveCheckoutData } from "../actions"
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams()
-  const orderId = searchParams.get("orderId")
+  const router = useRouter()
+  const orderId = searchParams.get("order_id")
   const { clearCart } = useCart()
   const [isProcessing, setIsProcessing] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
 
   useEffect(() => {
-    // Limpiar el carrito cuando se carga la página de éxito
-    clearCart()
-
-    // Recuperar los datos almacenados en sessionStorage
-    const savedFormData = sessionStorage.getItem("checkoutFormData")
-    const savedCartItems = sessionStorage.getItem("checkoutCartItems")
-    const savedCartTotal = sessionStorage.getItem("checkoutCartTotal")
-    const savedCashbackTotal = sessionStorage.getItem("checkoutCashbackTotal")
-
-    if (savedFormData && savedCartItems && savedCartTotal && savedCashbackTotal) {
-      const formData = JSON.parse(savedFormData)
-      const cartItems = JSON.parse(savedCartItems)
-      const cartTotal = Number.parseFloat(savedCartTotal)
-      const cashbackTotal = Number.parseFloat(savedCashbackTotal)
-
-      // Ahora que el pago fue exitoso, guardar los datos en Supabase
-      const saveData = async () => {
-        try {
-          setIsProcessing(true)
-          const result = await saveCheckoutData(formData, cartItems, cartTotal, cashbackTotal)
-
-          if (!result.success) {
-            setError(result.error || "Error al guardar los datos de la orden")
-          }
-
-          // Limpiar los datos almacenados
-          sessionStorage.removeItem("checkoutFormData")
-          sessionStorage.removeItem("checkoutCartItems")
-          sessionStorage.removeItem("checkoutCartTotal")
-          sessionStorage.removeItem("checkoutCashbackTotal")
-        } catch (err: any) {
-          console.error("Error al guardar datos después del pago:", err)
-          setError(err.message || "Error al procesar la orden")
-        } finally {
-          setIsProcessing(false)
-        }
+    const processOrder = async () => {
+      if (!orderId) {
+        setError("No se encontró información de la orden")
+        setIsProcessing(false)
+        return
       }
 
-      saveData()
-    } else {
-      setIsProcessing(false)
+      try {
+        setIsProcessing(true)
+
+        // Recuperar los datos almacenados en localStorage
+        const formDataStr = localStorage.getItem("checkout_form_data")
+        const cartItemsStr = localStorage.getItem("checkout_cart_items")
+        const cartTotalStr = localStorage.getItem("checkout_cart_total")
+        const cashbackTotalStr = localStorage.getItem("checkout_cashback_total")
+        const storedOrderId = localStorage.getItem("checkout_order_id")
+
+        // Verificar si los datos existen y corresponden a esta orden
+        if (formDataStr && cartItemsStr && cartTotalStr && cashbackTotalStr && storedOrderId === orderId) {
+          const formData = JSON.parse(formDataStr)
+          const cartItems = JSON.parse(cartItemsStr)
+          const cartTotal = Number.parseFloat(cartTotalStr)
+          const cashbackTotal = Number.parseFloat(cashbackTotalStr)
+
+          // Guardar los datos en Supabase
+          const result = await saveCheckoutData(formData, cartItems, cartTotal, cashbackTotal)
+
+          if (result.success) {
+            setSuccess(true)
+
+            // Limpiar el carrito y los datos almacenados
+            clearCart()
+            localStorage.removeItem("checkout_form_data")
+            localStorage.removeItem("checkout_cart_items")
+            localStorage.removeItem("checkout_cart_total")
+            localStorage.removeItem("checkout_cashback_total")
+            localStorage.removeItem("checkout_order_id")
+          } else {
+            setError(result.error || "Error al guardar los datos de la orden")
+          }
+        } else {
+          setError("No se encontraron datos para esta orden o no coinciden con el ID de orden")
+        }
+      } catch (err: any) {
+        console.error("Error al procesar la orden:", err)
+        setError(err.message || "Error al procesar la orden")
+      } finally {
+        setIsProcessing(false)
+      }
     }
-  }, [clearCart])
+
+    processOrder()
+  }, [orderId, clearCart])
 
   return (
     <div className="container px-4 py-16 mx-auto">
@@ -83,12 +95,22 @@ export default function CheckoutSuccessPage() {
             </div>
             <h1 className="mb-4 text-3xl font-bold">¡Compra Exitosa!</h1>
             <p className="mb-8 text-gray-600">
-              Tu orden ha sido procesada correctamente. Hemos enviado un correo electrónico con los detalles de tu
-              compra.
+              Tu pago ha sido procesado correctamente. Hemos registrado tu compra y pronto recibirás un correo
+              electrónico con todos los detalles.
             </p>
             <div className="p-4 mb-8 border border-green-200 rounded-lg bg-green-50">
               <p className="text-green-800">
                 <span className="font-semibold">Número de orden:</span> {orderId || "N/A"}
+              </p>
+              <p className="mt-2 text-green-700">
+                Guarda este número como referencia para cualquier consulta sobre tu compra.
+              </p>
+            </div>
+            <div className="p-4 mb-8 border border-yellow-200 rounded-lg bg-yellow-50">
+              <p className="font-medium text-yellow-800">Información sobre tu CashBak</p>
+              <p className="mt-2 text-yellow-700">
+                Recuerda que recibirás tu CashBak según los términos y condiciones de la promoción. Mantente atento a tu
+                correo electrónico para más información.
               </p>
             </div>
             <div className="space-y-4">

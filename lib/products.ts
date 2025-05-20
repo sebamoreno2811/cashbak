@@ -277,8 +277,8 @@ export const products: Product[] = [
   {
     id: 20,
     name: "TEST",
-    price: 500,
-    cost: 217,
+    price: 250,
+    cost: 109,
     description: "TEST",
     image: "/img/img-retro-corta/juventus-2016.jpeg",
     category: 4,

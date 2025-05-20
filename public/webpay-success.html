@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago Exitoso - CashBak</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f9fafb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #ecfdf5;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+        }
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            color: #10b981;
+        }
+        h1 {
+            color: #111827;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        p {
+            color: #4b5563;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        .message {
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        <h1>¡Pago Exitoso!</h1>
+        <p class="message">Tu pago ha sido procesado correctamente. Estamos redireccionándote a la página de confirmación...</p>
+        <p>Si no eres redirigido automáticamente, <a href="#" id="redirect-link">haz clic aquí</a>.</p>
+    </div>
+
+    <script>
+        // Obtener el ID de orden de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order_id');
+        
+        // Marcar el pago como completado
+        try {
+            localStorage.setItem("completed_payment_id", orderId);
+        } catch (e) {
+            console.error("Error al guardar en localStorage:", e);
+        }
+        
+        // Actualizar el enlace de redirección
+        const redirectLink = document.getElementById('redirect-link');
+        if (redirectLink && orderId) {
+            redirectLink.href = `/checkout/success?order_id=${orderId}`;
+        }
+        
+        // Redirigir automáticamente después de un breve retraso
+        setTimeout(() => {
+            const redirectUrl = orderId 
+                ? `/checkout/success?order_id=${orderId}`
+                : '/checkout/success';
+            window.location.href = redirectUrl;
+        }, 2000);
+    </script>
+</body>
+</html>
