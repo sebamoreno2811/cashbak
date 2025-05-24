@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, CreditCard, AlertCircle, CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { ArrowLeft, CreditCard, AlertCircle, CheckCircle, XCircle, Loader2, User } from "lucide-react"
 import { createClient } from "@/utils/supabase/client"
 import { saveCheckoutData } from "./actions"
 import AuthModal from "@/components/auth/auth-modal"
@@ -19,14 +19,13 @@ export default function CheckoutPage() {
   const [userProfile, setUserProfile] = useState<any>(null)
   const [bankAccount, setBankAccount] = useState<any>(null)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true)
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true) // For user, profile, bank data
   const [paymentProcessing, setPaymentProcessing] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [pageLoading, setPageLoading] = useState(true) // General page loading state
 
-  // Función helper para formatear número de cuenta
   const formatAccountNumber = (accountNumber: any) => {
     if (!accountNumber) return "N/A"
     const accountStr = String(accountNumber)
@@ -34,127 +33,102 @@ export default function CheckoutPage() {
     return `****${accountStr.slice(-4)}`
   }
 
-  // Verificar autenticación y cargar datos del usuario
+  // Effect for initial auth check and data loading
   useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      setUser(user)
+    const initialLoad = async () => {
+      setPageLoading(true);
+      setIsLoadingProfile(true);
 
-      if (user) {
-        // Cargar perfil del usuario
-        const { data: profile } = await supabase.from("customers").select("*").eq("id", user.id).single()
-        const { data: bankData } = await supabase.from("bank_accounts").select("*").eq("customer_id", user.id).single()
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      setUser(currentUser);
 
-        setUserProfile(profile)
-        setBankAccount(bankData)
+      if (currentUser) {
+        try {
+          const { data: profileData, error: profileError } = await supabase.from("customers").select("*").eq("id", currentUser.id).single();
+          if (profileError && profileError.code !== 'PGRST116') throw profileError; // PGRST116 means no rows found, which is fine
+          setUserProfile(profileData);
 
-        // Si el usuario está autenticado y tiene datos, proceder automáticamente al pago
-        if (profile && bankData && items.length > 0) {
-          // Pequeño delay para mostrar la información antes de proceder
-          setTimeout(() => {
-            handlePayment()
-          }, 1500)
+          const { data: bankDataResult, error: bankError } = await supabase.from("bank_accounts").select("*").eq("customer_id", currentUser.id).single();
+          if (bankError && bankError.code !== 'PGRST116') throw bankError;
+          setBankAccount(bankDataResult);
+        } catch (e: any) {
+          console.error("Error fetching profile/bank data:", e);
+          // Set a general error to be displayed, or rely on conditional rendering
+          setPaymentError("Error al cargar tus datos. Por favor, recarga la página.");
         }
       }
+      setIsLoadingProfile(false);
+      setPageLoading(false);
+    };
 
-      setIsLoadingProfile(false)
+    if (items.length === 0 && !searchParams.get("status") && !searchParams.get("order_id")) {
+      router.push("/cart");
+    } else {
+      initialLoad();
     }
+  }, [supabase.auth, items.length, router, searchParams]);
 
-    checkAuth()
-  }, [supabase])
 
-  // Verificar si hay un pago exitoso al cargar la página
+  // Effect to handle payment status from URL (after Webpay redirect)
   useEffect(() => {
-    setIsLoading(true)
-
     const status = searchParams.get("status")
     const reason = searchParams.get("reason")
     const message = searchParams.get("message")
     const orderIdParam = searchParams.get("order_id")
 
     if (status) {
+      setPageLoading(true); // Show loader while processing redirect
       if (orderIdParam) {
         setOrderId(orderIdParam)
       }
 
       if (status === "success") {
-        handleSuccessfulPayment(orderIdParam)
+        // The actual order saving logic is now in checkout/success/page.tsx
+        // Here, we just redirect if we land on checkout page with success status
+        router.replace(`/checkout/success?order_id=${orderIdParam}`);
       } else if (status === "error") {
         let errorMessage = "Ocurrió un error al procesar el pago."
-
-        if (reason === "aborted") {
-          errorMessage = "El pago fue cancelado o abortado."
-        } else if (reason === "payment") {
-          errorMessage = "El pago fue rechazado por el banco emisor."
-        } else if (reason === "system") {
-          errorMessage = `Error del sistema: ${message || "Error desconocido"}`
-        }
-
+        if (reason === "aborted") errorMessage = "El pago fue cancelado o abortado."
+        else if (reason === "payment") errorMessage = "El pago fue rechazado por el banco emisor."
+        else if (reason === "system") errorMessage = `Error del sistema: ${message || "Error desconocido"}`
         setPaymentError(errorMessage)
-        setIsLoading(false)
-      }
-    } else {
-      if (items.length === 0) {
-        router.push("/cart")
-      } else {
-        setIsLoading(false)
+        setPageLoading(false)
       }
     }
-  }, [items, router, searchParams])
+  }, [searchParams, router])
 
-  const handleSuccessfulPayment = async (orderIdParam: string | null) => {
-    try {
-      const formDataStr = localStorage.getItem("checkout_form_data")
-      const cartItemsStr = localStorage.getItem("checkout_cart_items")
-      const cartTotalStr = localStorage.getItem("checkout_cart_total")
-      const cashbackTotalStr = localStorage.getItem("checkout_cashback_total")
-
-      if (formDataStr && cartItemsStr && cartTotalStr && cashbackTotalStr) {
-        const storedFormData = JSON.parse(formDataStr)
-        const cartItems = JSON.parse(cartItemsStr)
-        const cartTotal = Number.parseFloat(cartTotalStr)
-        const cashbackTotal = Number.parseFloat(cashbackTotalStr)
-
-        const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbackTotal)
-
-        if (result.success) {
-          setPaymentSuccess(true)
-          clearCart()
-          localStorage.removeItem("checkout_form_data")
-          localStorage.removeItem("checkout_cart_items")
-          localStorage.removeItem("checkout_cart_total")
-          localStorage.removeItem("checkout_cashback_total")
-          localStorage.removeItem("checkout_order_id")
-        } else {
-          setPaymentError(result.error || "Error al guardar los datos de la orden")
-        }
-      } else {
-        setPaymentError("No se encontraron datos para esta orden")
-      }
-    } catch (err: any) {
-      console.error("Error al procesar la orden:", err)
-      setPaymentError(err.message || "Error al procesar la orden")
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handlePayment = async () => {
-    if (!user || !userProfile || !bankAccount) {
+    // 1. Check if user is logged in
+    if (!user) {
       setIsAuthModalOpen(true)
       return
     }
 
+    // 2. Check if profile data is still loading
+    if (isLoadingProfile) {
+      setPaymentError("Cargando tus datos, por favor espera un momento.")
+      return
+    }
+
+    // 3. User is logged in, check if profile and bank account are complete
+    if (!userProfile || !bankAccount) {
+      setPaymentError(
+        "Para continuar, por favor completa tu información personal y bancaria. Puedes hacerlo desde la configuración de tu cuenta o registrándote si aún no lo has hecho."
+      )
+      // Do not open the generic auth modal here if the user is logged in.
+      // The render logic below will show a specific message for profile completion.
+      return
+    }
+
+    // 4. All data present, proceed with payment
     try {
       setPaymentError(null)
       setPaymentProcessing(true)
 
-      const uniqueOrderId = `order-${Date.now().toString().substring(0, 10)}`
+      const uniqueOrderId = `cbk-${Date.now().toString().slice(-10)}` // Shorter, more unique ID
       setOrderId(uniqueOrderId)
 
-      // Usar los datos del usuario autenticado
       const formData = {
         fullName: userProfile.full_name || "",
         email: userProfile.email || "",
@@ -185,49 +159,24 @@ export default function CheckoutPage() {
       const cashbackTotal = getTotalCashback()
       localStorage.setItem("checkout_cart_total", cartTotal.toString())
       localStorage.setItem("checkout_cashback_total", cashbackTotal.toString())
-      localStorage.setItem("checkout_order_id", uniqueOrderId)
+      localStorage.setItem("checkout_order_id", uniqueOrderId) // Save the order ID used for Webpay
 
       console.log("Iniciando transacción con Webpay:", { cartTotal, uniqueOrderId })
 
       const response = await fetch("/api/webpay/initiate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          cartTotal,
-          orderId: uniqueOrderId,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cartTotal, orderId: uniqueOrderId }),
       })
 
       const data = await response.json()
 
-      if (!response.ok) {
-        console.error("Error en respuesta de API:", data)
-        throw new Error(data.error || "Error al iniciar el pago con Webpay")
-      }
+      if (!response.ok) throw new Error(data.error || "Error al iniciar el pago con Webpay")
+      if (!data.token || !data.url) throw new Error("Respuesta inválida del servidor de pago")
 
-      console.log("Respuesta de API Webpay:", data)
+      // Redirect to Webpay
+      window.location.href = data.url + `?token_ws=${data.token}`;
 
-      if (!data.token || !data.url) {
-        throw new Error("Respuesta inválida del servidor de pago")
-      }
-
-      const form = document.createElement("form")
-      form.method = "POST"
-      form.action = data.url
-      form.style.display = "none"
-
-      const tokenInput = document.createElement("input")
-      tokenInput.type = "hidden"
-      tokenInput.name = "token_ws"
-      tokenInput.value = data.token
-
-      form.appendChild(tokenInput)
-      document.body.appendChild(form)
-
-      console.log("Redirigiendo a Webpay:", { url: data.url, token: data.token })
-      form.submit()
     } catch (error: any) {
       console.error("Error al iniciar el pago:", error)
       setPaymentError("Error al iniciar el pago: " + (error.message || "Error desconocido"))
@@ -237,27 +186,79 @@ export default function CheckoutPage() {
 
   const handleAuthSuccess = () => {
     setIsAuthModalOpen(false)
-    // Recargar la página para obtener los datos del usuario recién autenticado
-    window.location.reload()
+    // Re-fetch user data and profile after successful auth
+    const reloadData = async () => {
+        setPageLoading(true);
+        setIsLoadingProfile(true);
+        const { data: { user: updatedUser } } = await supabase.auth.getUser();
+        setUser(updatedUser);
+        if (updatedUser) {
+            const { data: profile } = await supabase.from("customers").select("*").eq("id", updatedUser.id).single();
+            const { data: bankData } = await supabase.from("bank_accounts").select("*").eq("customer_id", updatedUser.id).single();
+            setUserProfile(profile);
+            setBankAccount(bankData);
+        }
+        setIsLoadingProfile(false);
+        setPageLoading(false);
+    };
+    reloadData();
   }
 
-  if (isLoading || isLoadingProfile) {
+
+  if (pageLoading || (isLoadingProfile && !paymentError && !paymentSuccess) ) {
     return (
       <div className="container px-4 py-8 mx-auto">
         <div className="flex flex-col items-center justify-center max-w-3xl min-h-[60vh] mx-auto p-6 bg-white rounded-lg shadow-lg">
           <Loader2 className="w-16 h-16 mb-4 text-green-600 animate-spin" />
-          <h2 className="text-xl font-semibold text-gray-800">{user ? "Preparando tu pago..." : "Cargando..."}</h2>
-          <p className="mt-2 text-gray-600">
-            {user ? "Te redirigiremos a Webpay en un momento." : "Por favor, espera mientras cargamos tu información."}
-          </p>
+          <h2 className="text-xl font-semibold text-gray-800">Cargando...</h2>
+          <p className="mt-2 text-gray-600">Por favor, espera mientras preparamos tu checkout.</p>
         </div>
       </div>
     )
   }
 
-  if (items.length === 0 && !paymentSuccess && !paymentError) {
-    return <div className="p-8 text-center">Redirigiendo al carrito...</div>
+
+  // If there's a paymentError, show it regardless of other states (unless processing again)
+  if (paymentError && !paymentProcessing) {
+    return (
+      <div className="container px-4 py-8 mx-auto">
+        <div className="max-w-3xl p-6 mx-auto text-center bg-white rounded-lg shadow-lg">
+          <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full">
+            <XCircle className="w-12 h-12 text-red-600" />
+          </div>
+          <h2 className="mb-4 text-2xl font-bold text-red-800">Error</h2>
+          <p className="mb-6 text-gray-600">{paymentError}</p>
+          <div className="space-y-4">
+            <Button className="w-full bg-green-900 hover:bg-emerald-700" onClick={() => { setPaymentError(null); if(user && userProfile && bankAccount) handlePayment(); else if (!user) setIsAuthModalOpen(true); }}>
+              Intentar nuevamente
+            </Button>
+            <Button variant="outline" className="w-full" onClick={() => router.push("/cart")}>
+              Volver al carrito
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
   }
+  
+  // If payment is successful (this state should ideally be handled by /checkout/success but as a fallback)
+  if (paymentSuccess) {
+     return (
+      <div className="container px-4 py-8 mx-auto">
+        <div className="max-w-3xl p-6 mx-auto text-center bg-white rounded-lg shadow-lg">
+          <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-green-100 rounded-full">
+            <CheckCircle className="w-12 h-12 text-green-600" />
+          </div>
+          <h2 className="mb-4 text-2xl font-bold text-green-800">¡Pago Exitoso!</h2>
+          <p className="mb-6 text-gray-600">
+            Tu pago ha sido procesado correctamente.
+          </p>
+           <p className="text-sm text-gray-500">Redirigiendo a la página de confirmación...</p>
+        </div>
+      </div>
+    )
+  }
+
 
   return (
     <div className="container px-4 py-8 mx-auto">
@@ -270,55 +271,12 @@ export default function CheckoutPage() {
         </div>
 
         <div className="p-6 bg-white rounded-lg shadow-lg">
-          {paymentSuccess ? (
+          {!user ? ( // Case 1: User not logged in
             <div className="p-6 text-center">
               <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-green-100 rounded-full">
-                <CheckCircle className="w-12 h-12 text-green-600" />
+                <User className="w-12 h-12 text-green-600" /> 
               </div>
-              <h2 className="mb-4 text-2xl font-bold text-green-800">¡Pago Exitoso!</h2>
-              <p className="mb-6 text-gray-600">
-                Tu pago ha sido procesado correctamente. Hemos registrado tu compra y pronto recibirás un correo
-                electrónico con todos los detalles.
-              </p>
-              <div className="p-4 mb-6 border border-green-200 rounded-lg bg-green-50">
-                <p className="text-green-800">
-                  <span className="font-semibold">Número de orden:</span> {orderId || "N/A"}
-                </p>
-                <p className="mt-2 text-green-700">
-                  Guarda este número como referencia para cualquier consulta sobre tu compra.
-                </p>
-              </div>
-              <div className="space-y-4">
-                <Button className="w-full bg-green-900 hover:bg-emerald-700" onClick={() => router.push("/products")}>
-                  Seguir comprando
-                </Button>
-                <Button variant="outline" className="w-full" onClick={() => router.push("/")}>
-                  Volver al inicio
-                </Button>
-              </div>
-            </div>
-          ) : paymentError ? (
-            <div className="p-6 text-center">
-              <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full">
-                <XCircle className="w-12 h-12 text-red-600" />
-              </div>
-              <h2 className="mb-4 text-2xl font-bold text-red-800">Error en el Pago</h2>
-              <p className="mb-6 text-gray-600">{paymentError}</p>
-              <div className="space-y-4">
-                <Button className="w-full bg-green-900 hover:bg-emerald-700" onClick={() => setPaymentError(null)}>
-                  Intentar nuevamente
-                </Button>
-                <Button variant="outline" className="w-full" onClick={() => router.push("/cart")}>
-                  Volver al carrito
-                </Button>
-              </div>
-            </div>
-          ) : !user ? (
-            <div className="p-6 text-center">
-              <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-blue-100 rounded-full">
-                <AlertCircle className="w-12 h-12 text-blue-600" />
-              </div>
-              <h2 className="mb-4 text-2xl font-bold text-blue-800">Inicia Sesión para Continuar</h2>
+              <h2 className="mb-4 text-2xl font-bold text-green-800">Inicia Sesión para Continuar</h2>
               <p className="mb-6 text-gray-600">
                 Para realizar tu compra, necesitas tener una cuenta. Inicia sesión o regístrate para continuar.
               </p>
@@ -326,26 +284,32 @@ export default function CheckoutPage() {
                 Iniciar Sesión / Registrarse
               </Button>
             </div>
-          ) : paymentProcessing ? (
+          ) : (!userProfile || !bankAccount) && !isLoadingProfile ? ( // Case 2: User logged in, profile incomplete
             <div className="p-6 text-center">
-              <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-blue-100 rounded-full">
-                <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+              <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-orange-100 rounded-full">
+                <AlertCircle className="w-12 h-12 text-orange-500" />
               </div>
-              <h2 className="mb-4 text-2xl font-bold text-blue-800">Procesando Pago</h2>
+              <h2 className="mb-4 text-2xl font-bold text-orange-800">Completa tu Perfil</h2>
+              <p className="mb-6 text-gray-600">
+                Para continuar con tu compra, necesitamos que completes tu información personal y bancaria.
+                Si ya lo hiciste, por favor espera un momento o recarga la página.
+              </p>
+              {/* TODO: Consider adding a button to redirect to a profile editing page */}
+              <Button onClick={() => { /* router.push('/profile/edit') or trigger auth modal to re-enter data if that's the flow */ setIsAuthModalOpen(true); }} className="w-full mt-4 bg-orange-500 hover:bg-orange-600">
+                Completar / Verificar Datos
+              </Button>
+            </div>
+          ) : paymentProcessing ? ( // Case 3: Payment is being processed
+            <div className="p-6 text-center">
+              <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-green-100 rounded-full">
+                <Loader2 className="w-12 h-12 text-green-600 animate-spin" />
+              </div>
+              <h2 className="mb-4 text-2xl font-bold text-green-800">Procesando Pago</h2>
               <p className="mb-6 text-gray-600">
                 Estamos preparando tu transacción con Webpay. Serás redirigido automáticamente.
               </p>
-              <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                <p className="text-blue-800">
-                  <span className="font-semibold">Total a pagar:</span> ${getCartTotal().toLocaleString()}
-                </p>
-                <p className="text-blue-700">
-                  <span className="font-semibold">CashBak potencial:</span> $
-                  {Math.ceil(getTotalCashback()).toLocaleString()}
-                </p>
-              </div>
             </div>
-          ) : (
+          ) : ( // Case 4: User logged in, profile complete, ready to pay
             <div className="space-y-6">
               <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                 <h2 className="flex items-center text-xl font-semibold text-green-800">
@@ -355,38 +319,22 @@ export default function CheckoutPage() {
                 <p className="mt-2 text-green-700">Usaremos tus datos guardados para procesar la compra.</p>
               </div>
 
-              {/* Mostrar datos del usuario */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="p-4 border border-gray-200 rounded-lg">
                   <h3 className="mb-2 font-medium text-gray-900">Datos Personales</h3>
                   <div className="space-y-1 text-sm text-gray-600">
-                    <p>
-                      <span className="font-medium">Nombre:</span> {userProfile?.full_name || "No disponible"}
-                    </p>
-                    <p>
-                      <span className="font-medium">Email:</span> {userProfile?.email || "No disponible"}
-                    </p>
-                    <p>
-                      <span className="font-medium">Teléfono:</span> {userProfile?.phone || "No disponible"}
-                    </p>
+                    <p><span className="font-medium">Nombre:</span> {userProfile?.full_name || "No disponible"}</p>
+                    <p><span className="font-medium">Email:</span> {userProfile?.email || "No disponible"}</p>
+                    <p><span className="font-medium">Teléfono:</span> {userProfile?.phone || "No disponible"}</p>
                   </div>
                 </div>
-
                 <div className="p-4 border border-gray-200 rounded-lg">
                   <h3 className="mb-2 font-medium text-gray-900">Datos Bancarios</h3>
                   <div className="space-y-1 text-sm text-gray-600">
-                    <p>
-                      <span className="font-medium">Banco:</span> {bankAccount?.bank_name || "No disponible"}
-                    </p>
-                    <p>
-                      <span className="font-medium">Tipo:</span> {bankAccount?.account_type || "No disponible"}
-                    </p>
-                    <p>
-                      <span className="font-medium">Cuenta:</span> {formatAccountNumber(bankAccount?.account_number)}
-                    </p>
-                    <p>
-                      <span className="font-medium">RUT:</span> {bankAccount?.rut || "No disponible"}
-                    </p>
+                    <p><span className="font-medium">Banco:</span> {bankAccount?.bank_name || "No disponible"}</p>
+                    <p><span className="font-medium">Tipo:</span> {bankAccount?.account_type || "No disponible"}</p>
+                    <p><span className="font-medium">Cuenta:</span> {formatAccountNumber(bankAccount?.account_number)}</p>
+                    <p><span className="font-medium">RUT:</span> {bankAccount?.rut || "No disponible"}</p>
                   </div>
                 </div>
               </div>
@@ -405,60 +353,34 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {paymentError && (
-                <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-                  <p className="text-red-700">
-                    <strong>Error:</strong> {paymentError}
-                  </p>
-                </div>
-              )}
-
-              <Button
-                onClick={handlePayment}
-                className="w-full bg-green-900 hover:bg-emerald-700"
-                disabled={paymentProcessing}
-              >
+              <Button onClick={handlePayment} className="w-full bg-green-900 hover:bg-emerald-700" disabled={paymentProcessing}>
                 {paymentProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                    Procesando...
-                  </>
+                  <><Loader2 className="mr-2 size-4 animate-spin" /> Procesando...</>
                 ) : (
-                  <>
-                    <CreditCard className="mr-2 size-4" />
-                    Pagar con Webpay
-                  </>
+                  <><CreditCard className="mr-2 size-4" /> Pagar con Webpay</>
                 )}
               </Button>
             </div>
           )}
         </div>
 
-        {/* Resumen del carrito */}
-        {!paymentSuccess && !paymentError && user && !paymentProcessing && (
+        {!paymentProcessing && !paymentSuccess && user && userProfile && bankAccount && (
           <div className="p-6 mt-8 bg-white rounded-lg shadow-lg">
             <h2 className="mb-4 text-lg font-semibold">Resumen de tu compra</h2>
+            {/* ... (cart summary items, same as before) ... */}
             <div className="space-y-4">
               {items.map((item, index) => {
-                const { product, betName, subtotal, cashbackAmount } = getItemDetails(item)
-
+                const { product, subtotal, cashbackAmount } = getItemDetails(item)
                 if (!product) return null
-
                 return (
                   <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100">
                     <div className="flex items-center">
                       <div className="w-12 h-12 overflow-hidden rounded-md">
-                        <img
-                          src={product.image || "/placeholder.svg"}
-                          alt={product.name}
-                          className="object-cover w-full h-full"
-                        />
+                        <img src={product.image || "/placeholder.svg"} alt={product.name} className="object-cover w-full h-full" />
                       </div>
                       <div className="ml-4">
                         <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {item.quantity} x ${product.price.toLocaleString()} • {betName}
-                        </p>
+                        <p className="text-sm text-gray-500">{item.quantity} x ${product.price.toLocaleString()}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -468,7 +390,6 @@ export default function CheckoutPage() {
                   </div>
                 )
               })}
-
               <div className="pt-4 mt-4 border-t border-gray-200">
                 <div className="flex justify-between">
                   <span className="font-medium">Total</span>
@@ -483,8 +404,6 @@ export default function CheckoutPage() {
           </div>
         )}
       </div>
-
-      {/* Auth Modal */}
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onSuccess={handleAuthSuccess} />
     </div>
   )
