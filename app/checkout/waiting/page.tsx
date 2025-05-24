@@ -134,19 +134,19 @@ export default function WaitingPage() {
       <div className="max-w-md mx-auto text-center">
         {status === "waiting" && (
           <>
-            <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-green-100 rounded-full">
-              <Clock className="w-12 h-12 text-green-600 animate-pulse" />
+            <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-blue-100 rounded-full">
+              <Clock className="w-12 h-12 text-blue-600 animate-pulse" />
             </div>
             <h1 className="mb-4 text-3xl font-bold">Procesando tu pago</h1>
             <p className="mb-8 text-gray-600">
               Estamos esperando la confirmación de tu pago con Webpay. Por favor, no cierres esta ventana.
             </p>
-            <div className="p-4 mb-8 border border-green-200 rounded-lg bg-green-50">
-              <p className="text-green-800">
+            <div className="p-4 mb-8 border border-blue-200 rounded-lg bg-blue-50">
+              <p className="text-blue-800">
                 <span className="font-semibold">Tiempo de espera:</span> {Math.floor(timeElapsed / 60)}:
                 {(timeElapsed % 60).toString().padStart(2, "0")}
               </p>
-              <p className="mt-2 text-green-700">
+              <p className="mt-2 text-blue-700">
                 Si ya completaste el pago en Webpay, serás redirigido automáticamente en breve.
               </p>
             </div>
