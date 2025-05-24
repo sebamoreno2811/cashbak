@@ -103,7 +103,7 @@ export default function ProductSlider() {
                     </div>
                     <div className="p-3">
                       <h3 className="text-sm font-medium truncate">{product.name}</h3>
-                      <p className="text-sm text-gray-700">${product.price.toLocaleString()}</p>
+                      <p className="text-sm text-gray-700">${product.price.toLocaleString("es-CL")}</p>
                     </div>
                   </div>
                 </a>

@@ -1,74 +1,84 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, CreditCard, User, Building, AlertCircle, CheckCircle, XCircle, Loader2 } from "lucide-react"
-import type { CheckoutFormData, FormErrors } from "@/types/checkout"
+import { ArrowLeft, CreditCard, AlertCircle, CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { createClient } from "@/utils/supabase/client"
 import { saveCheckoutData } from "./actions"
-
-const BANK_OPTIONS = [
-  "Banco de Chile",
-  "Banco Estado",
-  "Banco Santander",
-  "Banco BCI",
-  "Banco Itaú",
-  "Banco Falabella",
-  "Scotiabank",
-  "Banco Security",
-  "Otro",
-]
-
-const ACCOUNT_TYPES = ["Cuenta Corriente", "Cuenta Vista", "Cuenta de Ahorro", "Cuenta RUT"]
+import AuthModal from "@/components/auth/auth-modal"
 
 export default function CheckoutPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { items, getCartTotal, getTotalCashback, getItemDetails, clearCart } = useCart()
+  const supabase = createClient()
 
-  const [formData, setFormData] = useState<CheckoutFormData>({
-    fullName: "",
-    email: "",
-    phone: "+569",
-    bankName: "",
-    accountType: "",
-    accountNumber: "",
-    rut: "",
-  })
-
-  const [errors, setErrors] = useState<FormErrors>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [step, setStep] = useState(1)
+  const [user, setUser] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
+  const [bankAccount, setBankAccount] = useState<any>(null)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   const [paymentProcessing, setPaymentProcessing] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  // Función helper para formatear número de cuenta
+  const formatAccountNumber = (accountNumber: any) => {
+    if (!accountNumber) return "N/A"
+    const accountStr = String(accountNumber)
+    if (accountStr.length <= 4) return accountStr
+    return `****${accountStr.slice(-4)}`
+  }
+
+  // Verificar autenticación y cargar datos del usuario
+  useEffect(() => {
+    const checkAuth = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      setUser(user)
+
+      if (user) {
+        // Cargar perfil del usuario
+        const { data: profile } = await supabase.from("customers").select("*").eq("id", user.id).single()
+        const { data: bankData } = await supabase.from("bank_accounts").select("*").eq("customer_id", user.id).single()
+
+        setUserProfile(profile)
+        setBankAccount(bankData)
+
+        // Si el usuario está autenticado y tiene datos, proceder automáticamente al pago
+        if (profile && bankData && items.length > 0) {
+          // Pequeño delay para mostrar la información antes de proceder
+          setTimeout(() => {
+            handlePayment()
+          }, 1500)
+        }
+      }
+
+      setIsLoadingProfile(false)
+    }
+
+    checkAuth()
+  }, [supabase])
+
   // Verificar si hay un pago exitoso al cargar la página
   useEffect(() => {
-    // Iniciar con estado de carga
     setIsLoading(true)
 
-    // Obtener parámetros de la URL
     const status = searchParams.get("status")
     const reason = searchParams.get("reason")
     const message = searchParams.get("message")
     const orderIdParam = searchParams.get("order_id")
 
-    // Si hay parámetros en la URL, procesar el resultado del pago
     if (status) {
       if (orderIdParam) {
         setOrderId(orderIdParam)
       }
 
-      // Verificar el estado del pago
       if (status === "success") {
         handleSuccessfulPayment(orderIdParam)
       } else if (status === "error") {
@@ -86,39 +96,31 @@ export default function CheckoutPage() {
         setIsLoading(false)
       }
     } else {
-      // Si no hay parámetros en la URL, verificar si hay items en el carrito
       if (items.length === 0) {
         router.push("/cart")
       } else {
-        // Si hay items en el carrito, mostrar el formulario normal
         setIsLoading(false)
       }
     }
-  }, [items, router, searchParams, clearCart])
+  }, [items, router, searchParams])
 
-  // Función para manejar un pago exitoso
   const handleSuccessfulPayment = async (orderIdParam: string | null) => {
     try {
-      // Recuperar los datos almacenados en localStorage
       const formDataStr = localStorage.getItem("checkout_form_data")
       const cartItemsStr = localStorage.getItem("checkout_cart_items")
       const cartTotalStr = localStorage.getItem("checkout_cart_total")
       const cashbackTotalStr = localStorage.getItem("checkout_cashback_total")
 
-      // Verificar si los datos existen
       if (formDataStr && cartItemsStr && cartTotalStr && cashbackTotalStr) {
         const storedFormData = JSON.parse(formDataStr)
         const cartItems = JSON.parse(cartItemsStr)
         const cartTotal = Number.parseFloat(cartTotalStr)
         const cashbackTotal = Number.parseFloat(cashbackTotalStr)
 
-        // Guardar los datos en Supabase
         const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbackTotal)
 
         if (result.success) {
           setPaymentSuccess(true)
-
-          // Limpiar el carrito y los datos almacenados
           clearCart()
           localStorage.removeItem("checkout_form_data")
           localStorage.removeItem("checkout_cart_items")
@@ -135,111 +137,34 @@ export default function CheckoutPage() {
       console.error("Error al procesar la orden:", err)
       setPaymentError(err.message || "Error al procesar la orden")
     } finally {
-      // Finalizar el estado de carga
       setIsLoading(false)
     }
   }
 
-  const validateStep1 = () => {
-    const newErrors: FormErrors = {}
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = "El nombre completo es requerido"
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "El email es requerido"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Ingresa un email válido"
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = "El número de teléfono es requerido"
-    } else if (!/^\+569\d{8}$/.test(formData.phone)) {
-      newErrors.phone = "El número debe comenzar con +569 seguido de 8 dígitos"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const validateStep2 = () => {
-    const newErrors: FormErrors = {}
-
-    if (!formData.bankName) {
-      newErrors.bankName = "Selecciona un banco"
-    }
-
-    if (!formData.accountType) {
-      newErrors.accountType = "Selecciona un tipo de cuenta"
-    }
-
-    if (!formData.accountNumber.trim()) {
-      newErrors.accountNumber = "El número de cuenta es requerido"
-    } else if (!/^\d+$/.test(formData.accountNumber)) {
-      newErrors.accountNumber = "El número de cuenta debe contener solo dígitos"
-    }
-
-    if (!formData.rut.trim()) {
-      newErrors.rut = "El RUT es requerido"
-    } else if (!/^[0-9]+-[0-9K]$/.test(formData.rut)) {
-      newErrors.rut = "Formato de RUT inválido (ej: 12345678-9 o 12345678-K)"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleNextStep = () => {
-    if (step === 1 && validateStep1()) {
-      setStep(2)
-    }
-  }
-
-  const handlePrevStep = () => {
-    if (step === 2) {
-      setStep(1)
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (step === 2 && validateStep2()) {
-      setIsSubmitting(true)
-
-      try {
-        // Avanzar al paso de pago
-        setStep(3)
-      } catch (error) {
-        console.error("Error al procesar el formulario:", error)
-        alert("Ocurrió un error al procesar tu orden. Por favor, intenta nuevamente más tarde.")
-      } finally {
-        setIsSubmitting(false)
-      }
-    }
-  }
-
-  // Función para iniciar el pago con Webpay
   const handlePayment = async () => {
+    if (!user || !userProfile || !bankAccount) {
+      setIsAuthModalOpen(true)
+      return
+    }
+
     try {
       setPaymentError(null)
       setPaymentProcessing(true)
 
-      // Generar un ID de orden único (máximo 26 caracteres para Webpay)
       const uniqueOrderId = `order-${Date.now().toString().substring(0, 10)}`
       setOrderId(uniqueOrderId)
 
-      // Almacenar los datos en localStorage para procesarlos después del pago exitoso
+      // Usar los datos del usuario autenticado
+      const formData = {
+        fullName: userProfile.full_name || "",
+        email: userProfile.email || "",
+        phone: userProfile.phone || "",
+        bankName: bankAccount.bank_name || "",
+        accountType: bankAccount.account_type || "",
+        accountNumber: String(bankAccount.account_number || ""),
+        rut: bankAccount.rut || "",
+      }
+
       localStorage.setItem("checkout_form_data", JSON.stringify(formData))
       localStorage.setItem(
         "checkout_cart_items",
@@ -256,7 +181,6 @@ export default function CheckoutPage() {
         ),
       )
 
-      // Guardar los totales
       const cartTotal = getCartTotal()
       const cashbackTotal = getTotalCashback()
       localStorage.setItem("checkout_cart_total", cartTotal.toString())
@@ -265,7 +189,6 @@ export default function CheckoutPage() {
 
       console.log("Iniciando transacción con Webpay:", { cartTotal, uniqueOrderId })
 
-      // Iniciar transacción con Webpay
       const response = await fetch("/api/webpay/initiate", {
         method: "POST",
         headers: {
@@ -290,7 +213,6 @@ export default function CheckoutPage() {
         throw new Error("Respuesta inválida del servidor de pago")
       }
 
-      // Crear y enviar formulario para redireccionar a Webpay
       const form = document.createElement("form")
       form.method = "POST"
       form.action = data.url
@@ -313,20 +235,26 @@ export default function CheckoutPage() {
     }
   }
 
-  // Mostrar pantalla de carga mientras se procesa la redirección
-  if (isLoading) {
+  const handleAuthSuccess = () => {
+    setIsAuthModalOpen(false)
+    // Recargar la página para obtener los datos del usuario recién autenticado
+    window.location.reload()
+  }
+
+  if (isLoading || isLoadingProfile) {
     return (
       <div className="container px-4 py-8 mx-auto">
         <div className="flex flex-col items-center justify-center max-w-3xl min-h-[60vh] mx-auto p-6 bg-white rounded-lg shadow-lg">
           <Loader2 className="w-16 h-16 mb-4 text-green-600 animate-spin" />
-          <h2 className="text-xl font-semibold text-gray-800">Procesando tu pago...</h2>
-          <p className="mt-2 text-gray-600">Por favor, espera mientras verificamos el estado de tu transacción.</p>
+          <h2 className="text-xl font-semibold text-gray-800">{user ? "Preparando tu pago..." : "Cargando..."}</h2>
+          <p className="mt-2 text-gray-600">
+            {user ? "Te redirigiremos a Webpay en un momento." : "Por favor, espera mientras cargamos tu información."}
+          </p>
         </div>
       </div>
     )
   }
 
-  // Redirigir al carrito si está vacío y no hay un pago en proceso
   if (items.length === 0 && !paymentSuccess && !paymentError) {
     return <div className="p-8 text-center">Redirigiendo al carrito...</div>
   }
@@ -339,42 +267,6 @@ export default function CheckoutPage() {
           <Button variant="ghost" onClick={() => router.back()} disabled={paymentProcessing}>
             <ArrowLeft className="mr-2 size-4" /> Volver
           </Button>
-        </div>
-
-        {/* Pasos del checkout */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className={`flex flex-col items-center ${step >= 1 ? "text-green-900" : "text-gray-400"}`}>
-              <div
-                className={`flex items-center justify-center w-10 h-10 mb-2 rounded-full ${step >= 1 ? "bg-green-100 text-green-900" : "bg-gray-200 text-gray-500"}`}
-              >
-                <User size={20} />
-              </div>
-              <span className="text-sm">Datos Personales</span>
-            </div>
-
-            <div className={`flex-1 h-1 mx-2 ${step >= 2 ? "bg-green-500" : "bg-gray-200"}`}></div>
-
-            <div className={`flex flex-col items-center ${step >= 2 ? "text-green-900" : "text-gray-400"}`}>
-              <div
-                className={`flex items-center justify-center w-10 h-10 mb-2 rounded-full ${step >= 2 ? "bg-green-100 text-green-900" : "bg-gray-200 text-gray-500"}`}
-              >
-                <Building size={20} />
-              </div>
-              <span className="text-sm">Datos Bancarios</span>
-            </div>
-
-            <div className={`flex-1 h-1 mx-2 ${step >= 3 ? "bg-green-500" : "bg-gray-200"}`}></div>
-
-            <div className={`flex flex-col items-center ${step >= 3 ? "text-green-900" : "text-gray-400"}`}>
-              <div
-                className={`flex items-center justify-center w-10 h-10 mb-2 rounded-full ${step >= 3 ? "bg-green-100 text-green-900" : "bg-gray-200 text-gray-500"}`}
-              >
-                <CreditCard size={20} />
-              </div>
-              <span className="text-sm">Pago</span>
-            </div>
-          </div>
         </div>
 
         <div className="p-6 bg-white rounded-lg shadow-lg">
@@ -396,13 +288,6 @@ export default function CheckoutPage() {
                   Guarda este número como referencia para cualquier consulta sobre tu compra.
                 </p>
               </div>
-              <div className="p-4 mb-6 border border-yellow-200 rounded-lg bg-yellow-50">
-                <p className="font-medium text-yellow-800">Información sobre tu CashBak</p>
-                <p className="mt-2 text-yellow-700">
-                  Recuerda que recibirás tu CashBak según los términos y condiciones de la promoción. Mantente atento a
-                  tu correo electrónico para más información.
-                </p>
-              </div>
               <div className="space-y-4">
                 <Button className="w-full bg-green-900 hover:bg-emerald-700" onClick={() => router.push("/products")}>
                   Seguir comprando
@@ -419,14 +304,6 @@ export default function CheckoutPage() {
               </div>
               <h2 className="mb-4 text-2xl font-bold text-red-800">Error en el Pago</h2>
               <p className="mb-6 text-gray-600">{paymentError}</p>
-              <div className="p-4 mb-6 border border-red-200 rounded-lg bg-red-50">
-                <p className="text-red-800">
-                  <span className="font-semibold">Número de orden:</span> {orderId || "N/A"}
-                </p>
-                <p className="mt-2 text-red-700">
-                  Si el problema persiste, contacta a nuestro servicio de atención al cliente.
-                </p>
-              </div>
               <div className="space-y-4">
                 <Button className="w-full bg-green-900 hover:bg-emerald-700" onClick={() => setPaymentError(null)}>
                   Intentar nuevamente
@@ -436,214 +313,129 @@ export default function CheckoutPage() {
                 </Button>
               </div>
             </div>
+          ) : !user ? (
+            <div className="p-6 text-center">
+              <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-blue-100 rounded-full">
+                <AlertCircle className="w-12 h-12 text-blue-600" />
+              </div>
+              <h2 className="mb-4 text-2xl font-bold text-blue-800">Inicia Sesión para Continuar</h2>
+              <p className="mb-6 text-gray-600">
+                Para realizar tu compra, necesitas tener una cuenta. Inicia sesión o regístrate para continuar.
+              </p>
+              <Button className="w-full bg-green-900 hover:bg-emerald-700" onClick={() => setIsAuthModalOpen(true)}>
+                Iniciar Sesión / Registrarse
+              </Button>
+            </div>
+          ) : paymentProcessing ? (
+            <div className="p-6 text-center">
+              <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-blue-100 rounded-full">
+                <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+              </div>
+              <h2 className="mb-4 text-2xl font-bold text-blue-800">Procesando Pago</h2>
+              <p className="mb-6 text-gray-600">
+                Estamos preparando tu transacción con Webpay. Serás redirigido automáticamente.
+              </p>
+              <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
+                <p className="text-blue-800">
+                  <span className="font-semibold">Total a pagar:</span> ${getCartTotal().toLocaleString()}
+                </p>
+                <p className="text-blue-700">
+                  <span className="font-semibold">CashBak potencial:</span> $
+                  {Math.ceil(getTotalCashback()).toLocaleString()}
+                </p>
+              </div>
+            </div>
           ) : (
-            <form onSubmit={handleSubmit}>
-              {/* Paso 1: Datos Personales */}
-              {step === 1 && (
-                <div className="space-y-6">
-                  <h2 className="text-xl font-semibold">Datos Personales</h2>
-                  <p className="text-sm text-gray-500">Ingresa tus datos para continuar con la compra</p>
+            <div className="space-y-6">
+              <div className="p-4 border border-green-200 rounded-lg bg-green-50">
+                <h2 className="flex items-center text-xl font-semibold text-green-800">
+                  <CheckCircle className="mr-2 size-5" />
+                  ¡Listo para pagar!
+                </h2>
+                <p className="mt-2 text-green-700">Usaremos tus datos guardados para procesar la compra.</p>
+              </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="fullName">Nombre Completo</Label>
-                      <Input
-                        id="fullName"
-                        name="fullName"
-                        value={formData.fullName}
-                        onChange={handleInputChange}
-                        className={errors.fullName ? "border-red-500" : ""}
-                      />
-                      {errors.fullName && <p className="mt-1 text-sm text-red-500">{errors.fullName}</p>}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className={errors.email ? "border-red-500" : ""}
-                      />
-                      {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="phone">Número de Contacto</Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className={errors.phone ? "border-red-500" : ""}
-                      />
-                      {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
-                      <p className="mt-1 text-xs text-gray-500">Formato: +569XXXXXXXX</p>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-4">
-                    <Button type="button" onClick={handleNextStep} className="bg-green-900 hover:bg-emerald-700">
-                      Continuar
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Paso 2: Datos Bancarios */}
-              {step === 2 && (
-                <div className="space-y-6">
-                  <h2 className="text-xl font-semibold">Datos Bancarios para CashBak</h2>
-                  <p className="text-sm text-gray-500">
-                    Ingresa los datos de tu cuenta bancaria donde recibirás el CashBak en caso de ganar
-                  </p>
-
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="bankName">Banco</Label>
-                      <Select
-                        value={formData.bankName}
-                        onValueChange={(value) => handleSelectChange("bankName", value)}
-                      >
-                        <SelectTrigger className={errors.bankName ? "border-red-500" : ""}>
-                          <SelectValue placeholder="Selecciona tu banco" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {BANK_OPTIONS.map((bank) => (
-                            <SelectItem key={bank} value={bank}>
-                              {bank}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.bankName && <p className="mt-1 text-sm text-red-500">{errors.bankName}</p>}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="accountType">Tipo de Cuenta</Label>
-                      <Select
-                        value={formData.accountType}
-                        onValueChange={(value) => handleSelectChange("accountType", value)}
-                      >
-                        <SelectTrigger className={errors.accountType ? "border-red-500" : ""}>
-                          <SelectValue placeholder="Selecciona el tipo de cuenta" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ACCOUNT_TYPES.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.accountType && <p className="mt-1 text-sm text-red-500">{errors.accountType}</p>}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="accountNumber">Número de Cuenta</Label>
-                      <Input
-                        id="accountNumber"
-                        name="accountNumber"
-                        value={formData.accountNumber}
-                        onChange={handleInputChange}
-                        className={errors.accountNumber ? "border-red-500" : ""}
-                      />
-                      {errors.accountNumber && <p className="mt-1 text-sm text-red-500">{errors.accountNumber}</p>}
-                      <p className="mt-1 text-xs text-gray-500">Solo números, sin guiones ni espacios</p>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="rut">RUT</Label>
-                      <Input
-                        id="rut"
-                        name="rut"
-                        value={formData.rut}
-                        onChange={handleInputChange}
-                        className={errors.rut ? "border-red-500" : ""}
-                      />
-                      {errors.rut && <p className="mt-1 text-sm text-red-500">{errors.rut}</p>}
-                      <p className="mt-1 text-xs text-gray-500">Formato: 12345678-9 o 12345678-K</p>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between pt-4">
-                    <Button type="button" variant="outline" onClick={handlePrevStep}>
-                      Volver
-                    </Button>
-                    <Button type="submit" className="bg-green-900 hover:bg-emerald-700" disabled={isSubmitting}>
-                      {isSubmitting ? "Procesando..." : "Continuar"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Paso 3: Pago */}
-              {step === 3 && (
-                <div className="space-y-6">
-                  <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-                    <h2 className="flex items-center text-xl font-semibold text-green-800">
-                      <AlertCircle className="mr-2 size-5" />
-                      Información lista para procesar
-                    </h2>
-                    <p className="mt-2 text-green-700">
-                      Tus datos están listos. Haz clic en el botón de Webpay para realizar el pago.
+              {/* Mostrar datos del usuario */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="p-4 border border-gray-200 rounded-lg">
+                  <h3 className="mb-2 font-medium text-gray-900">Datos Personales</h3>
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <p>
+                      <span className="font-medium">Nombre:</span> {userProfile?.full_name || "No disponible"}
+                    </p>
+                    <p>
+                      <span className="font-medium">Email:</span> {userProfile?.email || "No disponible"}
+                    </p>
+                    <p>
+                      <span className="font-medium">Teléfono:</span> {userProfile?.phone || "No disponible"}
                     </p>
                   </div>
+                </div>
 
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <h3 className="mb-2 text-lg font-medium">Resumen de la orden</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total a pagar:</span>
-                        <span className="font-semibold">${getCartTotal().toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between text-emerald-600">
-                        <span>CashBak potencial:</span>
-                        <span className="font-semibold">${Math.ceil(getTotalCashback()).toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {paymentError && (
-                    <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-                      <p className="text-red-700">
-                        <strong>Error:</strong> {paymentError}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between pt-4">
-                    <Button type="button" variant="outline" onClick={handlePrevStep}>
-                      Volver
-                    </Button>
-                    <Button
-                      onClick={handlePayment}
-                      className="bg-green-900 hover:bg-emerald-700"
-                      disabled={paymentProcessing}
-                    >
-                      {paymentProcessing ? (
-                        <>
-                          <span className="mr-2 animate-spin">◌</span>
-                          Procesando...
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="mr-2 size-4" />
-                          Pagar con Webpay
-                        </>
-                      )}
-                    </Button>
+                <div className="p-4 border border-gray-200 rounded-lg">
+                  <h3 className="mb-2 font-medium text-gray-900">Datos Bancarios</h3>
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <p>
+                      <span className="font-medium">Banco:</span> {bankAccount?.bank_name || "No disponible"}
+                    </p>
+                    <p>
+                      <span className="font-medium">Tipo:</span> {bankAccount?.account_type || "No disponible"}
+                    </p>
+                    <p>
+                      <span className="font-medium">Cuenta:</span> {formatAccountNumber(bankAccount?.account_number)}
+                    </p>
+                    <p>
+                      <span className="font-medium">RUT:</span> {bankAccount?.rut || "No disponible"}
+                    </p>
                   </div>
                 </div>
+              </div>
+
+              <div className="p-4 border border-gray-200 rounded-lg">
+                <h3 className="mb-2 text-lg font-medium">Resumen de la orden</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total a pagar:</span>
+                    <span className="font-semibold">${getCartTotal().toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-emerald-600">
+                    <span>CashBak potencial:</span>
+                    <span className="font-semibold">${Math.ceil(getTotalCashback()).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {paymentError && (
+                <div className="p-4 border border-red-200 rounded-lg bg-red-50">
+                  <p className="text-red-700">
+                    <strong>Error:</strong> {paymentError}
+                  </p>
+                </div>
               )}
-            </form>
+
+              <Button
+                onClick={handlePayment}
+                className="w-full bg-green-900 hover:bg-emerald-700"
+                disabled={paymentProcessing}
+              >
+                {paymentProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    Procesando...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="mr-2 size-4" />
+                    Pagar con Webpay
+                  </>
+                )}
+              </Button>
+            </div>
           )}
         </div>
 
         {/* Resumen del carrito */}
-        {!paymentSuccess && !paymentError && (
+        {!paymentSuccess && !paymentError && user && !paymentProcessing && (
           <div className="p-6 mt-8 bg-white rounded-lg shadow-lg">
             <h2 className="mb-4 text-lg font-semibold">Resumen de tu compra</h2>
             <div className="space-y-4">
@@ -691,6 +483,9 @@ export default function CheckoutPage() {
           </div>
         )}
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onSuccess={handleAuthSuccess} />
     </div>
   )
 }

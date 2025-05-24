@@ -1,11 +1,7 @@
 "use server"
 
-import { createServerClient } from "@/utils/supabase/server"
+import { createSupabaseClientWithCookies } from "@/utils/supabase/server"
 import type { CheckoutFormData } from "@/types/checkout"
-import { revalidatePath } from "next/cache"
-
-// Modificar la función saveCheckoutData para que no redirija automáticamente
-// y solo guarde los datos en Supabase
 
 export async function saveCheckoutData(
   formData: CheckoutFormData,
@@ -16,8 +12,7 @@ export async function saveCheckoutData(
   try {
     console.log("Iniciando guardado de datos de checkout:", formData)
 
-    // Usar createServerClient para evitar problemas con las cookies
-    const supabase = createServerClient()
+    const supabase = await createSupabaseClientWithCookies()
 
     // Verificar la conexión a Supabase
     try {
@@ -34,85 +29,21 @@ export async function saveCheckoutData(
       return { success: false, error: `Error al verificar conexión: ${connError.message}` }
     }
 
-    // Insertar cliente
-    let customerId: string
-    try {
-      const { data: customerData, error: customerError } = await supabase
-        .from("customers")
-        .upsert(
-          {
-            full_name: formData.fullName,
-            email: formData.email,
-            phone: formData.phone,
-          },
-          {
-            onConflict: "email",
-            ignoreDuplicates: false,
-          },
-        )
-        .select("id")
-        .single()
+    // Obtener el usuario autenticado
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
 
-      if (customerError) {
-        console.error("Error al guardar cliente:", customerError)
-        return { success: false, error: `Error al guardar cliente: ${customerError.message}` }
-      }
-
-      if (!customerData || !customerData.id) {
-        // Si no se devolvió un ID, intentar obtener el cliente existente por email
-        const { data: existingCustomer, error: fetchError } = await supabase
-          .from("customers")
-          .select("id")
-          .eq("email", formData.email)
-          .single()
-
-        if (fetchError || !existingCustomer) {
-          console.error("No se pudo obtener el ID del cliente:", fetchError)
-          return { success: false, error: "No se pudo obtener el ID del cliente" }
-        }
-
-        customerId = existingCustomer.id
-      } else {
-        customerId = customerData.id
-      }
-
-      console.log("Cliente guardado/recuperado:", customerId)
-    } catch (customerErr: any) {
-      console.error("Error en operación de cliente:", customerErr)
-      return { success: false, error: `Error en operación de cliente: ${customerErr.message}` }
+    if (userError || !user) {
+      console.error("Error al obtener usuario:", userError)
+      return { success: false, error: "Usuario no autenticado" }
     }
 
-    // Insertar cuenta bancaria
-    try {
-      const { data: bankData, error: bankError } = await supabase
-        .from("bank_accounts")
-        .upsert(
-          {
-            customer_id: customerId,
-            bank_name: formData.bankName,
-            account_type: formData.accountType,
-            account_number: formData.accountNumber,
-            rut: formData.rut,
-          },
-          {
-            onConflict: "customer_id, bank_name, account_number",
-            ignoreDuplicates: false,
-          },
-        )
-        .select()
+    const customerId = user.id
+    console.log("Usuario autenticado:", customerId)
 
-      if (bankError) {
-        console.error("Error al guardar cuenta bancaria:", bankError)
-        return { success: false, error: `Error al guardar cuenta bancaria: ${bankError.message}` }
-      }
-
-      console.log("Cuenta bancaria guardada:", bankData)
-    } catch (bankErr: any) {
-      console.error("Error en operación de cuenta bancaria:", bankErr)
-      return { success: false, error: `Error en operación de cuenta bancaria: ${bankErr.message}` }
-    }
-
-    // Crear orden
+    // Crear orden directamente con el ID del usuario autenticado
     let orderId: string
     try {
       const { data: orderData, error: orderError } = await supabase
@@ -121,8 +52,8 @@ export async function saveCheckoutData(
           customer_id: customerId,
           order_total: cartTotal,
           cashback_amount: cashbackTotal,
-          order_status: "completed", // Cambiado de "pending" a "completed" ya que el pago ya fue exitoso
-          payment_status: "paid", // Cambiado de "pending" a "paid" ya que el pago ya fue exitoso
+          order_status: "completed",
+          payment_status: "paid",
         })
         .select("id")
         .single()
@@ -170,7 +101,6 @@ export async function saveCheckoutData(
       return { success: false, error: `Error en operación de items de orden: ${itemsErr.message}` }
     }
 
-    revalidatePath("/checkout")
     return { success: true, orderId }
   } catch (error: any) {
     console.error("Error al guardar datos de checkout:", error)
@@ -178,5 +108,90 @@ export async function saveCheckoutData(
       success: false,
       error: `Error al procesar la orden: ${error.message || "Error desconocido"}. Por favor, intenta nuevamente.`,
     }
+  }
+}
+
+export async function createUserProfile(userData: {
+  email: string
+  password: string
+  fullName: string
+  phone: string
+  bankName: string
+  accountType: string
+  accountNumber: string
+  rut: string
+}) {
+  try {
+    const supabase = await createSupabaseClientWithCookies()
+
+    // Crear usuario en Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: userData.email,
+      password: userData.password,
+    })
+
+    if (authError) {
+      console.error("Error al crear usuario:", authError)
+      return { success: false, error: authError.message }
+    }
+
+    if (!authData.user) {
+      return { success: false, error: "No se pudo crear el usuario" }
+    }
+
+    // Crear perfil del usuario
+    const { error: profileError } = await supabase.from("customers").insert({
+      id: authData.user.id,
+      email: userData.email,
+      full_name: userData.fullName,
+      phone: userData.phone,
+      created_at: new Date().toISOString(),
+    })
+
+    if (profileError) {
+      console.error("Error al crear perfil:", profileError)
+      return { success: false, error: "Error al crear el perfil del usuario" }
+    }
+
+    // Crear cuenta bancaria
+    const { error: bankError } = await supabase.from("bank_accounts").insert({
+      customer_id: authData.user.id,
+      bank_name: userData.bankName,
+      account_type: userData.accountType,
+      account_number: userData.accountNumber,
+      rut: userData.rut,
+      created_at: new Date().toISOString(),
+    })
+
+    if (bankError) {
+      console.error("Error al crear cuenta bancaria:", bankError)
+      return { success: false, error: "Error al crear la cuenta bancaria" }
+    }
+
+    return { success: true, user: authData.user }
+  } catch (error: any) {
+    console.error("Error en createUserProfile:", error)
+    return { success: false, error: error.message || "Error desconocido" }
+  }
+}
+
+export async function signInUser(email: string, password: string) {
+  try {
+    const supabase = await createSupabaseClientWithCookies()
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      console.error("Error al iniciar sesión:", error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, user: data.user }
+  } catch (error: any) {
+    console.error("Error en signInUser:", error)
+    return { success: false, error: error.message || "Error desconocido" }
   }
 }
