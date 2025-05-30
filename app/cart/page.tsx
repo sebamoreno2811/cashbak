@@ -7,9 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Trash2, ArrowLeft, ShoppingBag } from "lucide-react"
 import { bets } from "@/lib/bets"
+import useSupabaseUser from "@/hooks/use-supabase-user"
+import AuthModal from "@/components/auth/auth-modal"
+
 
 export default function CartPage() {
   const router = useRouter()
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const {
     items,
     removeItem,
@@ -20,12 +24,23 @@ export default function CartPage() {
     getItemDetails,
     clearCart,
   } = useCart()
+  const { user, loading: loadingUser } = useSupabaseUser()
 
   const [isProcessing, setIsProcessing] = useState(false)
 
   const handleCheckout = () => {
+    if(!user){
+       setIsAuthModalOpen(true)
+      return
+    }
     setIsProcessing(true)
     router.push("/checkout")
+  }
+
+  const handleAuthSuccess = () => {
+    setIsAuthModalOpen(false)
+    // Recargar la página para obtener los datos del usuario recién autenticado
+    window.location.reload()
   }
 
   if (items.length === 0) {
@@ -234,6 +249,8 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+      {/* Auth Modal */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onSuccess={handleAuthSuccess} />
     </div>
   )
 }

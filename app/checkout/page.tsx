@@ -38,10 +38,9 @@ export default function CheckoutPage() {
 
   // Verificar autenticación y cargar datos del usuario
   useEffect(() => {
-  if (!user) return
-  console.log(orderId)
-  console.log("orderId")
-  const fetchUserData = async () => {
+    console.log(orderId)
+    console.log("orderId")
+    const fetchUserData = async () => {
     if (!user) return
     const supabase = createClient()
     
@@ -336,10 +335,10 @@ export default function CheckoutPage() {
             </div>
           ) : !user ? (
             <div className="p-6 text-center">
-              <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-blue-100 rounded-full">
-                <AlertCircle className="w-12 h-12 text-blue-600" />
+              <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-green-100 rounded-full">
+                <AlertCircle className="w-12 h-12 text-green-600" />
               </div>
-              <h2 className="mb-4 text-2xl font-bold text-blue-800">Inicia Sesión para Continuar</h2>
+              <h2 className="mb-4 text-2xl font-bold text-green-800">Inicia Sesión para Continuar</h2>
               <p className="mb-6 text-gray-600">
                 Para realizar tu compra, necesitas tener una cuenta. Inicia sesión o regístrate para continuar.
               </p>
@@ -349,18 +348,18 @@ export default function CheckoutPage() {
             </div>
           ) : paymentProcessing ? (
             <div className="p-6 text-center">
-              <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-blue-100 rounded-full">
-                <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+              <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-green-100 rounded-full">
+                <Loader2 className="w-12 h-12 text-green-600 animate-spin" />
               </div>
-              <h2 className="mb-4 text-2xl font-bold text-blue-800">Procesando Pago</h2>
+              <h2 className="mb-4 text-2xl font-bold text-green-800">Procesando Pago</h2>
               <p className="mb-6 text-gray-600">
                 Estamos preparando tu transacción con Webpay. Serás redirigido automáticamente.
               </p>
-              <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                <p className="text-blue-800">
+              <div className="p-4 border border-green-200 rounded-lg bg-green-50">
+                <p className="text-green-800">
                   <span className="font-semibold">Total a pagar:</span> ${getCartTotal().toLocaleString()}
                 </p>
-                <p className="text-blue-700">
+                <p className="text-green-700">
                   <span className="font-semibold">CashBak potencial:</span> $
                   {Math.ceil(getTotalCashback()).toLocaleString()}
                 </p>
