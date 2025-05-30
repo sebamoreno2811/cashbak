@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
@@ -8,14 +8,16 @@ import { ArrowLeft, CreditCard, AlertCircle, CheckCircle, XCircle, Loader2 } fro
 import { createClient } from "@/utils/supabase/client"
 import { saveCheckoutData } from "./actions"
 import AuthModal from "@/components/auth/auth-modal"
+import useSupabaseUser from "@/hooks/use-supabase-user"
+
 
 export default function CheckoutPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { items, getCartTotal, getTotalCashback, getItemDetails, clearCart } = useCart()
-  const supabase = createClient()
 
-  const [user, setUser] = useState<any>(null)
+  const { user, loading: loadingUser } = useSupabaseUser()
+
   const [userProfile, setUserProfile] = useState<any>(null)
   const [bankAccount, setBankAccount] = useState<any>(null)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -36,37 +38,41 @@ export default function CheckoutPage() {
 
   // Verificar autenticación y cargar datos del usuario
   useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      setUser(user)
+  if (!user) return
+  console.log(orderId)
+  console.log("orderId")
+  const fetchUserData = async () => {
+    if (!user) return
+    const supabase = createClient()
+    
+    const { data: profile } = await supabase
+      .from("customers")
+      .select("*")
+      .eq("email", user.email)
+      .single()
+    const { data: bankData } = await supabase
+      .from("bank_accounts")
+      .select("*")
+      .eq("customer_id", profile.id)
+      .single()
 
-      if (user) {
-        // Cargar perfil del usuario
-        const { data: profile } = await supabase.from("customers").select("*").eq("id", user.id).single()
-        const { data: bankData } = await supabase.from("bank_accounts").select("*").eq("customer_id", user.id).single()
+    setUserProfile(profile)
+    setBankAccount(bankData)
 
-        setUserProfile(profile)
-        setBankAccount(bankData)
+    //if (profile && bankData && items.length > 0) {
+    //  handlePayment()
+    //}
 
-        // Si el usuario está autenticado y tiene datos, proceder automáticamente al pago
-        if (profile && bankData && items.length > 0) {
-          // Pequeño delay para mostrar la información antes de proceder
-          setTimeout(() => {
-            handlePayment()
-          }, 1500)
-        }
-      }
+    setIsLoadingProfile(false)
+  }
 
-      setIsLoadingProfile(false)
-    }
+  fetchUserData()
+}, [user])
 
-    checkAuth()
-  }, [supabase])
 
   // Verificar si hay un pago exitoso al cargar la página
   useEffect(() => {
+    console.log(orderId)
     setIsLoading(true)
 
     const status = searchParams.get("status")
@@ -74,13 +80,15 @@ export default function CheckoutPage() {
     const message = searchParams.get("message")
     const orderIdParam = searchParams.get("order_id")
 
+    const decodedOrderId = orderIdParam ? decodeURIComponent(orderIdParam) : null
+
     if (status) {
       if (orderIdParam) {
-        setOrderId(orderIdParam)
+        setOrderId(decodedOrderId)
       }
 
       if (status === "success") {
-        handleSuccessfulPayment(orderIdParam)
+        handleSuccessfulPayment(decodedOrderId)
       } else if (status === "error") {
         let errorMessage = "Ocurrió un error al procesar el pago."
 
@@ -102,46 +110,52 @@ export default function CheckoutPage() {
         setIsLoading(false)
       }
     }
-  }, [items, router, searchParams])
+  }, [])
 
   const handleSuccessfulPayment = async (orderIdParam: string | null) => {
-    try {
-      const formDataStr = localStorage.getItem("checkout_form_data")
-      const cartItemsStr = localStorage.getItem("checkout_cart_items")
-      const cartTotalStr = localStorage.getItem("checkout_cart_total")
-      const cashbackTotalStr = localStorage.getItem("checkout_cashback_total")
+  try {
+    // Verifica si ya se procesó esta orden
 
-      if (formDataStr && cartItemsStr && cartTotalStr && cashbackTotalStr) {
-        const storedFormData = JSON.parse(formDataStr)
-        const cartItems = JSON.parse(cartItemsStr)
-        const cartTotal = Number.parseFloat(cartTotalStr)
-        const cashbackTotal = Number.parseFloat(cashbackTotalStr)
+    const formDataStr = localStorage.getItem("checkout_form_data")
+    const cartItemsStr = localStorage.getItem("checkout_cart_items")
+    const cartTotalStr = localStorage.getItem("checkout_cart_total")
+    const cashbackTotalStr = localStorage.getItem("checkout_cashback_total")
 
-        const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbackTotal)
+    if (formDataStr && cartItemsStr && cartTotalStr && cashbackTotalStr) {
+      const storedFormData = JSON.parse(formDataStr)
+      const cartItems = JSON.parse(cartItemsStr)
+      const cartTotal = Number.parseFloat(cartTotalStr)
+      const cashbackTotal = Number.parseFloat(cashbackTotalStr)
 
-        if (result.success) {
-          setPaymentSuccess(true)
-          clearCart()
-          localStorage.removeItem("checkout_form_data")
-          localStorage.removeItem("checkout_cart_items")
-          localStorage.removeItem("checkout_cart_total")
-          localStorage.removeItem("checkout_cashback_total")
-          localStorage.removeItem("checkout_order_id")
-        } else {
-          setPaymentError(result.error || "Error al guardar los datos de la orden")
-        }
+      const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbackTotal)
+      console.log(Date.now())
+
+      if (result.success) {
+        localStorage.setItem("processed_order_id", orderIdParam || "")
+        setPaymentSuccess(true)
+        clearCart()
+        localStorage.removeItem("checkout_form_data")
+        localStorage.removeItem("checkout_cart_items")
+        localStorage.removeItem("checkout_cart_total")
+        localStorage.removeItem("checkout_cashback_total")
+        localStorage.removeItem("checkout_order_id")
       } else {
-        setPaymentError("No se encontraron datos para esta orden")
+        setPaymentError(result.error || "Error al guardar los datos de la orden")
       }
-    } catch (err: any) {
-      console.error("Error al procesar la orden:", err)
-      setPaymentError(err.message || "Error al procesar la orden")
-    } finally {
-      setIsLoading(false)
+    } else {
+      setPaymentError("No se encontraron datos para esta orden")
     }
+  } catch (err: any) {
+    console.error("Error al procesar la orden:", err)
+    setPaymentError(err.message || "Error al procesar la orden")
+  } finally {
+    setIsLoading(false)
   }
+}
+
 
   const handlePayment = async () => {
+    console.log("handlePayment called", { user, userProfile, bankAccount })
     if (!user || !userProfile || !bankAccount) {
       setIsAuthModalOpen(true)
       return
@@ -151,7 +165,12 @@ export default function CheckoutPage() {
       setPaymentError(null)
       setPaymentProcessing(true)
 
-      const uniqueOrderId = `order-${Date.now().toString().substring(0, 10)}`
+      const randomNumber = Math.floor(Math.random() * 100)
+
+      const emailPrefix = user.email?.split("@")[0]?.replace(/[^a-zA-Z0-9]/g, "") || "user"
+
+      const uniqueOrderId = `order-${emailPrefix}-${randomNumber}`
+      const encodedOrderId = encodeURIComponent(uniqueOrderId)
       setOrderId(uniqueOrderId)
 
       // Usar los datos del usuario autenticado
@@ -175,6 +194,7 @@ export default function CheckoutPage() {
               ...item,
               product: details.product,
               betName: details.betName,
+              order_id: uniqueOrderId,
               cashbackPercentage: details.cashbackPercentage,
             }
           }),
@@ -185,7 +205,7 @@ export default function CheckoutPage() {
       const cashbackTotal = getTotalCashback()
       localStorage.setItem("checkout_cart_total", cartTotal.toString())
       localStorage.setItem("checkout_cashback_total", cashbackTotal.toString())
-      localStorage.setItem("checkout_order_id", uniqueOrderId)
+      localStorage.setItem("checkout_order_id", encodedOrderId)
 
       console.log("Iniciando transacción con Webpay:", { cartTotal, uniqueOrderId })
 
@@ -241,7 +261,7 @@ export default function CheckoutPage() {
     window.location.reload()
   }
 
-  if (isLoading || isLoadingProfile) {
+  if (isLoading || isLoadingProfile || loadingUser) {
     return (
       <div className="container px-4 py-8 mx-auto">
         <div className="flex flex-col items-center justify-center max-w-3xl min-h-[60vh] mx-auto p-6 bg-white rounded-lg shadow-lg">
@@ -284,6 +304,7 @@ export default function CheckoutPage() {
                 <p className="text-green-800">
                   <span className="font-semibold">Número de orden:</span> {orderId || "N/A"}
                 </p>
+
                 <p className="mt-2 text-green-700">
                   Guarda este número como referencia para cualquier consulta sobre tu compra.
                 </p>

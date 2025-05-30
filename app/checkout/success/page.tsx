@@ -112,9 +112,12 @@ export default function CheckoutSuccessPage() {
               Tu pago ha sido procesado correctamente. Hemos registrado tu compra y pronto recibirás un correo
               electrónico con todos los detalles.
             </p>
-            <div className="p-4 mb-8 border border-green-200 rounded-lg bg-green-50">
-              <p className="text-green-800">
+            <div className="p-4 mb-8 overflow-auto overflow-x-auto border border-green-200 rounded-lg bg-green-50">
+              <p className="text-green-800 break-words whitespace-normal">
                 <span className="font-semibold">Número de orden:</span> {orderId || "N/A"}
+              </p>
+              <p className="text-green-800 break-words whitespace-normal">
+                {orderId || "N/A"}
               </p>
               <p className="mt-2 text-green-700">
                 Guarda este número como referencia para cualquier consulta sobre tu compra.

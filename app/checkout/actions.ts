@@ -40,7 +40,13 @@ export async function saveCheckoutData(
       return { success: false, error: "Usuario no autenticado" }
     }
 
-    const customerId = user.id
+    const { data: profile } = await supabase
+      .from("customers")
+      .select("*")
+      .eq("email", user.email)
+      .single()
+
+    const customerId = profile.id
     console.log("Usuario autenticado:", customerId)
 
     // Crear orden directamente con el ID del usuario autenticado
@@ -86,6 +92,7 @@ export async function saveCheckoutData(
         bet_option_id: item.betOptionId,
         bet_name: item.betName,
         cashback_percentage: item.cashbackPercentage,
+        order_id_client: item.order_id
       }))
 
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems)
@@ -110,7 +117,7 @@ export async function saveCheckoutData(
     }
   }
 }
-
+//Error al procesar la orden: Cannot read properties of undefined (reading 'id'). Por favor, intenta nuevamente
 export async function createUserProfile(userData: {
   email: string
   password: string
