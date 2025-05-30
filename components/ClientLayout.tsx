@@ -3,18 +3,19 @@
 import AuthModal from "@/components/auth/auth-modal"
 import UserMenu from "@/components/auth/user-menu"
 import { useCart } from "@/hooks/use-cart"
-import { ShoppingCart } from "lucide-react"
-import { useState, type ReactNode } from "react"
+import { ShoppingCart, Menu } from "lucide-react"
+import { useState } from "react"
 import Link from "next/link"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
-interface ClientLayoutProps {
-  children: ReactNode
-}
-
-export default function ClientLayout({ children }: ClientLayoutProps) {
+export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const { items } = useCart()
-
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
 
   return (
@@ -28,7 +29,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
               <span className="text-xl font-bold">CashBak</span>
             </Link>
 
-            {/* Navigation */}
+            {/* Desktop Nav */}
             <nav className="items-center hidden space-x-6 md:flex">
               <Link href="/" className="transition-colors hover:text-green-200">
                 Inicio
@@ -44,10 +45,33 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
               </Link>
             </nav>
 
-            {/* Right side actions */}
+            {/* Right side actions (always visible) */}
             <div className="flex items-center space-x-4">
-              {/* User Menu */}
+              {/* User menu */}
               <UserMenu onAuthRequired={() => setShowAuthModal(true)} />
+
+              {/* Mobile menu (hidden on md+) */}
+              <div className="md:hidden">
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="p-1 rounded hover:bg-green-800 focus:outline-none">
+                    <Menu className="w-6 h-6 text-white" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 text-green-900">
+                    <DropdownMenuItem asChild>
+                      <Link href="/">Inicio</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/products">Productos</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="#">Cómo funciona</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="#">Contacto</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
 
               {/* Cart */}
               <Link href="/cart" className="relative flex items-center transition-colors hover:text-green-200">
@@ -66,7 +90,6 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
 
       <main className="flex-grow bg-gray-50">{children}</main>
 
-      {/* Footer */}
       <footer className="py-8 text-white bg-gray-800">
         <div className="container px-4 mx-auto">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
