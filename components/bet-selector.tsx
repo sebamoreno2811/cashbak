@@ -14,7 +14,6 @@ export default function BetSelector({ value, onChange }: BetSelectorProps) {
   const { selectedOption, setSelectedOption } = useBetOption()
   return (
     <div className="mb-6">
-      <h3 className="mb-2 text-lg font-medium">Selecciona tu CashBak</h3>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Selecciona una opción" />

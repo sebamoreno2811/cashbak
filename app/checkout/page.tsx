@@ -195,7 +195,8 @@ export default function CheckoutPage() {
               betName: details.betName,
               order_id: uniqueOrderId,
               cashbakPercentage: details.cashbakPercentage,
-              bet_amount: details.bet_amount
+              bet_amount: details.bet_amount,
+              size: details.size
             }
           }),
         ),

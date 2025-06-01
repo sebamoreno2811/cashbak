@@ -93,7 +93,8 @@ export async function saveCheckoutData(
         bet_name: item.betName,
         cashback_percentage: item.cashbakPercentage,
         order_id_client: item.order_id,
-        bet_amount: item.bet_amount
+        bet_amount: item.bet_amount,
+        size: item.size
 
       }))
 

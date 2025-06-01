@@ -20,6 +20,8 @@ export default function ProductPage() {
   const [cashbak, setcashbak] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
+  const [size, setSize] = useState<string>("L") 
+
   const { addItem } = useCart()
 
   const getYouTubeEmbedUrl = (url: string) => {
@@ -49,7 +51,7 @@ export default function ProductPage() {
   const handleAddToCart = () => {
     if (!product) return
 
-    addItem(product.id, quantity, selectedOption)
+    addItem(product.id, quantity, selectedOption, size)
 
     // Mostrar animación de éxito
     setAddedToCart(true)
@@ -121,6 +123,22 @@ export default function ProductPage() {
               </Select>
             </div>
 
+            <div className="w-24">
+              <Select value={size} onValueChange={(val) => setSize(val)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Talla" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["S", "M", "L", "XL"].map((talla) => (
+                    <SelectItem key={talla} value={talla}>
+                      {talla}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+
             <Button
               className={`flex-1 ${addedToCart ? "bg-emerald-600" : "bg-green-900 hover:bg-emerald-700"}`}
               onClick={handleAddToCart}
@@ -167,28 +185,6 @@ export default function ProductPage() {
           </div>
         </div>
       )}
-      <div className="p-6 mt-12 bg-white rounded-lg shadow-lg">
-        <h2 className="mb-4 text-2xl font-bold">Detalles del producto</h2>
-        <div className="grid gap-8 md:grid-cols-2">
-          <div>
-            <h3 className="mb-2 text-lg font-medium">Características</h3>
-            <ul className="pl-5 space-y-1 list-disc">
-              <li>Material de alta calidad</li>
-              <li>Diseño exclusivo</li>
-              <li>Disponible en varios tamaños</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="mb-2 text-lg font-medium">Especificaciones</h3>
-            <ul className="pl-5 space-y-1 list-disc">
-              <li>Marca: {product.brand}</li>
-              <li>Categoría: {product.categoryName}</li>
-              <li>Código: {product.id}</li>
-              <li>Stock disponible: {product.stock} unidades</li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

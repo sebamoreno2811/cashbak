@@ -4,12 +4,17 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Trash2, ArrowLeft, ShoppingBag } from "lucide-react"
 import { bets } from "@/lib/bets"
 import useSupabaseUser from "@/hooks/use-supabase-user"
 import AuthModal from "@/components/auth/auth-modal"
-
 
 export default function CartPage() {
   const router = useRouter()
@@ -19,6 +24,7 @@ export default function CartPage() {
     removeItem,
     updateItemQuantity,
     updateItemBetOption,
+    updateItemSize,
     getCartTotal,
     getTotalcashbak,
     getItemDetails,
@@ -29,8 +35,8 @@ export default function CartPage() {
   const [isProcessing, setIsProcessing] = useState(false)
 
   const handleCheckout = () => {
-    if(!user){
-       setIsAuthModalOpen(true)
+    if (!user) {
+      setIsAuthModalOpen(true)
       return
     }
     setIsProcessing(true)
@@ -39,7 +45,6 @@ export default function CartPage() {
 
   const handleAuthSuccess = () => {
     setIsAuthModalOpen(false)
-    // Recargar la página para obtener los datos del usuario recién autenticado
     window.location.reload()
   }
 
@@ -49,8 +54,13 @@ export default function CartPage() {
         <div className="max-w-2xl mx-auto text-center">
           <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-gray-400" />
           <h1 className="mb-4 text-2xl font-bold">Tu carrito está vacío</h1>
-          <p className="mb-8 text-gray-600">Parece que aún no has agregado productos a tu carrito.</p>
-          <Button onClick={() => router.push("/products")} className="bg-green-900 hover:bg-emerald-700">
+          <p className="mb-8 text-gray-600">
+            Parece que aún no has agregado productos a tu carrito.
+          </p>
+          <Button
+            onClick={() => router.push("/products")}
+            className="bg-green-900 hover:bg-emerald-700"
+          >
             Ver productos
           </Button>
         </div>
@@ -75,19 +85,18 @@ export default function CartPage() {
                 <div className="hidden mb-4 md:grid md:grid-cols-12 md:gap-4 md:text-sm md:font-medium md:text-gray-500">
                   <div className="col-span-6">Producto</div>
                   <div className="col-span-2">Precio</div>
-                  <div className="col-span-2">Cantidad</div>
+                  <div className="col-span-2"></div>
                   <div className="col-span-2 text-right">Subtotal</div>
                 </div>
 
                 <div className="divide-y divide-gray-200">
                   {items.map((item, index) => {
                     const { product, betName, subtotal, cashbakAmount } = getItemDetails(item)
-
                     if (!product) return null
 
                     return (
                       <div key={index} className="py-6 md:grid md:grid-cols-12 md:gap-4">
-                        {/* Producto (móvil y desktop) */}
+                        {/* Producto */}
                         <div className="flex md:col-span-6">
                           <div className="flex-shrink-0 w-24 h-24 overflow-hidden rounded-md">
                             <img
@@ -100,15 +109,15 @@ export default function CartPage() {
                             <h3 className="text-base font-medium">{product.name}</h3>
                             <p className="mt-1 text-sm text-gray-500">Categoría: {product.categoryName}</p>
 
-                            {/* Selector de apuesta (móvil) */}
+                            {/* Evento (mobile) */}
                             <div className="mt-2 md:hidden">
-                              <p className="mb-1 text-sm text-gray-500">Apuesta:</p>
+                              <p className="mb-1 text-sm text-gray-500">Evento asociado a Cashbak:</p>
                               <Select
                                 value={item.betOptionId}
                                 onValueChange={(value) => updateItemBetOption(index, value)}
                               >
                                 <SelectTrigger className="w-full h-8 text-xs">
-                                  <SelectValue placeholder="Selecciona una apuesta" />
+                                  <SelectValue placeholder="Selecciona un evento pa" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {bets.map((bet) => (
@@ -120,14 +129,14 @@ export default function CartPage() {
                               </Select>
                             </div>
 
-                            {/* Selector de apuesta (desktop) */}
+                            {/* Evento (desktop) */}
                             <div className="hidden mt-2 md:block">
                               <Select
                                 value={item.betOptionId}
                                 onValueChange={(value) => updateItemBetOption(index, value)}
                               >
                                 <SelectTrigger className="w-full h-8 text-xs">
-                                  <SelectValue placeholder="Selecciona una apuesta" />
+                                  <SelectValue placeholder="Selecciona una Evento" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {bets.map((bet) => (
@@ -158,30 +167,49 @@ export default function CartPage() {
                           <span>${product.price.toLocaleString()}</span>
                         </div>
 
-                        {/* Cantidad (móvil y desktop) */}
-                        <div className="flex items-center mt-4 md:mt-0 md:col-span-2">
-                          <Select
-                            value={item.quantity.toString()}
-                            onValueChange={(value) => updateItemQuantity(index, Number.parseInt(value))}
-                          >
-                            <SelectTrigger className="w-20 h-8">
-                              <SelectValue placeholder="Cant." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                                <SelectItem key={num} value={num.toString()}>
-                                  {num}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                        {/* Cantidad + Talla */}
+                        <div className="flex items-end mt-4 gap-x-4 md:mt-0 md:col-span-2">
+                          {/* Cantidad */}
+                          <div className="flex flex-col">
+                            <label className="mb-1 text-sm text-gray-600">Cantidad</label>
+                            <Select
+                              value={item.quantity.toString()}
+                              onValueChange={(value) => updateItemQuantity(index, Number.parseInt(value))}
+                            >
+                              <SelectTrigger className="w-24 h-8 text-sm">
+                                <SelectValue placeholder="Cant." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[...Array(10)].map((_, i) => (
+                                  <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                    {i + 1}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-                          {/* Precio (móvil) */}
-                          <div className="ml-4 md:hidden">
-                            <span className="text-sm text-gray-500">Precio: </span>
-                            <span>${product.price.toLocaleString()}</span>
+                          {/* Talla */}
+                          <div className="flex flex-col">
+                            <label className="mb-1 text-sm text-gray-600">Talla</label>
+                            <Select
+                              value={item.size || ""}
+                              onValueChange={(val) => updateItemSize(index, val)}
+                            >
+                              <SelectTrigger className="w-24 h-8 text-sm">
+                                <SelectValue placeholder="Talla" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {["S", "M", "L", "XL"].map((talla) => (
+                                  <SelectItem key={talla} value={talla}>
+                                    {talla}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
+
 
                         {/* Subtotal (desktop) */}
                         <div className="hidden text-right md:flex md:col-span-2 md:items-center md:justify-end">
@@ -201,6 +229,7 @@ export default function CartPage() {
             </div>
           </div>
 
+          {/* RESUMEN DE ORDEN */}
           <div className="lg:col-span-1">
             <div className="p-6 bg-white rounded-lg shadow-lg">
               <h2 className="mb-4 text-lg font-bold">Resumen de la orden</h2>
@@ -241,15 +270,15 @@ export default function CartPage() {
               <div className="mt-6">
                 <h3 className="mb-2 text-sm font-medium">Información de CashBak</h3>
                 <p className="text-sm text-gray-600">
-                  El CashBak se acreditará en tu cuenta una vez que se confirme el resultado de los eventos deportivos
-                  seleccionados.
+                  El CashBak se acreditará en tu cuenta una vez que se confirme el resultado de los eventos deportivos seleccionados.
                 </p>
               </div>
             </div>
           </div>
         </div>
       </div>
-      {/* Auth Modal */}
+
+      {/* Modal de autenticación */}
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onSuccess={handleAuthSuccess} />
     </div>
   )

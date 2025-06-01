@@ -33,7 +33,7 @@ export function ProductSelection() {
 
   return (
     <div className="mb-6">
-      <label htmlFor="option-select" className="block mb-2 text-sm font-medium">
+      <label htmlFor="option-select" className="block mb-2 text-xl font-bold">
         Selecciona tu promoción de CashBak:
       </label>
       <BetSelector value={selectedOption} onChange={handleOptionChange} />
