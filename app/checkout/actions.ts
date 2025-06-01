@@ -57,7 +57,7 @@ export async function saveCheckoutData(
         .insert({
           customer_id: customerId,
           order_total: cartTotal,
-          cashbak_amount: cashbakTotal,
+          cashback_amount: cashbakTotal,
           order_status: "completed",
           payment_status: "paid",
         })
@@ -91,7 +91,7 @@ export async function saveCheckoutData(
         price: item.product.price,
         bet_option_id: item.betOptionId,
         bet_name: item.betName,
-        cashbak_percentage: item.cashbakPercentage,
+        cashback_percentage: item.cashbakPercentage,
         order_id_client: item.order_id,
         bet_amount: item.bet_amount
 
