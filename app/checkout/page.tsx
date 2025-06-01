@@ -268,7 +268,7 @@ export default function CheckoutPage() {
           <Loader2 className="w-16 h-16 mb-4 text-green-600 animate-spin" />
           <h2 className="text-xl font-semibold text-gray-800">{user ? "Preparando tu pago..." : "Cargando..."}</h2>
           <p className="mt-2 text-gray-600">
-            {user ? "Te redirigiremos a Webpay en un momento." : "Por favor, espera mientras cargamos tu información."}
+            {user ? "Estamos procesando tu información, tardará un momento." : "Por favor, espera mientras cargamos tu información."}
           </p>
         </div>
       </div>
