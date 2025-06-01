@@ -46,7 +46,16 @@ export default function ProductSlider() {
       })
       setCurrentSlide(index)
     }
+
+    // Forzar scroll vertical hacia arriba en la ventana
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }, 100)
   }
+
+
+
+
 
   const handleScroll = () => {
     if (sliderRef.current) {
@@ -92,7 +101,7 @@ export default function ProductSlider() {
       >
         {slideProducts.map((slideItems, slideIndex) => (
           <div key={slideIndex} className="flex-shrink-0 w-full snap-center" data-porcentaje={slideIndex + 1}>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 overflow-y-auto max-h-[600px] pr-2">
               {slideItems.map((product) => (
                 <a key={product.id} href={`/product/${product.id}`} className="block group">
                   <div className="overflow-hidden transition-all duration-300 bg-white rounded-lg shadow-sm hover:shadow-md">
