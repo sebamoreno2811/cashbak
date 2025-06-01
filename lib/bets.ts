@@ -24,7 +24,7 @@ export type Bets = {
     },
     {
         id: 3,
-        name: "U. de Chile le gana a Ohhigins",
+        name: "U. de Chile le gana a Ohiggins",
         odd: 1.55,
         date: "2025-05-31",
         active: 1
