@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { products } from "@/lib/products"
 import { useProductSelection } from "@/hooks/use-product-selection"
-import { calculateCashback } from "@/lib/cashback-calculator"
+import { calculateCashback, calcularMontoApostar } from "@/lib/cashback-calculator"
 import { useBetOption } from "@/hooks/use-bet-option"
 
 export default function ProductSlider() {
@@ -16,13 +16,15 @@ export default function ProductSlider() {
   
 
   // Group products by category for slides
-  const slideProducts = [
-    products.filter((p) => p.category === 1), // Retro corta
-    products.filter((p) => p.category === 2), // Retro larga
-    products.filter((p) => p.category === 3), // Actual
-  ]
+  const categories = [...new Set(products.map((p) => p.category))];
+
+  const slideProducts = categories.map((category) =>
+    products.filter((p) => p.category === category)
+  );
 
   useEffect(() => {
+
+    console.log(`aloooo :${calcularMontoApostar(Number.parseFloat(selectedOption), currentSlide + 1)}`)
     // Update cashback display when slide or option changes
     const cashbackDisplay = document.getElementById("cashback-display")
     if (cashbackDisplay) {

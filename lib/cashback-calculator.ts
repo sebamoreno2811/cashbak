@@ -18,7 +18,7 @@ function getPricesAndCostsByCategory(category: number): { price: number, cost: n
 export function descuentoSegunCuota(cuota: number, precioVenta: number, precioCompra: number): number {
   //const resultado = 0.6 * margen * cuota - margen
 
-  const resultado = cuota * (precioVenta - precioCompra - (0.5*precioCompra)) / precioVenta
+  const resultado = (cuota / precioVenta) * (precioVenta - precioCompra - (0.4*precioCompra))
   return Math.min(1, Math.max(0, resultado))
 }
 
@@ -34,6 +34,16 @@ export function calculateCashback(option: number, category: number): number {
   const precioCompra = priceAndCost?.cost ?? 0
   // Calcular cashback usando la función descuentoSegunCuota
   return Math.floor(descuentoSegunCuota(cuota,  precioVenta, precioCompra) * 100)
+}
+
+export function calcularMontoApostar(option: number, category: number): number {
+  const bet = bets.find((b) => b.id === option)
+  const cuota = bet?.odd ?? 0
+  const priceAndCost = getPricesAndCostsByCategory(category)
+  const precioVenta = priceAndCost?.price ?? 0
+  const precioCompra = priceAndCost?.cost ?? 0
+  const cashbak = descuentoSegunCuota(cuota,  precioVenta, precioCompra)
+  return  ((cashbak * precioVenta)) / cuota  
 }
 
 // Obtener todas las opciones de apuesta disponibles

@@ -10,44 +10,23 @@ export type Bets = {
     // Categoría 1: Retro corta
     {
         id: 1,
-        name: "Palestino gana a Cruzeiro",
-        odd: 2,
-        date: "2025-05-14",
+        name: "Inter de Milan Gana la Champions",
+        odd: 3.70,
+        date: "2025-05-31",
         active: 1
     },
     {
         id: 2,
-        name: "Colo Colo gana a Racing",
-        odd: 4.55,
-        date: "2025-05-14",
+        name: "PSG gana la Champions",
+        odd: 2.12,
+        date: "2025-05-31",
         active: 1
     },
     {
         id: 3,
-        name: "Inter de Milan ganará la Serie A",
-        odd: 3.55,
-        date: "2025-05-20",
-        active: 1
-    },
-    {
-        id: 4,
-        name: "Colo Colo ganará la liga de Primera",
-        odd: 3,
-        date: "2025-05-20",
-        active: 1
-    },
-    {
-        id: 5,
-        name: "Universidad de Chile ganará la liga de Primera",
-        odd: 3,
-        date: "2025-05-20",
-        active: 1
-    },
-    {
-        id: 6,
-        name: "Palestino ganará la liga de Primera",
-        odd: 20,
-        date: "2025-05-20",
+        name: "U. de Chile le gana a Ohhigins",
+        odd: 1.55,
+        date: "2025-05-31",
         active: 1
     }
 

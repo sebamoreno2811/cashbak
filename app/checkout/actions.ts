@@ -92,7 +92,9 @@ export async function saveCheckoutData(
         bet_option_id: item.betOptionId,
         bet_name: item.betName,
         cashback_percentage: item.cashbackPercentage,
-        order_id_client: item.order_id
+        order_id_client: item.order_id,
+        bet_amount: item.bet_amount
+
       }))
 
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems)

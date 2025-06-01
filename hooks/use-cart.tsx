@@ -3,13 +3,14 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { bets } from "@/lib/bets"
 import { products, type Product } from "@/lib/products"
-import { calculateCashback } from "@/lib/cashback-calculator"
+import { calculateCashback, calcularMontoApostar } from "@/lib/cashback-calculator"
 
 export type CartItem = {
   productId: number
   quantity: number
   betOptionId: string
   cashbackPercentage: number
+  bet_amount: number
 }
 
 type CartContextType = {
@@ -28,6 +29,7 @@ type CartContextType = {
     subtotal: number
     cashbackAmount: number
     cashbackPercentage: number
+    bet_amount: number
   }
 }
 
@@ -60,6 +62,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Calcular el porcentaje de cashback
     const cashbackPercentage = calculateCashback(Number.parseFloat(betOptionId), product.category)
 
+    const bet_amount = calcularMontoApostar(Number.parseFloat(betOptionId), product.category)
+
+
     // Verificar si el producto ya está en el carrito
     const existingItemIndex = items.findIndex(
       (item) => item.productId === productId && item.betOptionId === betOptionId,
@@ -79,6 +84,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           quantity,
           betOptionId,
           cashbackPercentage,
+          bet_amount
         },
       ])
     }
@@ -148,6 +154,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       subtotal,
       cashbackAmount,
       cashbackPercentage: item.cashbackPercentage,
+      bet_amount: item.bet_amount
     }
   }
 

@@ -195,6 +195,7 @@ export default function CheckoutPage() {
               betName: details.betName,
               order_id: uniqueOrderId,
               cashbackPercentage: details.cashbackPercentage,
+              bet_amount: details.bet_amount
             }
           }),
         ),
@@ -483,7 +484,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium">${subtotal.toLocaleString()}</p>
-                      <p className="text-sm text-emerald-600">CashBak: ${cashbackAmount.toLocaleString()}</p>
+                      <p className="text-sm text-emerald-600">CashBak: ${Math.ceil(cashbackAmount).toLocaleString()}</p>
                     </div>
                   </div>
                 )
