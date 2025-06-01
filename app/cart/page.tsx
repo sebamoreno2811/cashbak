@@ -140,7 +140,7 @@ export default function CartPage() {
                             </div>
 
                             <div className="flex items-center mt-2 text-sm text-emerald-600">
-                              <span>CashBak: {item.cashbakPercentage.toFixed(0)}%</span>
+                              <span>CashBak: {(item.cashbakPercentage ?? 0).toFixed(0)}%</span>
                             </div>
 
                             <button
