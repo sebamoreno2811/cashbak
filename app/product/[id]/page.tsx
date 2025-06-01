@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { products } from "@/lib/products"
-import { calculateCashback } from "@/lib/cashback-calculator"
+import { calculatecashbak } from "@/lib/cashbak-calculator"
 import { useBetOption } from "@/hooks/use-bet-option"
 import { useCart } from "@/hooks/use-cart"
 import { ArrowLeft, ShoppingCart, Check } from "lucide-react"
@@ -17,7 +17,7 @@ export default function ProductPage() {
   const router = useRouter()
   const [product, setProduct] = useState<any>(null)
   const { selectedOption, setSelectedOption } = useBetOption()
-  const [cashback, setCashback] = useState(0)
+  const [cashbak, setcashbak] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
   const { addItem } = useCart()
@@ -33,16 +33,16 @@ export default function ProductPage() {
 
     if (foundProduct) {
       setProduct(foundProduct)
-      const initialCashback = calculateCashback(Number.parseFloat(selectedOption), foundProduct.category)
-      setCashback(initialCashback)
+      const initialcashbak = calculatecashbak(Number.parseFloat(selectedOption), foundProduct.category)
+      setcashbak(initialcashbak)
     }
   }, [params.id, selectedOption])
 
   const handleOptionChange = (value: string) => {
     setSelectedOption(value)
     if (product) {
-      const newCashback = calculateCashback(Number.parseFloat(value), product.category)
-      setCashback(newCashback)
+      const newcashbak = calculatecashbak(Number.parseFloat(value), product.category)
+      setcashbak(newcashbak)
     }
   }
 
@@ -98,9 +98,9 @@ export default function ProductPage() {
           <BetSelector value={selectedOption} onChange={handleOptionChange} />
 
           <div className="p-4 mt-4 border rounded-lg border-emerald-200 bg-emerald-50">
-            <p className="text-lg font-semibold text-green-900">CashBak del: {cashback.toFixed(0)}%</p>
+            <p className="text-lg font-semibold text-green-900">CashBak del: {cashbak.toFixed(0)}%</p>
             <p className="mt-1 text-sm text-green-800">
-              Recibirás ${Math.ceil((product.price * cashback) / 100)} de vuelta, en caso de que se cumpla el evento
+              Recibirás ${Math.ceil((product.price * cashbak) / 100)} de vuelta, en caso de que se cumpla el evento
               seleccionado.
             </p>
           </div>
@@ -140,7 +140,7 @@ export default function ProductPage() {
 
           <Button
             variant="outline"
-            className="w-full mt-2 border-green-900 text-green-900 hover:bg-green-50"
+            className="w-full mt-2 text-green-900 border-green-900 hover:bg-green-50"
             onClick={handleGoToCart}
           >
             Ver carrito

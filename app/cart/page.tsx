@@ -20,7 +20,7 @@ export default function CartPage() {
     updateItemQuantity,
     updateItemBetOption,
     getCartTotal,
-    getTotalCashback,
+    getTotalcashbak,
     getItemDetails,
     clearCart,
   } = useCart()
@@ -81,7 +81,7 @@ export default function CartPage() {
 
                 <div className="divide-y divide-gray-200">
                   {items.map((item, index) => {
-                    const { product, betName, subtotal, cashbackAmount } = getItemDetails(item)
+                    const { product, betName, subtotal, cashbakAmount } = getItemDetails(item)
 
                     if (!product) return null
 
@@ -140,7 +140,7 @@ export default function CartPage() {
                             </div>
 
                             <div className="flex items-center mt-2 text-sm text-emerald-600">
-                              <span>CashBak: {item.cashbackPercentage.toFixed(0)}%</span>
+                              <span>CashBak: {item.cashbakPercentage.toFixed(0)}%</span>
                             </div>
 
                             <button
@@ -218,7 +218,7 @@ export default function CartPage() {
 
                 <div className="flex justify-between text-emerald-600">
                   <span>CashBak potencial</span>
-                  <span>${Math.ceil(getTotalCashback()).toLocaleString()}</span>
+                  <span>${Math.ceil(getTotalcashbak()).toLocaleString()}</span>
                 </div>
 
                 <div className="pt-3 mt-3 border-t border-gray-200">

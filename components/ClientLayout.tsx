@@ -25,7 +25,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2">
-              <img src="/img/logo.png" alt="CashBak" className="w-auto h-8" />
               <span className="text-xl font-bold">CashBak</span>
             </Link>
 
@@ -37,10 +36,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               <Link href="/products" className="transition-colors hover:text-green-200">
                 Productos
               </Link>
-              <Link href="#" className="transition-colors hover:text-green-200">
+              <Link href="/howto" className="transition-colors hover:text-green-200">
                 Cómo funciona
               </Link>
-              <Link href="#" className="transition-colors hover:text-green-200">
+              <Link href="/contact" className="transition-colors hover:text-green-200">
                 Contacto
               </Link>
             </nav>

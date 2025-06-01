@@ -10,7 +10,7 @@ import ClientLayout from "@/components/ClientLayout"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "CashBak - Camisetas con CashBack",
+  title: "CashBak - Camisetas con cashbak",
   description: "Compra camisetas retro y recibe CashBak cuando tu equipo gane",
   generator: "Next.js",
 }

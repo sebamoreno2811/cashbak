@@ -2,7 +2,7 @@ import ProductSlider from "@/components/product-slider"
 import { ProductSelection } from "@/components/product-selection"
 import { products } from "@/lib/products"
 import BetSelector from "@/components/bet-selector"
-import { calculateMaxCashback } from "@/lib/cashback-calculator"
+import { calculateMaxcashbak } from "@/lib/cashbak-calculator"
 
 export default function Home() {
   return (
@@ -16,7 +16,7 @@ export default function Home() {
           <ProductSelection />
 
           <div
-            id="cashback-display"
+            id="cashbak-display"
             className="flex items-center justify-center w-full h-20 mb-6 text-xl font-semibold bg-gray-100 rounded-lg"
           >
             Calculando CashBak...
@@ -27,7 +27,7 @@ export default function Home() {
 
         <section className="mt-16">
           <h2 className="mb-6 text-2xl font-bold">Todos los Productos</h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 overflow-y-auto max-h-[670px] pr-2">
             {products.map((product) => (
               <a key={product.id} href={`/product/${product.id}`} className="group">
                 <div className="overflow-hidden transition-all duration-300 bg-white rounded-lg shadow-md hover:shadow-xl">
@@ -41,7 +41,7 @@ export default function Home() {
                   <div className="p-4">
                     <h3 className="mb-2 text-lg font-semibold">{product.name}</h3>
                     <p className="text-gray-700">${product.price.toLocaleString()}</p>
-                    <div className="mt-2 font-medium text-emerald-600">CashBak: hasta {calculateMaxCashback(product.category)}%</div>
+                    <div className="mt-2 font-medium text-emerald-600">CashBak: hasta {calculateMaxcashbak(product.category)}%</div>
                   </div>
                 </div>
               </a>

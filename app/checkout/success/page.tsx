@@ -44,18 +44,18 @@ export default function CheckoutSuccessPage() {
         const formDataStr = localStorage.getItem("checkout_form_data")
         const cartItemsStr = localStorage.getItem("checkout_cart_items")
         const cartTotalStr = localStorage.getItem("checkout_cart_total")
-        const cashbackTotalStr = localStorage.getItem("checkout_cashback_total")
+        const cashbakTotalStr = localStorage.getItem("checkout_cashbak_total")
         const storedOrderId = localStorage.getItem("checkout_order_id")
 
         // Verificar si los datos existen y corresponden a esta orden
-        if (formDataStr && cartItemsStr && cartTotalStr && cashbackTotalStr && storedOrderId === orderId) {
+        if (formDataStr && cartItemsStr && cartTotalStr && cashbakTotalStr && storedOrderId === orderId) {
           const formData = JSON.parse(formDataStr)
           const cartItems = JSON.parse(cartItemsStr)
           const cartTotal = Number.parseFloat(cartTotalStr)
-          const cashbackTotal = Number.parseFloat(cashbackTotalStr)
+          const cashbakTotal = Number.parseFloat(cashbakTotalStr)
 
           // Guardar los datos en Supabase
-          const result = await saveCheckoutData(formData, cartItems, cartTotal, cashbackTotal)
+          const result = await saveCheckoutData(formData, cartItems, cartTotal, cashbakTotal)
 
           if (result.success) {
             setSuccess(true)
@@ -65,7 +65,7 @@ export default function CheckoutSuccessPage() {
             localStorage.removeItem("checkout_form_data")
             localStorage.removeItem("checkout_cart_items")
             localStorage.removeItem("checkout_cart_total")
-            localStorage.removeItem("checkout_cashback_total")
+            localStorage.removeItem("checkout_cashbak_total")
             localStorage.removeItem("checkout_order_id")
             localStorage.removeItem(`payment_completed_${orderId}`)
             localStorage.removeItem(`payment_details_${orderId}`)

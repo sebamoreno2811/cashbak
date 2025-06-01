@@ -282,7 +282,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                   <div className="pt-4 space-y-4 border-t">
                     <h3 className="text-sm font-medium text-gray-900">Datos Bancarios para CashBak</h3>
                     <p className="px-3 py-1 mt-1 text-xs text-green-900 bg-green-100 rounded-md">
-                      Ingresa tu información bancaria para recibir directamente tus recompensas.
+                      Es necesario que ingreses esta información para que podamos depositarte el CashBak respectivo de tu compra!.
                     </p>
 
                     <div>

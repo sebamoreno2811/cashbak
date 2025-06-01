@@ -3,13 +3,13 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { bets } from "@/lib/bets"
 import { products, type Product } from "@/lib/products"
-import { calculateCashback, calcularMontoApostar } from "@/lib/cashback-calculator"
+import { calculatecashbak, calcularMontoApostar } from "@/lib/cashbak-calculator"
 
 export type CartItem = {
   productId: number
   quantity: number
   betOptionId: string
-  cashbackPercentage: number
+  cashbakPercentage: number
   bet_amount: number
 }
 
@@ -22,13 +22,13 @@ type CartContextType = {
   clearCart: () => void
   getItemsCount: () => number
   getCartTotal: () => number
-  getTotalCashback: () => number
+  getTotalcashbak: () => number
   getItemDetails: (item: CartItem) => {
     product: Product | undefined
     betName: string
     subtotal: number
-    cashbackAmount: number
-    cashbackPercentage: number
+    cashbakAmount: number
+    cashbakPercentage: number
     bet_amount: number
   }
 }
@@ -59,8 +59,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const product = products.find((p) => p.id === productId)
     if (!product) return
 
-    // Calcular el porcentaje de cashback
-    const cashbackPercentage = calculateCashback(Number.parseFloat(betOptionId), product.category)
+    // Calcular el porcentaje de cashbak
+    const cashbakPercentage = calculatecashbak(Number.parseFloat(betOptionId), product.category)
 
     const bet_amount = calcularMontoApostar(Number.parseFloat(betOptionId), product.category)
 
@@ -83,7 +83,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           productId,
           quantity,
           betOptionId,
-          cashbackPercentage,
+          cashbakPercentage,
           bet_amount
         },
       ])
@@ -108,10 +108,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Actualizar la opción de apuesta
     item.betOptionId = betOptionId
 
-    // Recalcular el porcentaje de cashback
+    // Recalcular el porcentaje de cashbak
     const product = products.find((p) => p.id === item.productId)
     if (product) {
-      item.cashbackPercentage = calculateCashback(Number.parseFloat(betOptionId), product.category)
+      item.cashbakPercentage = calculatecashbak(Number.parseFloat(betOptionId), product.category)
     }
 
     setItems(updatedItems)
@@ -132,13 +132,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }, 0)
   }
 
-  const getTotalCashback = () => {
+  const getTotalcashbak = () => {
     return items.reduce((total, item) => {
       const product = products.find((p) => p.id === item.productId)
       if (!product) return total
 
-      const cashbackAmount = (product.price * item.quantity * item.cashbackPercentage) / 100
-      return total + cashbackAmount
+      const cashbakAmount = (product.price * item.quantity * item.cashbakPercentage) / 100
+      return total + cashbakAmount
     }, 0)
   }
 
@@ -146,14 +146,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const product = products.find((p) => p.id === item.productId)
     const bet = bets.find((b) => b.id.toString() === item.betOptionId)
     const subtotal = (product?.price || 0) * item.quantity
-    const cashbackAmount = (subtotal * item.cashbackPercentage) / 100
+    const cashbakAmount = (subtotal * item.cashbakPercentage) / 100
 
     return {
       product,
       betName: bet?.name || "Opción no disponible",
       subtotal,
-      cashbackAmount,
-      cashbackPercentage: item.cashbackPercentage,
+      cashbakAmount,
+      cashbakPercentage: item.cashbakPercentage,
       bet_amount: item.bet_amount
     }
   }
@@ -169,7 +169,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clearCart,
         getItemsCount,
         getCartTotal,
-        getTotalCashback,
+        getTotalcashbak,
         getItemDetails,
       }}
     >

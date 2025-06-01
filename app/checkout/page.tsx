@@ -14,7 +14,7 @@ import useSupabaseUser from "@/hooks/use-supabase-user"
 export default function CheckoutPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { items, getCartTotal, getTotalCashback, getItemDetails, clearCart } = useCart()
+  const { items, getCartTotal, getTotalcashbak, getItemDetails, clearCart } = useCart()
 
   const { user, loading: loadingUser } = useSupabaseUser()
 
@@ -118,15 +118,15 @@ export default function CheckoutPage() {
     const formDataStr = localStorage.getItem("checkout_form_data")
     const cartItemsStr = localStorage.getItem("checkout_cart_items")
     const cartTotalStr = localStorage.getItem("checkout_cart_total")
-    const cashbackTotalStr = localStorage.getItem("checkout_cashback_total")
+    const cashbakTotalStr = localStorage.getItem("checkout_cashbak_total")
 
-    if (formDataStr && cartItemsStr && cartTotalStr && cashbackTotalStr) {
+    if (formDataStr && cartItemsStr && cartTotalStr && cashbakTotalStr) {
       const storedFormData = JSON.parse(formDataStr)
       const cartItems = JSON.parse(cartItemsStr)
       const cartTotal = Number.parseFloat(cartTotalStr)
-      const cashbackTotal = Number.parseFloat(cashbackTotalStr)
+      const cashbakTotal = Number.parseFloat(cashbakTotalStr)
 
-      const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbackTotal)
+      const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbakTotal)
       console.log(Date.now())
 
       if (result.success) {
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
         localStorage.removeItem("checkout_form_data")
         localStorage.removeItem("checkout_cart_items")
         localStorage.removeItem("checkout_cart_total")
-        localStorage.removeItem("checkout_cashback_total")
+        localStorage.removeItem("checkout_cashbak_total")
         localStorage.removeItem("checkout_order_id")
       } else {
         setPaymentError(result.error || "Error al guardar los datos de la orden")
@@ -194,7 +194,7 @@ export default function CheckoutPage() {
               product: details.product,
               betName: details.betName,
               order_id: uniqueOrderId,
-              cashbackPercentage: details.cashbackPercentage,
+              cashbakPercentage: details.cashbakPercentage,
               bet_amount: details.bet_amount
             }
           }),
@@ -202,9 +202,9 @@ export default function CheckoutPage() {
       )
 
       const cartTotal = getCartTotal()
-      const cashbackTotal = getTotalCashback()
+      const cashbakTotal = getTotalcashbak()
       localStorage.setItem("checkout_cart_total", cartTotal.toString())
-      localStorage.setItem("checkout_cashback_total", cashbackTotal.toString())
+      localStorage.setItem("checkout_cashbak_total", cashbakTotal.toString())
       localStorage.setItem("checkout_order_id", encodedOrderId)
 
       console.log("Iniciando transacción con Webpay:", { cartTotal, uniqueOrderId })
@@ -362,7 +362,7 @@ export default function CheckoutPage() {
                 </p>
                 <p className="text-green-700">
                   <span className="font-semibold">CashBak potencial:</span> $
-                  {Math.ceil(getTotalCashback()).toLocaleString()}
+                  {Math.ceil(getTotalcashbak()).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -421,7 +421,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between text-emerald-600">
                     <span>CashBak potencial:</span>
-                    <span className="font-semibold">${Math.ceil(getTotalCashback()).toLocaleString()}</span>
+                    <span className="font-semibold">${Math.ceil(getTotalcashbak()).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -461,7 +461,7 @@ export default function CheckoutPage() {
             <h2 className="mb-4 text-lg font-semibold">Resumen de tu compra</h2>
             <div className="space-y-4">
               {items.map((item, index) => {
-                const { product, betName, subtotal, cashbackAmount } = getItemDetails(item)
+                const { product, betName, subtotal, cashbakAmount } = getItemDetails(item)
 
                 if (!product) return null
 
@@ -484,7 +484,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium">${subtotal.toLocaleString()}</p>
-                      <p className="text-sm text-emerald-600">CashBak: ${Math.ceil(cashbackAmount).toLocaleString()}</p>
+                      <p className="text-sm text-emerald-600">CashBak: ${Math.ceil(cashbakAmount).toLocaleString()}</p>
                     </div>
                   </div>
                 )
@@ -497,7 +497,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-emerald-600">
                   <span>CashBak potencial</span>
-                  <span className="font-medium">${Math.ceil(getTotalCashback()).toLocaleString()}</span>
+                  <span className="font-medium">${Math.ceil(getTotalcashbak()).toLocaleString()}</span>
                 </div>
               </div>
             </div>

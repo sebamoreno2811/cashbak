@@ -80,16 +80,16 @@ export default function WaitingPage() {
       const formDataStr = localStorage.getItem("checkoutFormData")
       const cartItemsStr = localStorage.getItem("checkoutCartItems")
       const cartTotalStr = localStorage.getItem("checkoutCartTotal")
-      const cashbackTotalStr = localStorage.getItem("checkoutCashbackTotal")
+      const cashbakTotalStr = localStorage.getItem("checkoutcashbakTotal")
 
-      if (formDataStr && cartItemsStr && cartTotalStr && cashbackTotalStr) {
+      if (formDataStr && cartItemsStr && cartTotalStr && cashbakTotalStr) {
         const formData = JSON.parse(formDataStr)
         const cartItems = JSON.parse(cartItemsStr)
         const cartTotal = Number.parseFloat(cartTotalStr)
-        const cashbackTotal = Number.parseFloat(cashbackTotalStr)
+        const cashbakTotal = Number.parseFloat(cashbakTotalStr)
 
         // Guardar los datos en Supabase
-        const result = await saveCheckoutData(formData, cartItems, cartTotal, cashbackTotal)
+        const result = await saveCheckoutData(formData, cartItems, cartTotal, cashbakTotal)
 
         if (result.success) {
           // Limpiar el carrito y los datos almacenados
@@ -97,7 +97,7 @@ export default function WaitingPage() {
           localStorage.removeItem("checkoutFormData")
           localStorage.removeItem("checkoutCartItems")
           localStorage.removeItem("checkoutCartTotal")
-          localStorage.removeItem("checkoutCashbackTotal")
+          localStorage.removeItem("checkoutcashbakTotal")
           localStorage.removeItem(`pendingOrderId`)
 
           // Guardar el estado del pago

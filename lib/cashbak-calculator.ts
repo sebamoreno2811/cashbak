@@ -1,9 +1,9 @@
 /**
- * Calculates the cashback percentage based on the selected option and product category
+ * Calculates the cashbak percentage based on the selected option and product category
  *
  * @param option - The selected option value (1-4)
  * @param category - The product category (1-3)
- * @returns The calculated cashback percentage
+ * @returns The calculated cashbak percentage
  */
 // Función para calcular descuento basado en cuota y margen
 
@@ -22,8 +22,8 @@ export function descuentoSegunCuota(cuota: number, precioVenta: number, precioCo
   return Math.min(1, Math.max(0, resultado))
 }
 
-// Función para calcular cashback basado en opción y categoría
-export function calculateCashback(option: number, category: number): number {
+// Función para calcular cashbak basado en opción y categoría
+export function calculatecashbak(option: number, category: number): number {
   // Define cuota basada en la opción
   const bet = bets.find((b) => b.id === option)
   const cuota = bet?.odd ?? 0 // Si no se encuentra, usar 0
@@ -32,7 +32,7 @@ export function calculateCashback(option: number, category: number): number {
   const priceAndCost = getPricesAndCostsByCategory(category)
   const precioVenta = priceAndCost?.price ?? 0
   const precioCompra = priceAndCost?.cost ?? 0
-  // Calcular cashback usando la función descuentoSegunCuota
+  // Calcular cashbak usando la función descuentoSegunCuota
   return Math.floor(descuentoSegunCuota(cuota,  precioVenta, precioCompra) * 100)
 }
 
@@ -51,11 +51,11 @@ export function getAllBettingOptions(): number[] {
   return [1, 2, 3] // Opciones disponibles: 1, 2, 3
 }
 
-// Calcular el máximo cashback posible para una categoría de producto
-export function calculateMaxCashback(category: number): number {
+// Calcular el máximo cashbak posible para una categoría de producto
+export function calculateMaxcashbak(category: number): number {
   const options = getAllBettingOptions()
 
-  // Calcular cashback para todas las opciones y encontrar el máximo
-  const cashbacks = options.map((option) => calculateCashback(option, category))
-  return Math.max(...cashbacks)
+  // Calcular cashbak para todas las opciones y encontrar el máximo
+  const cashbaks = options.map((option) => calculatecashbak(option, category))
+  return Math.max(...cashbaks)
 }

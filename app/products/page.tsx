@@ -5,7 +5,7 @@ import { products } from "@/lib/products"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-import { calculateMaxCashback } from "@/lib/cashback-calculator"
+import { calculateMaxcashbak } from "@/lib/cashbak-calculator"
 
 // Get unique categories from products
 const categories = Array.from(new Set(products.map((product) => product.categoryName)))
@@ -59,7 +59,7 @@ export default function ProductsPage() {
                 <div className="p-4">
                   <h3 className="mb-2 text-lg font-semibold">{product.name}</h3>
                   <p className="text-gray-700">${product.price.toLocaleString()}</p>
-                  <div className="mt-2 font-medium text-emerald-600">CashBak: hasta {calculateMaxCashback(product.category)}%</div>
+                  <div className="mt-2 font-medium text-emerald-600">CashBak: hasta {calculateMaxcashbak(product.category)}%</div>
                   <div className="mt-1 text-sm text-gray-500">Categoría: {product.categoryName}</div>
                 </div>
               </div>

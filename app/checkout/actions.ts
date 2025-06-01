@@ -7,7 +7,7 @@ export async function saveCheckoutData(
   formData: CheckoutFormData,
   cartItems: any[],
   cartTotal: number,
-  cashbackTotal: number,
+  cashbakTotal: number,
 ) {
   try {
     console.log("Iniciando guardado de datos de checkout:", formData)
@@ -57,7 +57,7 @@ export async function saveCheckoutData(
         .insert({
           customer_id: customerId,
           order_total: cartTotal,
-          cashback_amount: cashbackTotal,
+          cashbak_amount: cashbakTotal,
           order_status: "completed",
           payment_status: "paid",
         })
@@ -91,7 +91,7 @@ export async function saveCheckoutData(
         price: item.product.price,
         bet_option_id: item.betOptionId,
         bet_name: item.betName,
-        cashback_percentage: item.cashbackPercentage,
+        cashbak_percentage: item.cashbakPercentage,
         order_id_client: item.order_id,
         bet_amount: item.bet_amount
 

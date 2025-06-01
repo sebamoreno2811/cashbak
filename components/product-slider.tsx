@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { products } from "@/lib/products"
 import { useProductSelection } from "@/hooks/use-product-selection"
-import { calculateCashback, calcularMontoApostar } from "@/lib/cashback-calculator"
+import { calculatecashbak, calcularMontoApostar } from "@/lib/cashbak-calculator"
 import { useBetOption } from "@/hooks/use-bet-option"
 
 export default function ProductSlider() {
@@ -25,14 +25,14 @@ export default function ProductSlider() {
   useEffect(() => {
 
     console.log(`aloooo :${calcularMontoApostar(Number.parseFloat(selectedOption), currentSlide + 1)}`)
-    // Update cashback display when slide or option changes
-    const cashbackDisplay = document.getElementById("cashback-display")
-    if (cashbackDisplay) {
-      cashbackDisplay.textContent = "Calculando CashBak..."
+    // Update cashbak display when slide or option changes
+    const cashbakDisplay = document.getElementById("cashbak-display")
+    if (cashbakDisplay) {
+      cashbakDisplay.textContent = "Calculando CashBak..."
 
       setTimeout(() => {
-        const cashback = calculateCashback(Number.parseFloat(selectedOption), currentSlide + 1)
-        cashbackDisplay.textContent = `CashBak del: ${cashback.toFixed(0)}%`
+        const cashbak = calculatecashbak(Number.parseFloat(selectedOption), currentSlide + 1)
+        cashbakDisplay.textContent = `CashBak del: ${cashbak.toFixed(0)}%`
       }, 500)
     }
   }, [currentSlide, selectedOption])
