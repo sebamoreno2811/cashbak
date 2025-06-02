@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
+import type { Talla } from "@/types/cart"
 import {
   Select,
   SelectContent,
@@ -172,22 +173,34 @@ export default function CartPage() {
                           {/* Cantidad */}
                           <div className="flex flex-col">
                             <label className="mb-1 text-sm text-gray-600">Cantidad</label>
-                            <Select
-                              value={item.quantity.toString()}
-                              onValueChange={(value) => updateItemQuantity(index, Number.parseInt(value))}
-                            >
-                              <SelectTrigger className="w-24 h-8 text-sm">
-                                <SelectValue placeholder="Cant." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {[...Array(10)].map((_, i) => (
-                                  <SelectItem key={i + 1} value={(i + 1).toString()}>
-                                    {i + 1}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            {(() => {
+                              const availableStock = product?.stock?.[item.size as Talla] ?? 0
+
+                              // Cantidad ajustada: al menos 1, máximo disponible
+                              const adjustedQuantity = Math.min(Math.max(item.quantity, 1), availableStock || 1)
+
+                              return (
+                                <Select
+                                  value={adjustedQuantity.toString()}
+                                  onValueChange={(value) => updateItemQuantity(index, Number.parseInt(value))}
+                                  disabled={availableStock === 0}
+                                >
+                                  <SelectTrigger className="w-24 h-8 text-sm">
+                                    <SelectValue placeholder="Cant." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {[...Array(Math.min(availableStock, 10))].map((_, i) => (
+                                      <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                        {i + 1}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )
+
+                            })()}
                           </div>
+
 
                           {/* Talla */}
                           <div className="flex flex-col">
@@ -200,9 +213,13 @@ export default function CartPage() {
                                 <SelectValue placeholder="Talla" />
                               </SelectTrigger>
                               <SelectContent>
-                                {["S", "M", "L", "XL"].map((talla) => (
-                                  <SelectItem key={talla} value={talla}>
-                                    {talla}
+                                {Object.entries(product?.stock || {}).map(([talla, cantidad]) => (
+                                  <SelectItem
+                                    key={talla}
+                                    value={talla}
+                                    disabled={cantidad <= 0}
+                                  >
+                                    {talla} {cantidad <= 0 ? "(Agotado)" : ""}
                                   </SelectItem>
                                 ))}
                               </SelectContent>

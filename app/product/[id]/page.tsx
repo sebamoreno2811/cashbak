@@ -20,9 +20,27 @@ export default function ProductPage() {
   const [cashbak, setcashbak] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
-  const [size, setSize] = useState<string>("L") 
+  const [size, setSize] = useState<string>("L")
 
-  const { addItem } = useCart()
+  const { addItem, items } = useCart()
+
+  // Stock disponible para la talla seleccionada
+  const availableStock = product?.stock?.[size] ?? 0
+
+  // Cantidad ya en carrito para este producto y talla
+  const currentQuantityInCart = items
+    .filter(item => item.productId === product?.id && item.size === size)
+    .reduce((sum, item) => sum + item.quantity, 0)
+
+  // Stock restante real que se puede añadir
+  const remainingStock = availableStock - currentQuantityInCart
+
+  // Cantidad máxima para seleccionar (máximo 10 o lo que quede en stock)
+  const maxQuantity = Math.min(10, Math.max(remainingStock, 0))
+  const quantityOptions = Array.from({ length: maxQuantity }, (_, i) => i + 1)
+
+  // Cuando no hay stock disponible para añadir (ya sea físico o en carrito)
+  const outOfStock = remainingStock <= 0
 
   const getYouTubeEmbedUrl = (url: string) => {
     const match = url.match(/(?:\?v=|\/embed\/|\.be\/)([\w-]{11})/)
@@ -40,6 +58,13 @@ export default function ProductPage() {
     }
   }, [params.id, selectedOption])
 
+  // Ajusta la cantidad si excede el máximo permitido al cambiar talla o stock
+  useEffect(() => {
+    if (quantity > maxQuantity) {
+      setQuantity(maxQuantity > 0 ? maxQuantity : 1)
+    }
+  }, [size, availableStock, currentQuantityInCart])
+
   const handleOptionChange = (value: string) => {
     setSelectedOption(value)
     if (product) {
@@ -51,13 +76,27 @@ export default function ProductPage() {
   const handleAddToCart = () => {
     if (!product) return
 
+    // Recalcula cantidad en carrito para evitar añadir más de lo disponible
+    const currentQuantityInCart = items
+      .filter(item => item.productId === product.id && item.size === size)
+      .reduce((sum, item) => sum + item.quantity, 0)
+
+    const totalQuantity = currentQuantityInCart + quantity
+
+    if (totalQuantity > availableStock) {
+      toast({
+        title: "Stock insuficiente",
+        description: `No puedes agregar ${quantity} unidades. Ya tienes ${currentQuantityInCart} en el carrito y solo hay ${availableStock} disponibles para la talla ${size}.`,
+        variant: "destructive",
+      })
+      return
+    }
+
     addItem(product.id, quantity, selectedOption, size)
 
-    // Mostrar animación de éxito
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 1500)
 
-    // Mostrar notificación
     toast({
       title: "Producto agregado al carrito",
       description: `${quantity} x ${product.name}`,
@@ -96,7 +135,6 @@ export default function ProductPage() {
             <p className="text-gray-700">{product.description}</p>
           </div>
 
-          {/* Apuestas (modularizado) */}
           <BetSelector value={selectedOption} onChange={handleOptionChange} />
 
           <div className="p-4 mt-4 border rounded-lg border-emerald-200 bg-emerald-50">
@@ -108,46 +146,69 @@ export default function ProductPage() {
           </div>
 
           <div className="flex items-center gap-4 mt-6 mb-6">
-            <div className="w-24">
-              <Select value={quantity.toString()} onValueChange={(val) => setQuantity(Number.parseInt(val))}>
+            <div className="w-32">
+              <Select
+                value={outOfStock ? "0" : quantity.toString()}
+                onValueChange={(val) => {
+                  if (!outOfStock) {
+                    const parsed = Number.parseInt(val)
+                    const safeValue = Math.min(parsed, maxQuantity)
+                    setQuantity(safeValue)
+                  }
+                }}
+                disabled={outOfStock}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Cantidad" />
                 </SelectTrigger>
                 <SelectContent>
-                  {[1, 2, 3, 4, 5].map((num) => (
-                    <SelectItem key={num} value={num.toString()}>
-                      {num}
+                  {outOfStock ? (
+                    <SelectItem value="0" disabled>
+                      Agotada
                     </SelectItem>
-                  ))}
+                  ) : (
+                    quantityOptions.map((num) => (
+                      <SelectItem key={num} value={num.toString()}>
+                        {num}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
+
             </div>
 
-            <div className="w-24">
+            <div className="w-16">
               <Select value={size} onValueChange={(val) => setSize(val)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Talla" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["S", "M", "L", "XL"].map((talla) => (
-                    <SelectItem key={talla} value={talla}>
-                      {talla}
-                    </SelectItem>
-                  ))}
+                  {["S", "M", "L", "XL"].map((talla) => {
+                    const stockDisponible = product.stock?.[talla] ?? 0
+                    const agotado = stockDisponible === 0
+
+                    return (
+                      <SelectItem key={talla} value={talla} disabled={agotado}>
+                        {agotado ? `${talla} (agotado)` : talla}
+                      </SelectItem>
+                    )
+                  })}
                 </SelectContent>
               </Select>
             </div>
 
-
             <Button
               className={`flex-1 ${addedToCart ? "bg-emerald-600" : "bg-green-900 hover:bg-emerald-700"}`}
               onClick={handleAddToCart}
-              disabled={addedToCart}
+              disabled={addedToCart || outOfStock}
             >
               {addedToCart ? (
                 <>
                   <Check className="mr-2 size-4" /> Agregado
                 </>
+              ) : outOfStock ? (
+                <>Sin stock</>
               ) : (
                 <>
                   <ShoppingCart className="mr-2 size-4" /> Añadir al carrito
@@ -155,6 +216,12 @@ export default function ProductPage() {
               )}
             </Button>
           </div>
+
+          {remainingStock <= 2 && remainingStock >= 0 && (
+            <p className="mt-2 text-sm font-semibold text-red-600">
+              Stock limitado: queda(n) {remainingStock} unidad(es) disponible(s) en talla {size}
+            </p>
+          )}
 
           <Button
             variant="outline"
@@ -170,6 +237,7 @@ export default function ProductPage() {
           </div>
         </div>
       </div>
+
       {product.videoUrl && (
         <div className="mt-8 mb-6">
           <h1 className="mb-4 text-3xl font-bold text-center text-gray-800">Mejores momentos de esta camiseta</h1>

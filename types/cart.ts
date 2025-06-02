@@ -1,0 +1,1 @@
+export type Talla = "S" | "M" | "L" | "XL"

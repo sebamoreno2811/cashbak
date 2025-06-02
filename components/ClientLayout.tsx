@@ -63,10 +63,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                       <Link href="/products">Productos</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="#">Cómo funciona</Link>
+                      <Link href="/howto">Cómo funciona</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="#">Contacto</Link>
+                      <Link href="contact">Contacto</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

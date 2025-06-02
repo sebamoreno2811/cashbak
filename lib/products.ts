@@ -1,3 +1,8 @@
+type Size = "S" | "M" | "L" | "XL"
+
+type Stock = {
+  [key in Size]?: number
+}
 export type Product = {
   id: number
   name: string
@@ -8,7 +13,7 @@ export type Product = {
   category: number // 1: Retro corta, 2: Retro larga, 3: Actual
   categoryName: string
   brand: string
-  stock: number
+  stock: Stock
   videoUrl: string
 }
 
@@ -24,7 +29,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 25,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 2,
+      XL: 0
+    },
     videoUrl: "https://www.youtube.com/watch?v=VSWBpiHFrtU",
     
   },
@@ -38,7 +48,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 18,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 1,
+      XL: 0
+    },
     videoUrl: "",
   },
   {
@@ -51,7 +66,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 22,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 2,
+      XL: 0
+    },
     videoUrl: "",
   },
   {
@@ -64,7 +84,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 15,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 2,
+      XL: 0
+    },
     videoUrl: "",
   },
   {
@@ -77,7 +102,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 10,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 1,
+      XL: 0
+    },
     videoUrl: "",
   },
   {
@@ -90,7 +120,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 8,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 1,
+      XL: 0
+    },
     videoUrl: "",
   },
 
@@ -105,7 +140,12 @@ export const products: Product[] = [
     category: 2,
     categoryName: "Retro larga",
     brand: "CashBak Sports",
-    stock: 12,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 2,
+      XL: 0
+    },
     videoUrl: "",
   },
   {
@@ -118,7 +158,12 @@ export const products: Product[] = [
     category: 2,
     categoryName: "Retro larga",
     brand: "CashBak Sports",
-    stock: 9,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 1,
+      XL: 0
+    },
     videoUrl: "",
   },
   {
@@ -131,7 +176,12 @@ export const products: Product[] = [
     category: 2,
     categoryName: "Retro larga",
     brand: "CashBak Sports",
-    stock: 7,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 1,
+      XL: 0
+    },
     videoUrl: "",
   },
 
@@ -147,7 +197,12 @@ export const products: Product[] = [
     category: 3,
     categoryName: "Actual",
     brand: "CashBak Sports",
-    stock: 30,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 2,
+      XL: 0
+    },
     videoUrl: "",
   },
   {
@@ -160,7 +215,12 @@ export const products: Product[] = [
     category: 3,
     categoryName: "Actual",
     brand: "CashBak Sports",
-    stock: 20,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 2,
+      XL: 0
+    },
     videoUrl: "",
   },
   {
@@ -174,7 +234,12 @@ export const products: Product[] = [
     category: 3,
     categoryName: "Actual",
     brand: "CashBak Sports",
-    stock: 25,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 2,
+      XL: 0
+    },
     videoUrl: "",
   },
   {
@@ -187,7 +252,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 15,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 1,
+      XL: 0
+    },
     videoUrl: "",
   },
   {
@@ -200,7 +270,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 15,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 1,
+      XL: 0
+    },
     videoUrl: "",
   },
 
@@ -214,7 +289,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 15,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 1,
+      XL: 0
+    },
     videoUrl: "",
   },
 
@@ -228,7 +308,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 15,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 1,
+      XL: 0
+    },
     videoUrl: "",
   },
 
@@ -242,7 +327,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 15,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 1,
+      XL: 0
+    },
     videoUrl: "",
   },
 
@@ -256,7 +346,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 15,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 1,
+      XL: 0
+    },
     videoUrl: "",
   },
 
@@ -270,7 +365,12 @@ export const products: Product[] = [
     category: 1,
     categoryName: "Retro corta",
     brand: "CashBak Sports",
-    stock: 15,
+    stock: {
+      S: 0,
+      M: 0,
+      L: 2,
+      XL: 0
+    },
     videoUrl: "",
   }
 ]
