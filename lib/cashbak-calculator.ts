@@ -1,61 +1,55 @@
-/**
- * Calculates the cashbak percentage based on the selected option and product category
- *
- * @param option - The selected option value (1-4)
- * @param category - The product category (1-3)
- * @returns The calculated cashbak percentage
- */
-// Función para calcular descuento basado en cuota y margen
-
 import { bets } from "@/lib/bets"
-import { products } from "@/lib/products"
+import type { Product } from "@/types/product"
 
-function getPricesAndCostsByCategory(category: number): { price: number, cost: number } | undefined {
-  const product = products.find(product => product.category === category)
-  return product ? { price: product.price, cost: product.cost } : undefined
+function getPricesAndCostsByCategory(category: number, products: Product[] = []): { price: number, cost: number } | undefined {
+  if (!products || products.length === 0) return undefined
+
+  const categoryIndex = category - 1 // Asumiendo que el índice de categoría parte desde 1
+  const categories = [...new Set(products.map((p) => p.category))]
+  const selectedCategory = categories[categoryIndex]
+  const product = products.find((p) => p.category === selectedCategory)
+
+  if (!product) return undefined
+
+  return { price: product.price, cost: product.cost }
 }
 
-export function descuentoSegunCuota(cuota: number, precioVenta: number, precioCompra: number): number {
-  //const resultado = 0.6 * margen * cuota - margen
-
-  const resultado = (cuota / precioVenta) * (precioVenta - precioCompra - (0.4*precioCompra))
+function descuentoSegunCuota(cuota: number, precioVenta: number, precioCompra: number): number {
+  const resultado = (cuota / precioVenta) * (precioVenta - precioCompra - (0.4 * precioCompra))
   return Math.min(1, Math.max(0, resultado))
 }
 
-// Función para calcular cashbak basado en opción y categoría
-export function calculatecashbak(option: number, category: number): number {
-  // Define cuota basada en la opción
-  const bet = bets.find((b) => b.id === option)
-  const cuota = bet?.odd ?? 0 // Si no se encuentra, usar 0
-
-  // Define margen basado en la categoría
-  const priceAndCost = getPricesAndCostsByCategory(category)
-  const precioVenta = priceAndCost?.price ?? 0
-  const precioCompra = priceAndCost?.cost ?? 0
-  // Calcular cashbak usando la función descuentoSegunCuota
-  return Math.floor(descuentoSegunCuota(cuota,  precioVenta, precioCompra) * 100)
-}
-
-export function calcularMontoApostar(option: number, category: number): number {
+export function calculatecashbak(option: number, category: number, products: Product[] = []): number {
   const bet = bets.find((b) => b.id === option)
   const cuota = bet?.odd ?? 0
-  const priceAndCost = getPricesAndCostsByCategory(category)
-  const precioVenta = priceAndCost?.price ?? 0
-  const precioCompra = priceAndCost?.cost ?? 0
-  const cashbak = descuentoSegunCuota(cuota,  precioVenta, precioCompra)
-  return  ((cashbak * precioVenta)) / cuota  
+
+  const priceAndCost = getPricesAndCostsByCategory(category, products)
+  if (!priceAndCost) return 0
+
+  const { price, cost } = priceAndCost
+  const cashbak = descuentoSegunCuota(cuota, price, cost)
+  return Math.floor(cashbak * 100)
 }
 
-// Obtener todas las opciones de apuesta disponibles
+export function calcularMontoApostar(option: number, category: number, products: Product[] = []): number {
+  const bet = bets.find((b) => b.id === option)
+  const cuota = bet?.odd ?? 0
+
+  const priceAndCost = getPricesAndCostsByCategory(category, products)
+  if (!priceAndCost) return 0
+
+  const { price, cost } = priceAndCost
+  const cashbak = descuentoSegunCuota(cuota, price, cost)
+
+  return (cashbak * price) / cuota
+}
+
 export function getAllBettingOptions(): number[] {
-  return [1, 2, 3] // Opciones disponibles: 1, 2, 3
+  return [1, 2, 3]
 }
 
-// Calcular el máximo cashbak posible para una categoría de producto
-export function calculateMaxcashbak(category: number): number {
+export function calculateMaxcashbak(category: number, products: Product[] = []): number {
   const options = getAllBettingOptions()
-
-  // Calcular cashbak para todas las opciones y encontrar el máximo
-  const cashbaks = options.map((option) => calculatecashbak(option, category))
+  const cashbaks = options.map((option) => calculatecashbak(option, category, products))
   return Math.max(...cashbaks)
 }

@@ -4,8 +4,9 @@ import "./globals.css"
 import { CartProvider } from "@/hooks/use-cart"
 import { BetOptionProvider } from "@/hooks/use-bet-option"
 import { ProductSelectionProvider } from "@/hooks/use-product-selection"
+import { ProductsProvider } from "@/context/product-context" // ⬅️ AÑADE ESTO
 import { Inter } from "next/font/google"
-import ClientLayout from "@/components/ClientLayout" 
+import ClientLayout from "@/components/ClientLayout"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -23,13 +24,15 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <BetOptionProvider>
-          <ProductSelectionProvider>
-            <CartProvider>
-              <ClientLayout>{children}</ClientLayout>
-            </CartProvider>
-          </ProductSelectionProvider>
-        </BetOptionProvider>
+        <ProductsProvider>
+          <BetOptionProvider>
+            <ProductSelectionProvider>
+                <CartProvider>
+                  <ClientLayout>{children}</ClientLayout>
+                </CartProvider>
+            </ProductSelectionProvider>
+          </BetOptionProvider>
+        </ProductsProvider> 
       </body>
     </html>
   )

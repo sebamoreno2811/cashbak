@@ -4,18 +4,21 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { products } from "@/lib/products"
 import { calculatecashbak } from "@/lib/cashbak-calculator"
 import { useBetOption } from "@/hooks/use-bet-option"
 import { useCart } from "@/hooks/use-cart"
 import { ArrowLeft, ShoppingCart, Check } from "lucide-react"
 import BetSelector from "@/components/bet-selector"
 import { toast } from "@/hooks/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useProducts } from "@/context/product-context"
+import type { Product } from "@/types/product"
 
 export default function ProductPage() {
   const params = useParams()
   const router = useRouter()
-  const [product, setProduct] = useState<any>(null)
+  const { products, loading, error } = useProducts()
+  const [product, setProduct] = useState<Product | null>(null)
   const { selectedOption, setSelectedOption } = useBetOption()
   const [cashbak, setcashbak] = useState(0)
   const [quantity, setQuantity] = useState(1)
@@ -24,62 +27,46 @@ export default function ProductPage() {
 
   const { addItem, items } = useCart()
 
-  // Stock disponible para la talla seleccionada
-  const availableStock = product?.stock?.[size] ?? 0
+  useEffect(() => {
+    if (!loading && products) {
+      const foundProduct = products.find(p => p.id.toString() === params.id)
+      setProduct(foundProduct ?? null)
+    }
+  }, [params.id, products, loading])
 
-  // Cantidad ya en carrito para este producto y talla
+  useEffect(() => {
+    if (product) {
+      const initialcashbak = calculatecashbak(Number.parseFloat(selectedOption), product.category, products || [])
+      setcashbak(initialcashbak)
+    }
+  }, [product, selectedOption, products])
+
+  const availableStock = product?.stock?.[size] ?? 0
   const currentQuantityInCart = items
     .filter(item => item.productId === product?.id && item.size === size)
     .reduce((sum, item) => sum + item.quantity, 0)
 
-  // Stock restante real que se puede añadir
   const remainingStock = availableStock - currentQuantityInCart
-
-  // Cantidad máxima para seleccionar (máximo 10 o lo que quede en stock)
   const maxQuantity = Math.min(10, Math.max(remainingStock, 0))
   const quantityOptions = Array.from({ length: maxQuantity }, (_, i) => i + 1)
-
-  // Cuando no hay stock disponible para añadir (ya sea físico o en carrito)
   const outOfStock = remainingStock <= 0
 
-  const getYouTubeEmbedUrl = (url: string) => {
-    const match = url.match(/(?:\?v=|\/embed\/|\.be\/)([\w-]{11})/)
-    return match ? `https://www.youtube.com/embed/${match[1]}` : ""
-  }
-
-  useEffect(() => {
-    const productId = params.id
-    const foundProduct = products.find((p) => p.id.toString() === productId)
-
-    if (foundProduct) {
-      setProduct(foundProduct)
-      const initialcashbak = calculatecashbak(Number.parseFloat(selectedOption), foundProduct.category)
-      setcashbak(initialcashbak)
-    }
-  }, [params.id, selectedOption])
-
-  // Ajusta la cantidad si excede el máximo permitido al cambiar talla o stock
   useEffect(() => {
     if (quantity > maxQuantity) {
       setQuantity(maxQuantity > 0 ? maxQuantity : 1)
     }
-  }, [size, availableStock, currentQuantityInCart])
+  }, [size, availableStock, currentQuantityInCart, maxQuantity])
 
   const handleOptionChange = (value: string) => {
     setSelectedOption(value)
     if (product) {
-      const newcashbak = calculatecashbak(Number.parseFloat(value), product.category)
+      const newcashbak = calculatecashbak(Number.parseFloat(value), product.category, products || [])
       setcashbak(newcashbak)
     }
   }
 
   const handleAddToCart = () => {
     if (!product) return
-
-    // Recalcula cantidad en carrito para evitar añadir más de lo disponible
-    const currentQuantityInCart = items
-      .filter(item => item.productId === product.id && item.size === size)
-      .reduce((sum, item) => sum + item.quantity, 0)
 
     const totalQuantity = currentQuantityInCart + quantity
 
@@ -93,7 +80,6 @@ export default function ProductPage() {
     }
 
     addItem(product.id, quantity, selectedOption, size)
-
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 1500)
 
@@ -103,14 +89,56 @@ export default function ProductPage() {
     })
   }
 
-  const handleGoToCart = () => {
-    router.push("/cart")
+  const handleGoToCart = () => router.push("/cart")
+
+  const getYouTubeEmbedUrl = (url: string) => {
+    const match = url.match(/(?:\?v=|\/embed\/|\.be\/)([\w-]{11})/)
+    return match ? `https://www.youtube.com/embed/${match[1]}` : ""
+  }
+
+  if (loading) {
+    return (
+      <div className="container px-4 py-8 mx-auto">
+        <Button variant="ghost" className="mb-6" disabled>
+          <ArrowLeft className="mr-2 size-4" /> Volver
+        </Button>
+
+        <div className="grid gap-8 md:grid-cols-2">
+          <div className="overflow-hidden bg-white rounded-lg shadow-lg">
+            <Skeleton className="w-full h-[400px] rounded-lg" />
+          </div>
+
+          <div className="p-6 space-y-4 bg-white rounded-lg shadow-lg">
+            <Skeleton className="w-3/4 h-8" />
+            <Skeleton className="w-1/4 h-6" />
+            <Skeleton className="w-full h-4" />
+            <Skeleton className="w-5/6 h-4" />
+            <Skeleton className="w-full h-10 mt-4" />
+            <Skeleton className="w-1/2 h-10" />
+            <Skeleton className="w-full h-8 mt-6" />
+          </div>
+        </div>
+
+        <div className="mt-8 mb-6">
+          <Skeleton className="w-1/2 h-8 mx-auto mb-4" />
+          <Skeleton className="w-full h-[300px] rounded-xl" />
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container flex justify-center px-4 py-16 mx-auto">
+        <p>Error al cargar productos: {error}</p>
+      </div>
+    )
   }
 
   if (!product) {
     return (
       <div className="container flex justify-center px-4 py-16 mx-auto">
-        <div className="animate-pulse">Cargando producto...</div>
+        <p></p>
       </div>
     )
   }
@@ -140,8 +168,7 @@ export default function ProductPage() {
           <div className="p-4 mt-4 border rounded-lg border-emerald-200 bg-emerald-50">
             <p className="text-lg font-semibold text-green-900">CashBak del: {cashbak.toFixed(0)}%</p>
             <p className="mt-1 text-sm text-green-800">
-              Recibirás ${Math.ceil((product.price * cashbak) / 100)} de vuelta, en caso de que se cumpla el evento
-              seleccionado.
+              Recibirás ${Math.ceil((product.price * cashbak) / 100)} de vuelta, en caso de que se cumpla el evento seleccionado.
             </p>
           </div>
 
@@ -175,22 +202,19 @@ export default function ProductPage() {
                   )}
                 </SelectContent>
               </Select>
-
             </div>
 
             <div className="w-16">
-              <Select value={size} onValueChange={(val) => setSize(val)}>
+              <Select value={size} onValueChange={setSize}>
                 <SelectTrigger>
                   <SelectValue placeholder="Talla" />
                 </SelectTrigger>
                 <SelectContent>
                   {["S", "M", "L", "XL"].map((talla) => {
                     const stockDisponible = product.stock?.[talla] ?? 0
-                    const agotado = stockDisponible === 0
-
                     return (
-                      <SelectItem key={talla} value={talla} disabled={agotado}>
-                        {agotado ? `${talla} (agotado)` : talla}
+                      <SelectItem key={talla} value={talla} disabled={stockDisponible === 0}>
+                        {stockDisponible === 0 ? `${talla} (agotado)` : talla}
                       </SelectItem>
                     )
                   })}
@@ -238,13 +262,13 @@ export default function ProductPage() {
         </div>
       </div>
 
-      {product.videoUrl && (
+      {product.video_url && (
         <div className="mt-8 mb-6">
           <h1 className="mb-4 text-3xl font-bold text-center text-gray-800">Mejores momentos de esta camiseta</h1>
           <div className="overflow-hidden shadow-lg aspect-video rounded-xl">
             <iframe
               className="w-full h-full"
-              src={getYouTubeEmbedUrl(product.videoUrl)}
+              src={getYouTubeEmbedUrl(product.video_url)}
               title="YouTube video"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

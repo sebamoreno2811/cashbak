@@ -1,9 +1,16 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react"
 import { bets } from "@/lib/bets"
-import { products, type Product } from "@/lib/products"
 import { calculatecashbak, calcularMontoApostar } from "@/lib/cashbak-calculator"
+import type { Product } from "@/types/product"
+import { useProducts } from "@/context/product-context"  // <--- IMPORTA EL HOOK
 
 export type CartItem = {
   productId: number
@@ -16,10 +23,10 @@ export type CartItem = {
 
 type CartContextType = {
   items: CartItem[]
-  addItem: (productId: number, quantity: number, betOptionId: string, size: string) => void
+  addItem: (productId: number, quantity: number, betOptionId: string, size: string) => Promise<void>
   removeItem: (index: number) => void
   updateItemQuantity: (index: number, quantity: number) => void
-  updateItemBetOption: (index: number, betOptionId: string) => void
+  updateItemBetOption: (index: number, betOptionId: string) => Promise<void>
   updateItemSize: (index: number, size: string) => void
   clearCart: () => void
   getItemsCount: () => number
@@ -39,9 +46,11 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { products, loading, error } = useProducts()  // <--- usa el contexto aquí
+
   const [items, setItems] = useState<CartItem[]>([])
 
-  // Cargar desde localStorage
+  // Carga carrito desde localStorage
   useEffect(() => {
     const savedCart = localStorage.getItem("cashbak-cart")
     if (savedCart) {
@@ -53,17 +62,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Guardar en localStorage
+  // Guarda carrito en localStorage cuando cambia
   useEffect(() => {
     localStorage.setItem("cashbak-cart", JSON.stringify(items))
   }, [items])
 
-  const addItem = (productId: number, quantity: number, betOptionId: string, size: string) => {
+  const addItem = async (
+    productId: number,
+    quantity: number,
+    betOptionId: string,
+    size: string
+  ) => {
     const product = products.find((p) => p.id === productId)
     if (!product) return
 
-    const cashbakPercentage = calculatecashbak(Number.parseFloat(betOptionId), product.category)
-    const bet_amount = calcularMontoApostar(Number.parseFloat(betOptionId), product.category)
+    const cashbakPercentage = calculatecashbak(
+      Number.parseFloat(betOptionId),
+      product.category,
+      products   // <-- aquí
+    )
+
+    const bet_amount = calcularMontoApostar(
+      Number.parseFloat(betOptionId),
+      product.category,
+      products   // <-- aquí
+    )
+
 
     const existingItemIndex = items.findIndex(
       (item) =>
@@ -91,6 +115,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const updateItemBetOption = async (index: number, betOptionId: string) => {
+    const updatedItems = [...items]
+    const item = updatedItems[index]
+    item.betOptionId = betOptionId
+
+    const product = products.find((p) => p.id === item.productId)
+    if (product) {
+      item.cashbakPercentage = calculatecashbak(
+        Number.parseFloat(betOptionId),
+        product.category,
+        products  // <--- agrega aquí también
+      )
+      item.bet_amount = calcularMontoApostar(
+        Number.parseFloat(betOptionId),
+        product.category,
+        products  // <--- y aquí
+      )
+    }
+
+
+    setItems(updatedItems)
+  }
+
   const removeItem = (index: number) => {
     setItems(items.filter((_, i) => i !== index))
   }
@@ -99,20 +146,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (quantity < 1) return
     const updatedItems = [...items]
     updatedItems[index].quantity = quantity
-    setItems(updatedItems)
-  }
-
-  const updateItemBetOption = (index: number, betOptionId: string) => {
-    const updatedItems = [...items]
-    const item = updatedItems[index]
-    item.betOptionId = betOptionId
-
-    const product = products.find((p) => p.id === item.productId)
-    if (product) {
-      item.cashbakPercentage = calculatecashbak(Number.parseFloat(betOptionId), product.category)
-      item.bet_amount = calcularMontoApostar(Number.parseFloat(betOptionId), product.category)
-    }
-
     setItems(updatedItems)
   }
 
@@ -162,6 +195,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       size: item.size,
     }
   }
+
+  // Opcional: si quieres manejar loading/error en UI del carrito
+  if (loading)
+  return (
+    <div className="flex items-center justify-center py-20">
+      <div className="w-10 h-10 border-4 border-green-700 rounded-full border-t-transparent animate-spin" />
+    </div>
+  )
+
+  if (error) return <div>Error cargando productos: {error}</div>
 
   return (
     <CartContext.Provider

@@ -108,7 +108,7 @@ export default function CartPage() {
                           </div>
                           <div className="flex flex-col flex-1 ml-4">
                             <h3 className="text-base font-medium">{product.name}</h3>
-                            <p className="mt-1 text-sm text-gray-500">Categoría: {product.categoryName}</p>
+                            <p className="mt-1 text-sm text-gray-500">Categoría: {product.category_name}</p>
 
                             {/* Evento (mobile) */}
                             <div className="mt-2 md:hidden">

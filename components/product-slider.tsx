@@ -3,39 +3,42 @@
 import { useRef, useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { products } from "@/lib/products"
-import { useProductSelection } from "@/hooks/use-product-selection"
-import { calculatecashbak, calcularMontoApostar } from "@/lib/cashbak-calculator"
 import { useBetOption } from "@/hooks/use-bet-option"
+import { calculatecashbak } from "@/lib/cashbak-calculator"
+import { useProducts } from "@/context/product-context"
 
 export default function ProductSlider() {
   const sliderRef = useRef<HTMLDivElement>(null)
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [totalSlides, setTotalSlides] = useState(3)
+  const [totalSlides, setTotalSlides] = useState(0)
+  const { products, loading, error } = useProducts()
   const { selectedOption } = useBetOption()
-  
-
-  // Group products by category for slides
-  const categories = [...new Set(products.map((p) => p.category))];
-
-  const slideProducts = categories.map((category) =>
-    products.filter((p) => p.category === category)
-  );
 
   useEffect(() => {
+    if (products) {
+      const categories = [...new Set(products.map((p) => p.category))]
+      setTotalSlides(categories.length)
+    }
+  }, [products])
 
-    console.log(`aloooo :${calcularMontoApostar(Number.parseFloat(selectedOption), currentSlide + 1)}`)
-    // Update cashbak display when slide or option changes
+  const categories = Array.isArray(products) ? [...new Set(products.map((p) => p.category))] : []
+
+  const slideProducts = categories.map((category) =>
+    Array.isArray(products) ? products.filter((p) => p.category === category) : []
+  )
+
+
+  useEffect(() => {
     const cashbakDisplay = document.getElementById("cashbak-display")
-    if (cashbakDisplay) {
+    if (cashbakDisplay && products) {
       cashbakDisplay.textContent = "Calculando CashBak..."
-
       setTimeout(() => {
-        const cashbak = calculatecashbak(Number.parseFloat(selectedOption), currentSlide + 1)
+        const cashbak = calculatecashbak(Number.parseFloat(selectedOption), currentSlide + 1, products)
         cashbakDisplay.textContent = `CashBak del: ${cashbak.toFixed(0)}%`
       }, 500)
     }
-  }, [currentSlide, selectedOption])
+  }, [currentSlide, selectedOption, products])
+
 
   const scrollToSlide = (index: number) => {
     if (sliderRef.current) {
@@ -47,27 +50,25 @@ export default function ProductSlider() {
       setCurrentSlide(index)
     }
 
-    // Forzar scroll vertical hacia arriba en la ventana
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: "smooth" })
     }, 100)
   }
-
-
-
-
 
   const handleScroll = () => {
     if (sliderRef.current) {
       const scrollPosition = sliderRef.current.scrollLeft
       const slideWidth = sliderRef.current.clientWidth
       const newSlide = Math.round(scrollPosition / slideWidth)
-
       if (newSlide !== currentSlide) {
         setCurrentSlide(newSlide)
       }
     }
   }
+
+  if (loading) return <div>Cargando productos...</div>
+  if (error) return <div>Error al cargar productos: {error}</div>
+  if (!products || products.length === 0) return <div>No hay productos disponibles</div>
 
   return (
     <div className="relative">
