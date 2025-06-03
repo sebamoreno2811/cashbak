@@ -285,7 +285,7 @@ export default function CheckoutPage() {
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">Checkout</h1>
-          <Button variant="ghost" onClick={() => router.back()} disabled={paymentProcessing}>
+          <Button variant="ghost" onClick={() => router.push("/")} disabled={paymentProcessing}>
             <ArrowLeft className="mr-2 size-4" /> Volver
           </Button>
         </div>
