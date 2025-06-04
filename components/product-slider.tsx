@@ -34,7 +34,7 @@ export default function ProductSlider() {
       cashbakDisplay.textContent = "Calculando CashBak..."
       setTimeout(() => {
         const cashbak = calculatecashbak(Number.parseFloat(selectedOption), currentSlide + 1, products)
-        cashbakDisplay.textContent = `CashBak del: ${cashbak.toFixed(0)}%`
+        cashbakDisplay.textContent = `CashBak del: ${cashbak.toLocaleString("es-CL", { maximumFractionDigits: 0 })}%`
       }, 500)
     }
   }, [currentSlide, selectedOption, products])
@@ -115,7 +115,7 @@ export default function ProductSlider() {
                     </div>
                     <div className="p-3">
                       <h3 className="text-sm font-medium truncate">{product.name}</h3>
-                      <p className="text-sm text-gray-700">${product.price.toLocaleString("es-CL")}</p>
+                      <p className="text-sm text-gray-700">${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
                     </div>
                   </div>
                 </a>

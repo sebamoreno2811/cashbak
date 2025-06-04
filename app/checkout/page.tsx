@@ -370,11 +370,11 @@ export default function CheckoutPage() {
               </p>
               <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                 <p className="text-green-800">
-                  <span className="font-semibold">Total a pagar:</span> ${getCartTotal().toLocaleString()}
+                  <span className="font-semibold">Total a pagar:</span> ${getCartTotal().toLocaleString("es-CL", { maximumFractionDigits: 0 })}
                 </p>
                 <p className="text-green-700">
                   <span className="font-semibold">CashBak potencial:</span> $
-                  {Math.ceil(getTotalcashbak()).toLocaleString()}
+                  {Math.ceil(getTotalcashbak()).toLocaleString("es-CL", { maximumFractionDigits: 0 })}
                 </p>
               </div>
             </div>
@@ -429,11 +429,11 @@ export default function CheckoutPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Total a pagar:</span>
-                    <span className="font-semibold">${getCartTotal().toLocaleString()}</span>
+                    <span className="font-semibold">${getCartTotal().toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                   </div>
                   <div className="flex justify-between text-emerald-600">
                     <span>CashBak potencial:</span>
-                    <span className="font-semibold">${Math.ceil(getTotalcashbak()).toLocaleString()}</span>
+                    <span className="font-semibold">${Math.ceil(getTotalcashbak()).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                   </div>
                 </div>
               </div>
@@ -490,13 +490,13 @@ export default function CheckoutPage() {
                       <div className="ml-4">
                         <p className="font-medium">{product.name}</p>
                         <p className="text-sm text-gray-500">
-                          {item.quantity} x ${product.price.toLocaleString()} • {betName}
+                          {item.quantity} x ${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })} • {betName}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">${subtotal.toLocaleString()}</p>
-                      <p className="text-sm text-emerald-600">CashBak: ${Math.ceil(cashbakAmount).toLocaleString()}</p>
+                      <p className="font-medium">${subtotal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
+                      <p className="text-sm text-emerald-600">CashBak: ${Math.ceil(cashbakAmount).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
                     </div>
                   </div>
                 )
@@ -505,11 +505,11 @@ export default function CheckoutPage() {
               <div className="pt-4 mt-4 border-t border-gray-200">
                 <div className="flex justify-between">
                   <span className="font-medium">Total</span>
-                  <span className="font-bold">${getCartTotal().toLocaleString()}</span>
+                  <span className="font-bold">${getCartTotal().toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                 </div>
                 <div className="flex justify-between text-emerald-600">
                   <span>CashBak potencial</span>
-                  <span className="font-medium">${Math.ceil(getTotalcashbak()).toLocaleString()}</span>
+                  <span className="font-medium">${Math.ceil(getTotalcashbak()).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                 </div>
               </div>
             </div>

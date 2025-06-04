@@ -34,10 +34,10 @@ export default function OrdersPage() {
               <p className="text-sm text-muted-foreground">
                 Pedido #{order.id.slice(0, 8)} - {new Date(order.created_at).toLocaleDateString()}
               </p>
-              <p className="font-medium">Total: ${order.order_total.toFixed(0)}</p>
+              <p className="font-medium">Total: ${order.order_total.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
               <p className="text-sm">Estado: {order.order_status}</p>
               <p className="text-sm">Pago: {order.payment_status}</p>
-              <p className="text-sm">Cashback: ${order.cashback_amount.toFixed(0)}</p>
+              <p className="text-sm">Cashback: ${order.cashback_amount.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
             </div>
             <div className="mt-2 space-y-1">
               {order.order_items.map((item, index) => {
@@ -63,7 +63,7 @@ export default function OrdersPage() {
                       <div className="flex flex-col">
                         <span className="font-medium">{product?.name || item.product_name}</span>
                         <span className="text-sm text-muted-foreground">
-                          {item.quantity} x ${item.price.toFixed(0)}
+                          {item.quantity} x ${item.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}
                         </span>
 
                         {bet && (
@@ -79,7 +79,7 @@ export default function OrdersPage() {
                         <span className="text-green-600">{item.cashback_percentage || 0}%</span>{" "}
                             ={" "}
                         <span className="text-green-600">
-                            ${((item.cashback_percentage || 0) / 100 * item.price).toFixed(0)}
+                            ${((item.cashback_percentage || 0) / 100 * item.price).toLocaleString("es-CL", { maximumFractionDigits: 0 })}
                         </span>
                         </span>
 

@@ -156,7 +156,7 @@ export default function ProductPage() {
 
         <div className="p-6 bg-white rounded-lg shadow-lg">
           <h1 className="mb-4 text-3xl font-bold">{product.name}</h1>
-          <p className="mb-6 text-xl font-semibold">${product.price.toLocaleString()}</p>
+          <p className="mb-6 text-xl font-semibold">${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
 
           <div className="mb-6">
             <h3 className="mb-2 text-lg font-medium">Descripción</h3>
@@ -166,9 +166,9 @@ export default function ProductPage() {
           <BetSelector value={selectedOption} onChange={handleOptionChange} />
 
           <div className="p-4 mt-4 border rounded-lg border-emerald-200 bg-emerald-50">
-            <p className="text-lg font-semibold text-green-900">CashBak del: {cashbak.toFixed(0)}%</p>
+            <p className="text-lg font-semibold text-green-900">CashBak del: {cashbak.toLocaleString("es-CL", { maximumFractionDigits: 0 })}%</p>
             <p className="mt-1 text-sm text-green-800">
-              Recibirás ${Math.ceil((product.price * cashbak) / 100)} de vuelta, en caso de que se cumpla el evento seleccionado.
+              Recibirás ${Math.ceil((product.price * cashbak) / 100).toLocaleString("es-CL", { maximumFractionDigits: 0 })} de vuelta, en caso de que se cumpla el evento seleccionado.
             </p>
           </div>
 

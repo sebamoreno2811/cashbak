@@ -150,7 +150,7 @@ export default function CartPage() {
                             </div>
 
                             <div className="flex items-center mt-2 text-sm text-emerald-600">
-                              <span>CashBak: {(item.cashbakPercentage ?? 0).toFixed(0)}%</span>
+                              <span>CashBak: {(item.cashbakPercentage ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}%</span>
                             </div>
 
                             <button
@@ -165,7 +165,7 @@ export default function CartPage() {
 
                         {/* Precio (desktop) */}
                         <div className="hidden md:flex md:col-span-2 md:items-center">
-                          <span>${product.price.toLocaleString()}</span>
+                          <span>${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                         </div>
 
                         {/* Cantidad + Talla */}
@@ -230,13 +230,13 @@ export default function CartPage() {
 
                         {/* Subtotal (desktop) */}
                         <div className="hidden text-right md:flex md:col-span-2 md:items-center md:justify-end">
-                          <span>${subtotal.toLocaleString()}</span>
+                          <span>${subtotal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                         </div>
 
                         {/* Subtotal (móvil) */}
                         <div className="mt-4 md:hidden">
                           <span className="text-sm text-gray-500">Subtotal: </span>
-                          <span className="font-medium">${subtotal.toLocaleString()}</span>
+                          <span className="font-medium">${subtotal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                         </div>
                       </div>
                     )
@@ -254,7 +254,7 @@ export default function CartPage() {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span>${getCartTotal().toLocaleString()}</span>
+                  <span>${getCartTotal().toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                 </div>
 
                 <div className="flex justify-between">
@@ -264,13 +264,13 @@ export default function CartPage() {
 
                 <div className="flex justify-between text-emerald-600">
                   <span>CashBak potencial</span>
-                  <span>${Math.ceil(getTotalcashbak()).toLocaleString()}</span>
+                  <span>${Math.ceil(getTotalcashbak()).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                 </div>
 
                 <div className="pt-3 mt-3 border-t border-gray-200">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span>${getCartTotal().toLocaleString()}</span>
+                    <span>${getCartTotal().toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                   </div>
                   <p className="mt-1 text-sm text-gray-500">Impuestos incluidos</p>
                 </div>

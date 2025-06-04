@@ -62,7 +62,7 @@ export default function ProductsPage() {
                 </div>
                 <div className="p-4">
                   <h3 className="mb-2 text-lg font-semibold">{product.name}</h3>
-                  <p className="text-gray-700">${product.price.toLocaleString()}</p>
+                  <p className="text-gray-700">${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
                   <div className="mt-2 font-medium text-emerald-600">
                     CashBak: hasta {calculateMaxcashbak(product.category, products)}%
                   </div>
