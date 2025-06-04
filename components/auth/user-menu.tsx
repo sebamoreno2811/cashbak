@@ -103,10 +103,6 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
           <ShoppingBag className="w-4 h-4 mr-2" />
           <span>Mis Pedidos</span>
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Settings className="w-4 h-4 mr-2" />
-          <span>Configuración</span>
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="w-4 h-4 mr-2" />

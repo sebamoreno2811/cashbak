@@ -31,13 +31,37 @@ export default function OrdersPage() {
         orders.map((order) => (
           <Card key={order.id} className="p-4 mb-4 space-y-2">
             <div>
-              <p className="text-sm text-muted-foreground">
-                Pedido #{order.id.slice(0, 8)} - {new Date(order.created_at).toLocaleDateString()}
-              </p>
-              <p className="font-medium">Total: ${order.order_total.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
-              <p className="text-sm">Estado: {order.order_status}</p>
-              <p className="text-sm">Pago: {order.payment_status}</p>
-              <p className="text-sm">Cashback: ${order.cashback_amount.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
+                <p className="text-sm text-muted-foreground">
+                    Pedido #{order.id.slice(0, 8)} - {new Date(order.created_at).toLocaleDateString()}
+                </p>
+                <p className="font-medium">Total: ${order.order_total.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
+                <p className="text-sm">Estado: {order.order_status}</p>
+                <p className="text-sm">Pago: {order.payment_status}</p>
+                {(() => {
+                    const cashbackEstado = order.order_items.map((item) => {
+                    const bet = bets.find((b) => b.id === Number(item.bet_option_id))
+                    return bet?.is_winner
+                })
+
+                if (cashbackEstado.includes(null)) {
+                    return <p className="text-sm">CashBak Final : <span className="font-semibold text-yellow-600">Pendiente</span></p>
+                }
+
+                const cashbackGanado = order.order_items.reduce((total, item) => {
+                    const bet = bets.find((b) => b.id === Number(item.bet_option_id))
+                    if (bet?.is_winner) {
+                    return total + ((item.cashback_percentage || 0) / 100) * item.price
+                    }
+                    return total
+                }, 0)
+
+                return (
+                    <p className="text-sm">
+                    CashBak Final: <span className="font-semibold text-green-600">${cashbackGanado.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+                    </p>
+                )
+                })()}
+
             </div>
             <div className="mt-2 space-y-1">
               {order.order_items.map((item, index) => {
