@@ -41,7 +41,7 @@ export function calcularMontoApostar(option: number, category: number, products:
   const { price, cost } = priceAndCost
   const cashbak = descuentoSegunCuota(cuota, price, cost)
 
-  return (cashbak * price) / cuota
+  return ((cashbak) * price) / cuota
 }
 
 export function getAllBettingOptions(): number[] {

@@ -6,7 +6,7 @@ import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, CreditCard, AlertCircle, CheckCircle, XCircle, Loader2 } from "lucide-react"
 import { createClient } from "@/utils/supabase/client"
-import { saveCheckoutData } from "./actions"
+import { saveCheckoutData, updateProductStock } from "./actions"
 import AuthModal from "@/components/auth/auth-modal"
 import useSupabaseUser from "@/hooks/use-supabase-user"
 
@@ -15,6 +15,8 @@ export default function CheckoutPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { items, getCartTotal, getTotalcashbak, getItemDetails, clearCart } = useCart()
+
+  const hasProcessed = useRef(false)
 
   const { user, loading: loadingUser } = useSupabaseUser()
 
@@ -71,7 +73,6 @@ export default function CheckoutPage() {
 
   // Verificar si hay un pago exitoso al cargar la página
   useEffect(() => {
-    console.log(orderId)
     setIsLoading(true)
 
     const status = searchParams.get("status")
@@ -86,7 +87,8 @@ export default function CheckoutPage() {
         setOrderId(decodedOrderId)
       }
 
-      if (status === "success") {
+      if (status === "success" && !hasProcessed.current) {
+        hasProcessed.current = true // ✅ prevenir múltiples ejecuciones
         handleSuccessfulPayment(decodedOrderId)
       } else if (status === "error") {
         let errorMessage = "Ocurrió un error al procesar el pago."
@@ -127,9 +129,18 @@ export default function CheckoutPage() {
       const cashbakTotal = Number.parseFloat(cashbakTotalStr)
 
       const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbakTotal)
+
+      // Actualizar stock de los productos
+      const stockResult = await updateProductStock(cartItems)
+      if (!stockResult.success) {
+        return { success: false, error: stockResult.error }
+      }
+
       console.log(Date.now())
 
       if (result.success) {
+        const supabase = createClient()
+
         localStorage.setItem("processed_order_id", orderIdParam || "")
         setPaymentSuccess(true)
         clearCart()
