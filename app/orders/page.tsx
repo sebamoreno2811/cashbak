@@ -50,7 +50,7 @@ export default function OrdersPage() {
                 const cashbackGanado = order.order_items.reduce((total, item) => {
                     const bet = bets.find((b) => b.id === Number(item.bet_option_id))
                     if (bet?.is_winner) {
-                    return total + ((item.cashback_percentage || 0) / 100) * item.price
+                    return total + ((item.cashback_percentage || 0) / 100) * item.price * item.quantity
                     }
                     return total
                 }, 0)
@@ -103,7 +103,7 @@ export default function OrdersPage() {
                         <span className="text-green-600">{item.cashback_percentage || 0}%</span>{" "}
                             ={" "}
                         <span className="text-green-600">
-                            ${((item.cashback_percentage || 0) / 100 * item.price).toLocaleString("es-CL", { maximumFractionDigits: 0 })}
+                            ${((item.cashback_percentage || 0) / 100 * item.price * item.quantity).toLocaleString("es-CL", { maximumFractionDigits: 0 })}
                         </span>
                         </span>
 
