@@ -7,6 +7,8 @@ import { ProductSelectionProvider } from "@/hooks/use-product-selection"
 import { ProductsProvider } from "@/context/product-context" // ⬅️ AÑADE ESTO
 import { Inter } from "next/font/google"
 import ClientLayout from "@/components/ClientLayout"
+import { OrdersProvider } from "@/context/orders-context"
+import { BetProvider } from "@/context/bet-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -25,13 +27,17 @@ export default function RootLayout({
     <html lang="es">
       <body className={inter.className}>
         <ProductsProvider>
-          <BetOptionProvider>
-            <ProductSelectionProvider>
-                <CartProvider>
-                  <ClientLayout>{children}</ClientLayout>
-                </CartProvider>
-            </ProductSelectionProvider>
-          </BetOptionProvider>
+          <BetProvider>
+            <BetOptionProvider>
+              <OrdersProvider>
+                <ProductSelectionProvider>
+                    <CartProvider>
+                      <ClientLayout>{children}</ClientLayout>
+                    </CartProvider>
+                </ProductSelectionProvider>
+              </OrdersProvider>
+            </BetOptionProvider>
+          </BetProvider>
         </ProductsProvider> 
       </body>
     </html>

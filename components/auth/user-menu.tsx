@@ -13,6 +13,8 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { createClient } from "@/utils/supabase/client"
 import { User, LogOut, Settings, ShoppingBag } from "lucide-react"
+import { useRouter } from "next/navigation"
+
 
 interface UserMenuProps {
   onAuthRequired?: () => void
@@ -22,6 +24,7 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
+  const router = useRouter()
 
   useEffect(() => {
     // Obtener usuario actual
@@ -95,8 +98,8 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
             <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuSeparator/>
+        <DropdownMenuItem onClick={() => router.push("/orders")}>
           <ShoppingBag className="w-4 h-4 mr-2" />
           <span>Mis Pedidos</span>
         </DropdownMenuItem>
