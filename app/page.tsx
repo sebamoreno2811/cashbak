@@ -3,12 +3,14 @@
 import ProductSlider from "@/components/product-slider"
 import { ProductSelection } from "@/components/product-selection"
 import { useProducts } from "@/context/product-context"
+import { useBets } from "@/context/bet-context"
 import BetSelector from "@/components/bet-selector"
 import { calculateMaxcashbak } from "@/lib/cashbak-calculator"
 
 export default function Home() {
   
   const { products } = useProducts()
+  const { bets } = useBets()
   
   return (
     <main className="min-h-screen bg-white">
@@ -47,7 +49,7 @@ export default function Home() {
                     <h3 className="mb-2 text-lg font-semibold">{product.name}</h3>
                     <p className="text-gray-700">${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
                     <div className="mt-2 font-medium text-emerald-600">
-                      CashBak: hasta {calculateMaxcashbak(product.category, products)}%
+                      CashBak: hasta {calculateMaxcashbak(product.category, products, bets)}%
                     </div>
                   </div>
                 </div>

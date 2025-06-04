@@ -24,10 +24,7 @@ export function ProductSelection() {
         : 1
 
       // Calculate cashbak after a small delay
-      setTimeout(() => {
-        const cashbak = Math.trunc(calculatecashbak(Number.parseFloat(value), slideCategory))
-        cashbakDisplay.textContent = `CashBak del: ${Math.trunc(cashbak)}%`
-      }, 500)
+      
     }
   }
 

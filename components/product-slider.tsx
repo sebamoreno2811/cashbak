@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useBetOption } from "@/hooks/use-bet-option"
 import { calculatecashbak } from "@/lib/cashbak-calculator"
 import { useProducts } from "@/context/product-context"
+import { useBets } from "@/context/bet-context"
 
 export default function ProductSlider() {
   const sliderRef = useRef<HTMLDivElement>(null)
@@ -13,6 +14,8 @@ export default function ProductSlider() {
   const [totalSlides, setTotalSlides] = useState(0)
   const { products, loading, error } = useProducts()
   const { selectedOption } = useBetOption()
+  const { bets } = useBets()
+  
 
   useEffect(() => {
     if (products) {
@@ -33,7 +36,7 @@ export default function ProductSlider() {
     if (cashbakDisplay && products) {
       cashbakDisplay.textContent = "Calculando CashBak..."
       setTimeout(() => {
-        const cashbak = calculatecashbak(Number.parseFloat(selectedOption), currentSlide + 1, products)
+        const cashbak = calculatecashbak(Number.parseFloat(selectedOption), currentSlide + 1, products, bets)
         cashbakDisplay.textContent = `CashBak del: ${cashbak.toLocaleString("es-CL", { maximumFractionDigits: 0 })}%`
       }, 500)
     }

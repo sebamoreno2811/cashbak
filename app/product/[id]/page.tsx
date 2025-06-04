@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useProducts } from "@/context/product-context"
 import type { Product } from "@/types/product"
+import { useBets } from "@/context/bet-context"
 
 export default function ProductPage() {
   const params = useParams()
@@ -24,6 +25,7 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
   const [size, setSize] = useState<string>("L")
+  const { bets } = useBets()
 
   const { addItem, items } = useCart()
 
@@ -36,7 +38,7 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (product) {
-      const initialcashbak = calculatecashbak(Number.parseFloat(selectedOption), product.category, products || [])
+      const initialcashbak = calculatecashbak(Number.parseFloat(selectedOption), product.category, products || [], bets)
       setcashbak(initialcashbak)
     }
   }, [product, selectedOption, products])
@@ -60,7 +62,7 @@ export default function ProductPage() {
   const handleOptionChange = (value: string) => {
     setSelectedOption(value)
     if (product) {
-      const newcashbak = calculatecashbak(Number.parseFloat(value), product.category, products || [])
+      const newcashbak = calculatecashbak(Number.parseFloat(value), product.category, products || [], bets)
       setcashbak(newcashbak)
     }
   }

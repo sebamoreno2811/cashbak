@@ -7,10 +7,10 @@ import {
   useEffect,
   type ReactNode,
 } from "react"
-import { bets } from "@/lib/bets"
 import { calculatecashbak, calcularMontoApostar } from "@/lib/cashbak-calculator"
 import type { Product } from "@/types/product"
-import { useProducts } from "@/context/product-context"  // <--- IMPORTA EL HOOK
+import { useProducts } from "@/context/product-context"
+import { useBets } from "@/context/bet-context" // <-- ✅ importa el contexto de apuestas
 
 export type CartItem = {
   productId: number
@@ -46,11 +46,11 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const { products, loading, error } = useProducts()  // <--- usa el contexto aquí
+  const { products, loading, error } = useProducts()
+  const { bets, loading: betsLoading, error: betsError } = useBets() // <-- ✅ usa el hook aquí
 
   const [items, setItems] = useState<CartItem[]>([])
 
-  // Carga carrito desde localStorage
   useEffect(() => {
     const savedCart = localStorage.getItem("cashbak-cart")
     if (savedCart) {
@@ -62,7 +62,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Guarda carrito en localStorage cuando cambia
   useEffect(() => {
     localStorage.setItem("cashbak-cart", JSON.stringify(items))
   }, [items])
@@ -79,15 +78,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const cashbakPercentage = calculatecashbak(
       Number.parseFloat(betOptionId),
       product.category,
-      products   // <-- aquí
+      products,
+      bets
     )
 
     const bet_amount = calcularMontoApostar(
       Number.parseFloat(betOptionId),
       product.category,
-      products   // <-- aquí
+      products
     )
-
 
     const existingItemIndex = items.findIndex(
       (item) =>
@@ -125,15 +124,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       item.cashbakPercentage = calculatecashbak(
         Number.parseFloat(betOptionId),
         product.category,
-        products  // <--- agrega aquí también
+        products,
+        bets
       )
       item.bet_amount = calcularMontoApostar(
         Number.parseFloat(betOptionId),
         product.category,
-        products  // <--- y aquí
+        products
       )
     }
-
 
     setItems(updatedItems)
   }
@@ -181,7 +180,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const getItemDetails = (item: CartItem) => {
     const product = products.find((p) => p.id === item.productId)
-    const bet = bets.find((b) => b.id.toString() === item.betOptionId)
+    const bet = bets.find((b) => b.id.toString() === item.betOptionId) // <-- ✅ usa el context
     const subtotal = (product?.price || 0) * item.quantity
     const cashbakAmount = (subtotal * item.cashbakPercentage) / 100
 
@@ -196,15 +195,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Opcional: si quieres manejar loading/error en UI del carrito
-  if (loading)
-  return (
-    <div className="flex items-center justify-center py-20">
-      <div className="w-10 h-10 border-4 border-green-700 rounded-full border-t-transparent animate-spin" />
-    </div>
-  )
+  // Mostrar carga combinada de productos o apuestas
+  if (loading || betsLoading)
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-10 h-10 border-4 border-green-700 rounded-full border-t-transparent animate-spin" />
+      </div>
+    )
 
-  if (error) return <div>Error cargando productos: {error}</div>
+  if (error || betsError)
+    return <div>Error cargando datos: {error || betsError}</div>
 
   return (
     <CartContext.Provider

@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Trash2, ArrowLeft, ShoppingBag } from "lucide-react"
-import { bets } from "@/lib/bets"
+import { useBets } from "@/context/bet-context"
 import useSupabaseUser from "@/hooks/use-supabase-user"
 import AuthModal from "@/components/auth/auth-modal"
 
@@ -32,6 +32,7 @@ export default function CartPage() {
     clearCart,
   } = useCart()
   const { user, loading: loadingUser } = useSupabaseUser()
+  const { bets, loading: loadingBets } = useBets()
 
   const [isProcessing, setIsProcessing] = useState(false)
 
@@ -47,6 +48,14 @@ export default function CartPage() {
   const handleAuthSuccess = () => {
     setIsAuthModalOpen(false)
     window.location.reload()
+  }
+
+  if (loadingBets) {
+    return (
+      <div className="container px-4 py-16 mx-auto text-center text-gray-500">
+        Cargando eventos de CashBak...
+      </div>
+    )
   }
 
   if (items.length === 0) {
@@ -300,3 +309,4 @@ export default function CartPage() {
     </div>
   )
 }
+

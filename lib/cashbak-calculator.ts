@@ -1,10 +1,10 @@
-import { bets } from "@/lib/bets"
 import type { Product } from "@/types/product"
+import type { Bet } from "@/context/bet-context"
 
 function getPricesAndCostsByCategory(category: number, products: Product[] = []): { price: number, cost: number } | undefined {
   if (!products || products.length === 0) return undefined
 
-  const categoryIndex = category - 1 // Asumiendo que el índice de categoría parte desde 1
+  const categoryIndex = category - 1
   const categories = [...new Set(products.map((p) => p.category))]
   const selectedCategory = categories[categoryIndex]
   const product = products.find((p) => p.category === selectedCategory)
@@ -19,7 +19,7 @@ function descuentoSegunCuota(cuota: number, precioVenta: number, precioCompra: n
   return Math.min(1, Math.max(0, resultado))
 }
 
-export function calculatecashbak(option: number, category: number, products: Product[] = []): number {
+export function calculatecashbak(option: number, category: number, products: Product[] = [], bets: Bet[] = []): number {
   const bet = bets.find((b) => b.id === option)
   const cuota = bet?.odd ?? 0
 
@@ -31,7 +31,7 @@ export function calculatecashbak(option: number, category: number, products: Pro
   return Math.floor(cashbak * 100)
 }
 
-export function calcularMontoApostar(option: number, category: number, products: Product[] = []): number {
+export function calcularMontoApostar(option: number, category: number, products: Product[] = [], bets: Bet[] = []): number {
   const bet = bets.find((b) => b.id === option)
   const cuota = bet?.odd ?? 0
 
@@ -48,8 +48,8 @@ export function getAllBettingOptions(): number[] {
   return [1, 2, 3]
 }
 
-export function calculateMaxcashbak(category: number, products: Product[] = []): number {
+export function calculateMaxcashbak(category: number, products: Product[] = [], bets: Bet[] = []): number {
   const options = getAllBettingOptions()
-  const cashbaks = options.map((option) => calculatecashbak(option, category, products))
+  const cashbaks = options.map((option) => calculatecashbak(option, category, products, bets))
   return Math.max(...cashbaks)
 }
