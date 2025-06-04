@@ -34,18 +34,16 @@ export default function OrdersPage() {
               <p className="text-sm text-muted-foreground">
                 Pedido #{order.id.slice(0, 8)} - {new Date(order.created_at).toLocaleDateString()}
               </p>
-              <p className="font-medium">Total: ${order.order_total.toFixed(2)}</p>
+              <p className="font-medium">Total: ${order.order_total.toFixed(0)}</p>
               <p className="text-sm">Estado: {order.order_status}</p>
               <p className="text-sm">Pago: {order.payment_status}</p>
-              <p className="text-sm">Cashback: ${order.cashback_amount.toFixed(2)}</p>
+              <p className="text-sm">Cashback: ${order.cashback_amount.toFixed(0)}</p>
             </div>
             <div className="mt-2 space-y-1">
               {order.order_items.map((item, index) => {
                 console.log(order)
                 const bet = bets.find((b) => b.id === Number(item.bet_option_id))
                 const product = products.find((p) => p.id === Number(item.product_id))
-                console.log("jdjsjkad")
-                console.log()
 
                 let resultado = "Pendiente"
                 let resultadoColor = "text-yellow-600"
@@ -65,7 +63,7 @@ export default function OrdersPage() {
                       <div className="flex flex-col">
                         <span className="font-medium">{product?.name || item.product_name}</span>
                         <span className="text-sm text-muted-foreground">
-                          {item.quantity} x ${item.price.toFixed(2)}
+                          {item.quantity} x ${item.price.toFixed(0)}
                         </span>
 
                         {bet && (
