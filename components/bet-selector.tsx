@@ -34,11 +34,13 @@ export default function BetSelector({ value, onChange }: BetSelectorProps) {
           <SelectValue placeholder="Selecciona una opción" />
         </SelectTrigger>
         <SelectContent>
-          {bets.map((bet) => (
-            <SelectItem key={bet.id} value={bet.id.toString()}>
-              {bet.name}
-            </SelectItem>
-          ))}
+          {bets
+            .filter((bet) => bet.active) // 👈 Filtra solo las activas
+            .map((bet) => (
+              <SelectItem key={bet.id} value={bet.id.toString()}>
+                {bet.name}
+              </SelectItem>
+            ))}
         </SelectContent>
       </Select>
     </div>
