@@ -24,6 +24,7 @@ interface Order {
   order_total: number
   cashback_amount: number
   order_status: string
+  shipping_status: string
   payment_status: string
   created_at: string
   order_items: OrderItem[]

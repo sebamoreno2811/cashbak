@@ -32,7 +32,7 @@ type CartContextType = {
   updateItemSize: (index: number, size: string) => void
   clearCart: () => void
   getItemsCount: () => number
-  getCartTotal: () => number
+  getCartTotal: (shippingCost: number) => number
   getTotalcashbak: () => number
   deliveryType: Delivery,
   chooseDeliveryType: (type: Delivery) => void,
@@ -172,11 +172,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return items.reduce((total, item) => total + item.quantity, 0)
   }
 
-  const getCartTotal = () => {
+  const getCartTotal = (shippingCost: number) => {
     return items.reduce((total, item) => {
       const product = products.find((p) => p.id === item.productId)
       return total + (product?.price || 0) * item.quantity
-    }, 0)
+    }, 0) + shippingCost
   }
 
   const getTotalcashbak = () => {

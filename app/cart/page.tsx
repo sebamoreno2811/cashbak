@@ -49,7 +49,7 @@ export default function CartPage() {
   const { hasShippingDetails } = useShipping()
 
   const shippingCost = deliveryType === "envio" ? 2990 : 0
-  const total = getCartTotal() + shippingCost
+  const total = getCartTotal(shippingCost) 
 
   // Ya no es necesario hacer el fetch de supabase aquí, porque el contexto ya lo hace
 
@@ -294,7 +294,7 @@ export default function CartPage() {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span>${getCartTotal().toLocaleString("es-CL")}</span>
+                  <span>${getCartTotal(shippingCost).toLocaleString("es-CL")}</span>
                 </div>
 
                 <div className="flex justify-between">

@@ -35,8 +35,7 @@ export default function OrdersPage() {
                     Pedido #{order.id.slice(0, 8)} - {new Date(order.created_at).toLocaleDateString()}
                 </p>
                 <p className="font-medium">Total: ${order.order_total.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
-                <p className="text-sm">Estado: {order.order_status}</p>
-                <p className="text-sm">Pago: {order.payment_status}</p>
+                <p className="text-sm">Estado: {order.shipping_status}</p>
                 {(() => {
                     const cashbackEstado = order.order_items.map((item) => {
                     const bet = bets.find((b) => b.id === Number(item.bet_option_id))

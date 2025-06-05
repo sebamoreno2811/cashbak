@@ -11,6 +11,7 @@ export async function saveCheckoutData(
   cartItems: any[],
   cartTotal: number,
   cashbakTotal: number,
+  deliveryType: string
 ) {
   try {
     console.log("Iniciando guardado de datos de checkout:", formData)
@@ -63,6 +64,7 @@ export async function saveCheckoutData(
           cashback_amount: cashbakTotal,
           order_status: "completed",
           payment_status: "paid",
+          shipping_method: deliveryType
         })
         .select("id")
         .single()

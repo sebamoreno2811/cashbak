@@ -29,6 +29,7 @@ export default function CheckoutPage() {
   const [paymentError, setPaymentError] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const shippingCost = deliveryType === "envio" ? 2990 : 0
 
   // Función helper para formatear número de cuenta
   const formatAccountNumber = (accountNumber: any) => {
@@ -121,14 +122,16 @@ export default function CheckoutPage() {
     const cartItemsStr = localStorage.getItem("checkout_cart_items")
     const cartTotalStr = localStorage.getItem("checkout_cart_total")
     const cashbakTotalStr = localStorage.getItem("checkout_cashbak_total")
+    const deliveryTypeStr = localStorage.getItem("checkout_delivery_type")
 
     if (formDataStr && cartItemsStr && cartTotalStr && cashbakTotalStr) {
       const storedFormData = JSON.parse(formDataStr)
       const cartItems = JSON.parse(cartItemsStr)
       const cartTotal = Number.parseFloat(cartTotalStr)
       const cashbakTotal = Number.parseFloat(cashbakTotalStr)
+      const deliveryType = String(deliveryTypeStr)
 
-      const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbakTotal)
+      const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbakTotal, deliveryType)
 
       // Actualizar stock de los productos
       const stockResult = await updateProductStock(cartItems)
@@ -149,6 +152,7 @@ export default function CheckoutPage() {
         localStorage.removeItem("checkout_cart_total")
         localStorage.removeItem("checkout_cashbak_total")
         localStorage.removeItem("checkout_order_id")
+        localStorage.removeItem("checkout_delivery_type")
       } else {
         setPaymentError(result.error || "Error al guardar los datos de la orden")
       }
@@ -213,7 +217,7 @@ export default function CheckoutPage() {
         ),
       )
 
-      const cartTotal = getCartTotal()
+      const cartTotal = getCartTotal(shippingCost)
       const cashbakTotal = getTotalcashbak()
       localStorage.setItem("checkout_cart_total", cartTotal.toString())
       localStorage.setItem("checkout_cashbak_total", cashbakTotal.toString())
@@ -371,7 +375,7 @@ export default function CheckoutPage() {
               </p>
               <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                 <p className="text-green-800">
-                  <span className="font-semibold">Total a pagar:</span> ${getCartTotal().toLocaleString("es-CL", { maximumFractionDigits: 0 })}
+                  <span className="font-semibold">Total a pagar:</span> ${getCartTotal(shippingCost).toLocaleString("es-CL", { maximumFractionDigits: 0 })}
                 </p>
                 <p className="text-green-700">
                   <span className="font-semibold">CashBak potencial:</span> $
@@ -430,7 +434,7 @@ export default function CheckoutPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Total a pagar:</span>
-                    <span className="font-semibold">${getCartTotal().toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+                    <span className="font-semibold">${getCartTotal(shippingCost).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                   </div>
                   <div className="flex justify-between text-emerald-600">
                     <span>CashBak potencial:</span>
@@ -506,7 +510,7 @@ export default function CheckoutPage() {
               <div className="pt-4 mt-4 border-t border-gray-200">
                 <div className="flex justify-between">
                   <span className="font-medium">Total</span>
-                  <span className="font-bold">${getCartTotal().toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+                  <span className="font-bold">${getCartTotal(shippingCost).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                 </div>
                 <div className="flex justify-between text-emerald-600">
                   <span>CashBak potencial</span>
