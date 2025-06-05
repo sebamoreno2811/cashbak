@@ -41,6 +41,10 @@ export function calcularMontoApostar(option: number, category: number, products:
   const { price, cost } = priceAndCost
   const cashbak = descuentoSegunCuota(cuota, price, cost)
 
+  console.log(`cuota: ${bet?.id ?? 30}`)
+  console.log(`priceAndCost: ${price}`)
+  console.log(`cashbak: ${cashbak}`)
+
   return ((cashbak) * price) / cuota
 }
 

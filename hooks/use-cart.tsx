@@ -133,11 +133,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         bets
       )
       item.bet_amount = calcularMontoApostar(
-        Number.parseFloat(betOptionId),
+        Number.parseInt(betOptionId),
         product.category,
-        products
+        products,
+        bets
       )
     }
+    console.log("acaaaaa")
+    console.log(item.bet_amount)
 
     setItems(updatedItems)
   }
