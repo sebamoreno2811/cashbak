@@ -9,6 +9,8 @@ import { Inter } from "next/font/google"
 import ClientLayout from "@/components/ClientLayout"
 import { OrdersProvider } from "@/context/orders-context"
 import { BetProvider } from "@/context/bet-context"
+import { ShippingAddressProvider } from "@/context/shipping-context"
+
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -32,7 +34,9 @@ export default function RootLayout({
               <OrdersProvider>
                 <ProductSelectionProvider>
                     <CartProvider>
-                      <ClientLayout>{children}</ClientLayout>
+                      <ShippingAddressProvider>
+                        <ClientLayout>{children}</ClientLayout>
+                      </ShippingAddressProvider>
                     </CartProvider>
                 </ProductSelectionProvider>
               </OrdersProvider>

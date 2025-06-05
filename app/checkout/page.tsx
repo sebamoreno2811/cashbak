@@ -14,7 +14,7 @@ import useSupabaseUser from "@/hooks/use-supabase-user"
 export default function CheckoutPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { items, getCartTotal, getTotalcashbak, getItemDetails, clearCart } = useCart()
+  const { items, getCartTotal, getTotalcashbak, getItemDetails, clearCart, deliveryType } = useCart()
 
   const hasProcessed = useRef(false)
 
@@ -218,6 +218,7 @@ export default function CheckoutPage() {
       localStorage.setItem("checkout_cart_total", cartTotal.toString())
       localStorage.setItem("checkout_cashbak_total", cashbakTotal.toString())
       localStorage.setItem("checkout_order_id", encodedOrderId)
+      localStorage.setItem("checkout_delivery_type", deliveryType!.toString())
 
       console.log("Iniciando transacción con Webpay:", { cartTotal, uniqueOrderId })
 

@@ -1,10 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
 import type { Talla } from "@/types/cart"
+import type { Delivery } from "@/hooks/use-cart"
+import { ShoppingBag as StoreIcon, Truck as TruckIcon } from "lucide-react"
+
 import {
   Select,
   SelectContent,
@@ -16,6 +19,9 @@ import { Trash2, ArrowLeft, ShoppingBag } from "lucide-react"
 import { useBets } from "@/context/bet-context"
 import useSupabaseUser from "@/hooks/use-supabase-user"
 import AuthModal from "@/components/auth/auth-modal"
+import ShippingDetailsForm from "@/components/shipping-modal"
+// Importa el contexto que maneja la dirección del usuario
+import { useShipping } from "@/context/shipping-context"
 
 export default function CartPage() {
   const router = useRouter()
@@ -30,17 +36,34 @@ export default function CartPage() {
     getTotalcashbak,
     getItemDetails,
     clearCart,
+    deliveryType,
+    chooseDeliveryType,
   } = useCart()
   const { user, loading: loadingUser } = useSupabaseUser()
   const { bets, loading: loadingBets } = useBets()
 
   const [isProcessing, setIsProcessing] = useState(false)
+  const [requiresAddress, setRequiresAddress] = useState(false)
+
+  // En vez de estado local para hasShippingDetails, lo obtengo del contexto
+  const { hasShippingDetails } = useShipping()
+
+  const shippingCost = deliveryType === "envio" ? 2990 : 0
+  const total = getCartTotal() + shippingCost
+
+  // Ya no es necesario hacer el fetch de supabase aquí, porque el contexto ya lo hace
 
   const handleCheckout = () => {
     if (!user) {
       setIsAuthModalOpen(true)
       return
     }
+
+    if (deliveryType === "envio" && !hasShippingDetails) {
+      setRequiresAddress(true)
+      return
+    }
+
     setIsProcessing(true)
     router.push("/checkout")
   }
@@ -89,9 +112,11 @@ export default function CartPage() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
+          {/* LISTA DE PRODUCTOS */}
           <div className="lg:col-span-2">
             <div className="overflow-hidden bg-white rounded-lg shadow-lg">
               <div className="p-6">
+                {/* Encabezados */}
                 <div className="hidden mb-4 md:grid md:grid-cols-12 md:gap-4 md:text-sm md:font-medium md:text-gray-500">
                   <div className="col-span-6">Producto</div>
                   <div className="col-span-2">Precio</div>
@@ -101,7 +126,7 @@ export default function CartPage() {
 
                 <div className="divide-y divide-gray-200">
                   {items.map((item, index) => {
-                    const { product, betName, subtotal, cashbakAmount } = getItemDetails(item)
+                    const { product, subtotal } = getItemDetails(item)
                     if (!product) return null
 
                     return (
@@ -119,28 +144,8 @@ export default function CartPage() {
                             <h3 className="text-base font-medium">{product.name}</h3>
                             <p className="mt-1 text-sm text-gray-500">Categoría: {product.category_name}</p>
 
-                            {/* Evento (mobile) */}
-                            <div className="mt-2 md:hidden">
-                              <p className="mb-1 text-sm text-gray-500">Evento asociado a Cashbak:</p>
-                              <Select
-                                value={item.betOptionId}
-                                onValueChange={(value) => updateItemBetOption(index, value)}
-                              >
-                                <SelectTrigger className="w-full h-8 text-xs">
-                                  <SelectValue placeholder="Selecciona un evento pa" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {bets.map((bet) => (
-                                    <SelectItem key={bet.id} value={bet.id.toString()}>
-                                      {bet.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            {/* Evento (desktop) */}
-                            <div className="hidden mt-2 md:block">
+                            {/* Evento */}
+                            <div className="mt-2">
                               <Select
                                 value={item.betOptionId}
                                 onValueChange={(value) => updateItemBetOption(index, value)}
@@ -172,33 +177,30 @@ export default function CartPage() {
                           </div>
                         </div>
 
-                        {/* Precio (desktop) */}
+                        {/* Precio */}
                         <div className="hidden md:flex md:col-span-2 md:items-center">
-                          <span>${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+                          <span>${product.price.toLocaleString("es-CL")}</span>
                         </div>
 
                         {/* Cantidad + Talla */}
                         <div className="flex items-end mt-4 gap-x-4 md:mt-0 md:col-span-2">
-                          {/* Cantidad */}
                           <div className="flex flex-col">
                             <label className="mb-1 text-sm text-gray-600">Cantidad</label>
                             {(() => {
-                              const availableStock = product?.stock?.[item.size as Talla] ?? 0
-
-                              // Cantidad ajustada: al menos 1, máximo disponible
-                              const adjustedQuantity = Math.min(Math.max(item.quantity, 1), availableStock || 1)
+                              const stockDisponible = product?.stock?.[item.size as Talla] ?? 0
+                              const cantidadAjustada = Math.min(Math.max(item.quantity, 1), stockDisponible || 1)
 
                               return (
                                 <Select
-                                  value={adjustedQuantity.toString()}
-                                  onValueChange={(value) => updateItemQuantity(index, Number.parseInt(value))}
-                                  disabled={availableStock === 0}
+                                  value={cantidadAjustada.toString()}
+                                  onValueChange={(value) => updateItemQuantity(index, parseInt(value))}
+                                  disabled={stockDisponible === 0}
                                 >
                                   <SelectTrigger className="w-24 h-8 text-sm">
                                     <SelectValue placeholder="Cant." />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {[...Array(Math.min(availableStock, 10))].map((_, i) => (
+                                    {[...Array(Math.min(stockDisponible, 10))].map((_, i) => (
                                       <SelectItem key={i + 1} value={(i + 1).toString()}>
                                         {i + 1}
                                       </SelectItem>
@@ -206,12 +208,9 @@ export default function CartPage() {
                                   </SelectContent>
                                 </Select>
                               )
-
                             })()}
                           </div>
 
-
-                          {/* Talla */}
                           <div className="flex flex-col">
                             <label className="mb-1 text-sm text-gray-600">Talla</label>
                             <Select
@@ -223,11 +222,7 @@ export default function CartPage() {
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(product?.stock || {}).map(([talla, cantidad]) => (
-                                  <SelectItem
-                                    key={talla}
-                                    value={talla}
-                                    disabled={cantidad <= 0}
-                                  >
+                                  <SelectItem key={talla} value={talla} disabled={cantidad <= 0}>
                                     {talla} {cantidad <= 0 ? "(Agotado)" : ""}
                                   </SelectItem>
                                 ))}
@@ -236,16 +231,9 @@ export default function CartPage() {
                           </div>
                         </div>
 
-
-                        {/* Subtotal (desktop) */}
+                        {/* Subtotal */}
                         <div className="hidden text-right md:flex md:col-span-2 md:items-center md:justify-end">
-                          <span>${subtotal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
-                        </div>
-
-                        {/* Subtotal (móvil) */}
-                        <div className="mt-4 md:hidden">
-                          <span className="text-sm text-gray-500">Subtotal: </span>
-                          <span className="font-medium">${subtotal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+                          <span>${subtotal.toLocaleString("es-CL")}</span>
                         </div>
                       </div>
                     )
@@ -255,31 +243,74 @@ export default function CartPage() {
             </div>
           </div>
 
-          {/* RESUMEN DE ORDEN */}
+          {/* RESUMEN */}
           <div className="lg:col-span-1">
             <div className="p-6 bg-white rounded-lg shadow-lg">
               <h2 className="mb-4 text-lg font-bold">Resumen de la orden</h2>
 
+              {/* Selección de entrega con botones tipo radio */}
+              <div className="mt-6">
+                <h3 className="mb-2 text-sm font-medium text-gray-700">Método de entrega</h3>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => {
+                      chooseDeliveryType("envio")
+                      setRequiresAddress(!hasShippingDetails)
+                    }}
+                    className={`flex items-center p-3 text-left border rounded-lg transition ${
+                      deliveryType === "envio"
+                        ? "border-green-700 bg-green-50"
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    <TruckIcon className="w-5 h-5 mr-3 text-green-700" />
+                    <div>
+                      <p className="text-sm font-medium">Envío a domicilio</p>
+                      <p className="text-xs text-gray-500">Recibe tu pedido en la dirección que elijas</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      chooseDeliveryType("retiro")
+                      setRequiresAddress(false)
+                    }}
+                    className={`flex items-center p-3 text-left border rounded-lg transition ${
+                      deliveryType === "retiro"
+                        ? "border-green-700 bg-green-50"
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    <StoreIcon className="w-5 h-5 mr-3 text-green-700" />
+                    <div>
+                      <p className="text-sm font-medium">Retiro en tienda</p>
+                      <p className="text-xs text-gray-500">Puedes retirar tu pedido sin costo</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span>${getCartTotal().toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+                  <span>${getCartTotal().toLocaleString("es-CL")}</span>
                 </div>
 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Envío</span>
-                  <span>Gratis</span>
+                  <span>{shippingCost > 0 ? `$${shippingCost.toLocaleString("es-CL")}` : "Gratis"}</span>
                 </div>
 
                 <div className="flex justify-between text-emerald-600">
                   <span>CashBak potencial</span>
-                  <span>${Math.ceil(getTotalcashbak()).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+                  <span>${Math.ceil(getTotalcashbak()).toLocaleString("es-CL")}</span>
                 </div>
 
                 <div className="pt-3 mt-3 border-t border-gray-200">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span>${getCartTotal().toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+                    <span>${total.toLocaleString("es-CL")}</span>
                   </div>
                   <p className="mt-1 text-sm text-gray-500">Impuestos incluidos</p>
                 </div>
@@ -304,9 +335,27 @@ export default function CartPage() {
         </div>
       </div>
 
+      {/* Modal para pedir dirección */}
+      {deliveryType === "envio" && requiresAddress && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+            <h2 className="mb-4 text-lg font-bold">Completa tus datos de envío</h2>
+            <ShippingDetailsForm onSaved={() => setRequiresAddress(false)} />
+            <div className="flex justify-end mt-4">
+              <Button variant="outline" onClick={() => setRequiresAddress(false)}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de autenticación */}
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onSuccess={handleAuthSuccess} />
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+      />
     </div>
   )
 }
-

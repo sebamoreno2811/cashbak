@@ -21,6 +21,8 @@ export type CartItem = {
   size: string
 }
 
+export type Delivery = "envio" | "retiro" | null
+
 type CartContextType = {
   items: CartItem[]
   addItem: (productId: number, quantity: number, betOptionId: string, size: string) => Promise<void>
@@ -32,6 +34,8 @@ type CartContextType = {
   getItemsCount: () => number
   getCartTotal: () => number
   getTotalcashbak: () => number
+  deliveryType: Delivery,
+  chooseDeliveryType: (type: Delivery) => void,
   getItemDetails: (item: CartItem) => {
     product: Product | undefined
     betName: string
@@ -48,6 +52,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 export function CartProvider({ children }: { children: ReactNode }) {
   const { products, loading, error } = useProducts()
   const { bets, loading: betsLoading, error: betsError } = useBets() // <-- ✅ usa el hook aquí
+  const [deliveryType, setDeliveryType] = useState<Delivery>("envio")
 
   const [items, setItems] = useState<CartItem[]>([])
 
@@ -141,6 +146,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(items.filter((_, i) => i !== index))
   }
 
+  const chooseDeliveryType = (type: Delivery) => {
+    setDeliveryType(type)
+  }
+
+
   const updateItemQuantity = (index: number, quantity: number) => {
     if (quantity < 1) return
     const updatedItems = [...items]
@@ -220,6 +230,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         getCartTotal,
         getTotalcashbak,
         getItemDetails,
+        deliveryType,
+        chooseDeliveryType,
       }}
     >
       {children}
