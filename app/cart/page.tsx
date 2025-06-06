@@ -144,7 +144,7 @@ export default function CartPage() {
 
                 <div className="divide-y divide-gray-200">
                   {items.map((item, index) => {
-                    const { product, subtotal } = getItemDetails(item)
+                    const { product, subtotal, cashbakAmount} = getItemDetails(item)
                     if (!product) return null
 
                     return (
@@ -172,7 +172,9 @@ export default function CartPage() {
                             <div className="flex items-center mt-2 text-sm text-emerald-600">
                               <span>CashBak: {(item.cashbakPercentage ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}%</span>
                             </div>
-
+                            <div className="items-center hidden mt-2 text-sm md:flex text-emerald-600">
+                              <span>CashBak potencial: ${cashbakAmount.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                            </div>
                             <button
                               onClick={() => removeItem(index)}
                               className="flex items-center self-start mt-2 text-sm text-red-500 hover:text-red-700"
@@ -180,12 +182,26 @@ export default function CartPage() {
                               <Trash2 className="w-4 h-4 mr-1" />
                               Eliminar
                             </button>
+                            <div className="mt-4 space-y-1 text-sm text-gray-700 md:hidden">
+                              <div className="flex justify-between">
+                                <span>Precio:</span>
+                                <span>${product.price.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                              </div>
+                               <div className="flex justify-between text-emerald-600">
+                                <span>CashBak potencial:</span>
+                                <span>${cashbakAmount.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Subtotal:</span>
+                                <span>${subtotal.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
                         {/* Precio */}
                         <div className="hidden md:flex md:col-span-2 md:items-center">
-                          <span>${product.price.toLocaleString("es-CL")}</span>
+                          <span>${product.price.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                         </div>
 
                         {/* Cantidad y Talla */}
@@ -239,7 +255,7 @@ export default function CartPage() {
 
                         {/* Subtotal */}
                         <div className="hidden text-right md:flex md:col-span-2 md:items-center md:justify-end">
-                          <span>${subtotal.toLocaleString("es-CL")}</span>
+                          <span>${subtotal.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                         </div>
                       </div>
                     )
@@ -314,23 +330,23 @@ export default function CartPage() {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span>${getCartTotal(0).toLocaleString("es-CL")}</span>
+                  <span>${getCartTotal(0).toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                 </div>
 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Envío</span>
-                  <span>{shippingCost > 0 ? `$${shippingCost.toLocaleString("es-CL")}` : "Gratis"}</span>
+                  <span>{shippingCost > 0 ? `$${shippingCost.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : "Gratis"}</span>
                 </div>
 
                 <div className="flex justify-between text-emerald-600">
                   <span>CashBak potencial</span>
-                  <span>${Math.ceil(getTotalcashbak()).toLocaleString("es-CL")}</span>
+                  <span>${Math.ceil(getTotalcashbak()).toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                 </div>
 
                 <div className="pt-3 mt-3 border-t border-gray-200">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span>${total.toLocaleString("es-CL")}</span>
+                    <span>${total.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                   </div>
                   <p className="mt-1 text-sm text-gray-500">Impuestos incluidos</p>
                 </div>

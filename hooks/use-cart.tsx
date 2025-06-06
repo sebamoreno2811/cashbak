@@ -21,7 +21,7 @@ export type CartItem = {
   size: string
 }
 
-export type Delivery = "envio" | "retiro" | null
+export type Delivery = "envio" | "Entrega Metro Tobalaba" | "Entrega Metro Fernando Castillo Velasco" | null
 
 type CartContextType = {
   items: CartItem[]
