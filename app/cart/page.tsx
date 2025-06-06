@@ -6,7 +6,7 @@ import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
 import type { Talla } from "@/types/cart"
 import type { Delivery } from "@/hooks/use-cart"
-import { ShoppingBag as StoreIcon, Truck as TruckIcon } from "lucide-react"
+import { TrainIcon, Truck as TruckIcon } from "lucide-react"
 
 import {
   Select,
@@ -274,22 +274,38 @@ export default function CartPage() {
                       <p className="text-xs text-gray-500">Recibe tu pedido en la dirección que elijas</p>
                     </div>
                   </button>
-
                   <button
                     onClick={() => {
-                      chooseDeliveryType("retiro")
+                      chooseDeliveryType("Entrega Metro Tobalaba")
                       setRequiresAddress(false)
                     }}
                     className={`flex items-center p-3 text-left border rounded-lg transition ${
-                      deliveryType === "retiro"
+                      deliveryType === "Entrega Metro Tobalaba"
                         ? "border-green-700 bg-green-50"
                         : "border-gray-300 hover:border-gray-400"
                     }`}
                   >
-                    <StoreIcon className="w-5 h-5 mr-3 text-green-700" />
+                    <TrainIcon className="w-5 h-5 mr-3 text-green-700" />
                     <div>
-                      <p className="text-sm font-medium">Retiro en tienda</p>
-                      <p className="text-xs text-gray-500">Puedes retirar tu pedido sin costo</p>
+                      <p className="text-sm font-medium">Retiro en Metro Tobalaba</p>
+                      <p className="text-xs text-gray-500">Coordinación post venta vía mail o Instagram</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      chooseDeliveryType("Entrega Metro Fernando Castillo Velasco")
+                      setRequiresAddress(false)
+                    }}
+                    className={`flex items-center p-3 text-left border rounded-lg transition ${
+                      deliveryType === "Entrega Metro Fernando Castillo Velasco"
+                        ? "border-green-700 bg-green-50"
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    <TrainIcon className="w-5 h-5 mr-3 text-green-700" />
+                    <div>
+                      <p className="text-sm font-medium">Retiro en Metro Fernando Castillo Velasco</p>
+                      <p className="text-xs text-gray-500">Coordinación post venta vía mail o Instagram</p>
                     </div>
                   </button>
                 </div>
