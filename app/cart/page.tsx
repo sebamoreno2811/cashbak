@@ -21,7 +21,6 @@ import BetSelector from "@/components/bet-selector"
 import useSupabaseUser from "@/hooks/use-supabase-user"
 import AuthModal from "@/components/auth/auth-modal"
 import ShippingDetailsForm from "@/components/shipping-modal"
-// Importa el contexto que maneja la dirección del usuario
 import { useShipping } from "@/context/shipping-context"
 
 export default function CartPage() {
@@ -45,14 +44,29 @@ export default function CartPage() {
 
   const [isProcessing, setIsProcessing] = useState(false)
   const [requiresAddress, setRequiresAddress] = useState(false)
+  const [invalidBets, setInvalidBets] = useState<string[]>([])
 
-  // En vez de estado local para hasShippingDetails, lo obtengo del contexto
   const { hasShippingDetails } = useShipping()
 
   const shippingCost = deliveryType === "envio" ? 2990 : 0
-  const total = getCartTotal(shippingCost) 
+  const total = getCartTotal(shippingCost)
 
-  // Ya no es necesario hacer el fetch de supabase aquí, porque el contexto ya lo hace
+  // Validar que las apuestas seleccionadas sean válidas
+  const validateBets = () => {
+    const nowChile = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Santiago" }))
+    const invalid: string[] = []
+
+    items.forEach((item) => {
+      const bet = bets.find((b) => b.id === Number.parseFloat(item.betOptionId))
+      if (!bet || new Date(bet.end_date) <= nowChile) {
+        const product = getItemDetails(item).product
+        invalid.push(product?.name || "Producto sin nombre")
+      }
+    })
+
+    setInvalidBets(invalid)
+    return invalid.length === 0
+  }
 
   const handleCheckout = () => {
     if (!user) {
@@ -62,6 +76,10 @@ export default function CartPage() {
 
     if (deliveryType === "envio" && !hasShippingDetails) {
       setRequiresAddress(true)
+      return
+    }
+
+    if (!validateBets()) {
       return
     }
 
@@ -117,7 +135,6 @@ export default function CartPage() {
           <div className="lg:col-span-2">
             <div className="overflow-hidden bg-white rounded-lg shadow-lg">
               <div className="p-6">
-                {/* Encabezados */}
                 <div className="hidden mb-4 md:grid md:grid-cols-12 md:gap-4 md:text-sm md:font-medium md:text-gray-500">
                   <div className="col-span-6">Producto</div>
                   <div className="col-span-2">Precio</div>
@@ -145,7 +162,6 @@ export default function CartPage() {
                             <h3 className="text-base font-medium">{product.name}</h3>
                             <p className="mt-1 text-sm text-gray-500">Categoría: {product.category_name}</p>
 
-                            {/* Evento */}
                             <div className="mt-2">
                               <BetSelector
                                 value={item.betOptionId}
@@ -172,7 +188,7 @@ export default function CartPage() {
                           <span>${product.price.toLocaleString("es-CL")}</span>
                         </div>
 
-                        {/* Cantidad + Talla */}
+                        {/* Cantidad y Talla */}
                         <div className="flex items-end mt-4 gap-x-4 md:mt-0 md:col-span-2">
                           <div className="flex flex-col">
                             <label className="mb-1 text-sm text-gray-600">Cantidad</label>
@@ -238,7 +254,6 @@ export default function CartPage() {
             <div className="p-6 bg-white rounded-lg shadow-lg">
               <h2 className="mb-4 text-lg font-bold">Resumen de la orden</h2>
 
-              {/* Selección de entrega con botones tipo radio */}
               <div className="mt-6">
                 <h3 className="mb-2 text-sm font-medium text-gray-700">Método de entrega</h3>
                 <div className="flex flex-col gap-2">
@@ -280,11 +295,10 @@ export default function CartPage() {
                 </div>
               </div>
 
-
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span>${getCartTotal(shippingCost).toLocaleString("es-CL")}</span>
+                  <span>${getCartTotal(0).toLocaleString("es-CL")}</span>
                 </div>
 
                 <div className="flex justify-between">
@@ -325,7 +339,7 @@ export default function CartPage() {
         </div>
       </div>
 
-      {/* Modal para pedir dirección */}
+      {/* Modal dirección */}
       {deliveryType === "envio" && requiresAddress && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
@@ -334,6 +348,28 @@ export default function CartPage() {
             <div className="flex justify-end mt-4">
               <Button variant="outline" onClick={() => setRequiresAddress(false)}>
                 Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal apuestas inválidas */}
+      {invalidBets.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+            <h2 className="mb-4 text-lg font-bold text-red-600">Apuesta inválida</h2>
+            <p className="mb-4 text-sm text-gray-700">
+              Debes cambiar las apuestas para los siguientes productos, ya que están vencidas:
+            </p>
+            <ul className="mb-4 text-sm text-gray-800 list-disc list-inside">
+              {invalidBets.map((name, i) => (
+                <li key={i}>{name}</li>
+              ))}
+            </ul>
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setInvalidBets([])}>
+                Cambiar apuestas
               </Button>
             </div>
           </div>

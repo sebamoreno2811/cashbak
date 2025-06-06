@@ -13,8 +13,7 @@ export interface Bet {
   id: number
   name: string
   odd: number
-  date: string
-  active: boolean
+  end_date: string
   is_winner: boolean | null
 }
 
@@ -40,7 +39,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase
       .from("bets")
       .select("*")
-      .order("date", { ascending: true })
+      .order("end_date", { ascending: true })
 
     if (error) {
       console.error("Error fetching bets:", error)

@@ -48,12 +48,31 @@ export function calcularMontoApostar(option: number, category: number, products:
   return ((cashbak) * price) / cuota
 }
 
-export function getAllBettingOptions(): number[] {
-  return [1, 2, 3]
+export function getAllBettingOptions(bets: Bet[]): number[] {
+  const nowChile = new Date(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Santiago",
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+      .format(new Date())
+      .replace(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})/, "$3-$1-$2T$4:$5:$6")
+  )
+
+  return bets
+    .filter((bet) => new Date(bet.end_date) > nowChile)
+    .map((bet) => bet.id)
 }
 
+
+
 export function calculateMaxcashbak(category: number, products: Product[] = [], bets: Bet[] = []): number {
-  const options = getAllBettingOptions()
+  const options = getAllBettingOptions(bets)
   const cashbaks = options.map((option) => calculatecashbak(option, category, products, bets))
   return Math.max(...cashbaks)
 }

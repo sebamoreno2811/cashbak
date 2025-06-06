@@ -20,15 +20,37 @@ export default function BetSelector({ value, onChange }: BetSelectorProps) {
   const { selectedOption, setSelectedOption } = useBetOption()
   const { bets, loading } = useBets()
 
-  const activeBets = bets.filter((bet) => bet.active)
-  const minIdBet = activeBets.reduce((min, bet) => (bet.id < min.id ? bet : min), activeBets[0])
+  // Obtener la hora actual en Chile en cada render
+  const nowChile = new Date(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Santiago",
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+      .format(new Date())
+      .replace(
+        /(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})/,
+        "$3-$1-$2T$4:$5:$6"
+      )
+  )
 
-  // Si no hay valor seleccionado, setear el mínimo id al cargar
+  // Apuestas cuya fecha de finalización es mayor a la hora actual
+  const availableBets = bets.filter((bet) => new Date(bet.end_date) > nowChile)
+
+  // Seleccionar automáticamente la opción con menor ID si no hay valor seleccionado
   useEffect(() => {
-    if (!value && minIdBet) {
+    if (!value && availableBets.length > 0) {
+      const minIdBet = availableBets.reduce((min, bet) =>
+        bet.id < min.id ? bet : min
+      )
       onChange(minIdBet.id.toString())
     }
-  }, [value, minIdBet, onChange])
+  }, [value, availableBets, onChange])
 
   if (loading) {
     return (
@@ -45,7 +67,7 @@ export default function BetSelector({ value, onChange }: BetSelectorProps) {
           <SelectValue placeholder="Selecciona una opción" />
         </SelectTrigger>
         <SelectContent>
-          {activeBets.map((bet) => (
+          {availableBets.map((bet) => (
             <SelectItem key={bet.id} value={bet.id.toString()}>
               {bet.name}
             </SelectItem>

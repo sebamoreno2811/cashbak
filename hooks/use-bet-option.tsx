@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { useBets } from "@/context/bet-context"
 
 // Definir el tipo para el contexto
 interface BetOptionContextType {
@@ -13,16 +14,43 @@ const BetOptionContext = createContext<BetOptionContextType | undefined>(undefin
 
 // Proveedor del contexto
 export function BetOptionProvider({ children }: { children: ReactNode }) {
-  // Estado para la opción seleccionada, inicializado con "1" por defecto
-  const [selectedOption, setSelectedOptionState] = useState<string>("1")
+  const { bets, loading } = useBets()
+  const [selectedOption, setSelectedOptionState] = useState<string>("")
 
-  // Cargar la opción guardada desde localStorage cuando el componente se monta
+  // Establecer la opción seleccionada desde localStorage o desde la apuesta válida con menor ID
   useEffect(() => {
+    if (loading) return
+
     const savedOption = localStorage.getItem("selectedBetOption")
     if (savedOption) {
       setSelectedOptionState(savedOption)
+      return
     }
-  }, [])
+
+    // Calcular la hora actual en Chile
+    const nowChile = new Date(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Santiago",
+        hour12: false,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })
+        .format(new Date())
+        .replace(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})/, "$3-$1-$2T$4:$5:$6")
+    )
+
+    const validBets = bets.filter((bet) => new Date(bet.end_date) > nowChile)
+
+    if (validBets.length > 0) {
+      const minIdBet = validBets.reduce((min, bet) => (bet.id < min.id ? bet : min))
+      setSelectedOptionState(minIdBet.id.toString())
+      localStorage.setItem("selectedBetOption", minIdBet.id.toString())
+    }
+  }, [bets, loading])
 
   // Función para actualizar la opción seleccionada y guardarla en localStorage
   const setSelectedOption = (option: string) => {
@@ -30,7 +58,11 @@ export function BetOptionProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("selectedBetOption", option)
   }
 
-  return <BetOptionContext.Provider value={{ selectedOption, setSelectedOption }}>{children}</BetOptionContext.Provider>
+  return (
+    <BetOptionContext.Provider value={{ selectedOption, setSelectedOption }}>
+      {children}
+    </BetOptionContext.Provider>
+  )
 }
 
 // Hook personalizado para usar el contexto
