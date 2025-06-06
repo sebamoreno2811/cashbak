@@ -24,7 +24,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
 
             <nav className="items-center hidden space-x-6 md:flex">
               <a href="/" className="text-gray-700 hover:text-green-900">
-                Inicio
+                Iniciosdedenjdjnde
               </a>
               <a href="/products" className="text-gray-700 hover:text-green-900">
                 Productos

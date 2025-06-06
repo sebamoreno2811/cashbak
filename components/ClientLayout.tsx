@@ -3,15 +3,9 @@
 import AuthModal from "@/components/auth/auth-modal"
 import UserMenu from "@/components/auth/user-menu"
 import { useCart } from "@/hooks/use-cart"
-import { ShoppingCart, Menu } from "lucide-react"
+import { ShoppingCart } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -22,14 +16,31 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <div className="flex flex-col min-h-screen">
       <header className="text-white bg-green-900 shadow-lg">
         <div className="container px-4 mx-auto">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
-              <span className="text-xl font-bold">CashBak</span>
+          <div className="relative flex flex-col items-center justify-center py-4 md:h-20">
+            {/* Top right (cart + user) */}
+            <div className="absolute flex items-center space-x-4 top-4 right-4">
+              <UserMenu onAuthRequired={() => setShowAuthModal(true)} />
+              <Link href="/cart" className="relative flex items-center transition-colors hover:text-green-200">
+                <ShoppingCart className="w-5 h-5" />
+                {totalItems > 0 && (
+                  <span className="absolute flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full -top-2 -right-2">
+                    {totalItems}
+                  </span>
+                )}
+                <span className="hidden ml-2 sm:inline">Carrito</span>
+              </Link>
+            </div>
+
+            {/* Logo: centered on mobile, left on desktop */}
+            <Link
+              href="/"
+              className="mb-2 text-xl font-bold md:mb-0 md:absolute md:left-4 md:top-4"
+            >
+              CashBak
             </Link>
 
-            {/* Desktop Nav */}
-            <nav className="items-center hidden space-x-6 md:flex">
+            {/* Center nav */}
+            <nav className="flex flex-col items-center space-y-2 md:flex-row md:space-y-0 md:space-x-6">
               <Link href="/" className="transition-colors hover:text-green-200">
                 Inicio
               </Link>
@@ -43,49 +54,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 Contacto
               </Link>
             </nav>
-
-            {/* Right side actions (always visible) */}
-            <div className="flex items-center space-x-4">
-              {/* User menu */}
-              <UserMenu onAuthRequired={() => setShowAuthModal(true)} />
-
-              {/* Mobile menu (hidden on md+) */}
-              <div className="md:hidden">
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="p-1 rounded hover:bg-green-800 focus:outline-none">
-                    <Menu className="w-6 h-6 text-white" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 text-green-900">
-                    <DropdownMenuItem asChild>
-                      <Link href="/">Inicio</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/products">Productos</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/howto">¿Qué es CashBak?</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="contact">Contacto</Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Cart */}
-              <Link href="/cart" className="relative flex items-center transition-colors hover:text-green-200">
-                <ShoppingCart className="w-5 h-5" />
-                {totalItems > 0 && (
-                  <span className="absolute flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full -top-2 -right-2">
-                    {totalItems}
-                  </span>
-                )}
-                <span className="hidden ml-2 sm:inline">Carrito</span>
-              </Link>
-            </div>
           </div>
         </div>
       </header>
+
 
       <main className="flex-grow bg-gray-50">{children}</main>
 
