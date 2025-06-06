@@ -90,7 +90,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const bet_amount = calcularMontoApostar(
       Number.parseFloat(betOptionId),
       product.category,
-      products
+      products,
+      bets
     )
 
     const existingItemIndex = items.findIndex(

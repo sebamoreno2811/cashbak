@@ -37,7 +37,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 Productos
               </Link>
               <Link href="/howto" className="transition-colors hover:text-green-200">
-                Cómo funciona
+                ¿Qué es CashBak?
               </Link>
               <Link href="/contact" className="transition-colors hover:text-green-200">
                 Contacto
@@ -63,7 +63,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                       <Link href="/products">Productos</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/howto">Cómo funciona</Link>
+                      <Link href="/howto">¿Qué es CashBak?</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="contact">Contacto</Link>

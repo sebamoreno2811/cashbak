@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Trash2, ArrowLeft, ShoppingBag } from "lucide-react"
 import { useBets } from "@/context/bet-context"
+import BetSelector from "@/components/bet-selector"
 import useSupabaseUser from "@/hooks/use-supabase-user"
 import AuthModal from "@/components/auth/auth-modal"
 import ShippingDetailsForm from "@/components/shipping-modal"
@@ -146,21 +147,10 @@ export default function CartPage() {
 
                             {/* Evento */}
                             <div className="mt-2">
-                              <Select
+                              <BetSelector
                                 value={item.betOptionId}
-                                onValueChange={(value) => updateItemBetOption(index, value)}
-                              >
-                                <SelectTrigger className="w-full h-8 text-xs">
-                                  <SelectValue placeholder="Selecciona una Evento" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {bets.map((bet) => (
-                                    <SelectItem key={bet.id} value={bet.id.toString()}>
-                                      {bet.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                onChange={(value) => updateItemBetOption(index, value)}
+                              />
                             </div>
 
                             <div className="flex items-center mt-2 text-sm text-emerald-600">
