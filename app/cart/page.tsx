@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button"
 import type { Talla } from "@/types/cart"
 import type { Delivery } from "@/hooks/use-cart"
 import { TrainIcon, Truck as TruckIcon } from "lucide-react"
+import { useBankAccount } from "@/hooks/use-bank-accounts"
+import BankAccountForm from "@/components/bank-form"
+
 
 import {
   Select,
@@ -22,6 +25,7 @@ import useSupabaseUser from "@/hooks/use-supabase-user"
 import AuthModal from "@/components/auth/auth-modal"
 import ShippingDetailsForm from "@/components/shipping-modal"
 import { useShipping } from "@/context/shipping-context"
+
 
 export default function CartPage() {
   const router = useRouter()
@@ -41,10 +45,14 @@ export default function CartPage() {
   } = useCart()
   const { user, loading: loadingUser } = useSupabaseUser()
   const { bets, loading: loadingBets } = useBets()
-
+  
+  const { hasBankAccount, loading: loadingBank } = useBankAccount()
   const [isProcessing, setIsProcessing] = useState(false)
   const [requiresAddress, setRequiresAddress] = useState(false)
+  const [requiresBankAccount, setRequiresBankAccount] = useState(false)
   const [invalidBets, setInvalidBets] = useState<string[]>([])
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false)
+
 
   const { hasShippingDetails } = useShipping()
 
@@ -74,6 +82,12 @@ export default function CartPage() {
       return
     }
 
+    if (!hasBankAccount) {
+      setRequiresBankAccount(true)
+      setIsBankModalOpen(true)
+      return
+    }
+
     if (deliveryType === "envio" && !hasShippingDetails) {
       setRequiresAddress(true)
       return
@@ -87,8 +101,14 @@ export default function CartPage() {
     router.push("/checkout")
   }
 
+
   const handleAuthSuccess = () => {
     setIsAuthModalOpen(false)
+    window.location.reload()
+  }
+
+  const handleBankSuccess = () => {
+    setRequiresBankAccount(false)
     window.location.reload()
   }
 
@@ -385,7 +405,32 @@ export default function CartPage() {
           </div>
         </div>
       )}
-
+      
+      {/* Modal cuenta bancaria como popup modal */}
+      {requiresBankAccount && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={() => setRequiresBankAccount(false)} // cerrar modal al clickear fuera del contenido
+        >
+          <div
+            className="relative w-full max-w-md p-6 bg-white rounded-lg"
+            onClick={(e) => e.stopPropagation()} // evitar cerrar al clickear dentro del modal
+          >
+            <h3 className="mb-4 text-lg font-semibold text-gray-700">Agrega tus datos bancarios</h3>
+            <BankAccountForm
+              onSuccess={handleBankSuccess}
+            />
+            <button
+              onClick={() => setRequiresBankAccount(false)}
+              className="absolute text-gray-500 top-3 right-3 hover:text-gray-700"
+              aria-label="Cerrar modal"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+      
       {/* Modal apuestas inválidas */}
       {invalidBets.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">

@@ -1,31 +1,14 @@
 "use client"
 
-import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { createClient } from "@/utils/supabase/client"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-
-const BANK_OPTIONS = [
-  "Banco de Chile",
-  "Banco Estado",
-  "Banco Santander",
-  "Mercado Pago",
-  "Banco BCI",
-  "Banco Itaú",
-  "Banco Falabella",
-  "Scotiabank",
-  "Banco Security",
-  "Otro",
-]
-
-const ACCOUNT_TYPES = ["Cuenta Corriente", "Cuenta Vista", "Cuenta de Ahorro", "Cuenta RUT"]
 
 interface AuthFormProps {
   onSuccess?: () => void
@@ -37,21 +20,13 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
 
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
-  })
-
+  const [loginData, setLoginData] = useState({ email: "", password: "" })
   const [registerData, setRegisterData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
     fullName: "",
     phone: "+569",
-    bankName: "",
-    accountType: "",
-    accountNumber: "",
-    rut: "",
   })
 
   const supabase = createClient()
@@ -62,13 +37,8 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: loginData.email,
-        password: loginData.password,
-      })
-
+      const { error } = await supabase.auth.signInWithPassword(loginData)
       if (error) throw error
-
       onSuccess?.()
     } catch (error: any) {
       setError(error.message || "Error al iniciar sesión")
@@ -88,20 +58,8 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       return
     }
 
-    if (registerData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres")
-      setIsLoading(false)
-      return
-    }
-
     if (!/^\+569\d{8}$/.test(registerData.phone)) {
       setError("El número debe comenzar con +569 seguido de 8 dígitos")
-      setIsLoading(false)
-      return
-    }
-
-    if (!/^[0-9]+-[0-9Kk]$/.test(registerData.rut)) {
-      setError("Formato de RUT inválido (ej: 12345678-9 o 12345678-K)")
       setIsLoading(false)
       return
     }
@@ -128,24 +86,12 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           phone: registerData.phone,
         })
 
-        await supabase.from("bank_accounts").insert({
-          customer_id: authData.user.id,
-          bank_name: registerData.bankName,
-          account_type: registerData.accountType,
-          account_number: registerData.accountNumber,
-          rut: registerData.rut,
-        })
-
         setRegisterData({
           email: "",
           password: "",
           confirmPassword: "",
           fullName: "",
           phone: "+569",
-          bankName: "",
-          accountType: "",
-          accountNumber: "",
-          rut: "",
         })
 
         setShowSuccessModal(true)
@@ -184,7 +130,6 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                       required
                     />
                   </div>
-
                   <div>
                     <Label>Contraseña</Label>
                     <div className="relative">
@@ -206,9 +151,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                     </div>
                   </div>
 
-                  {error && (
-                    <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">{error}</div>
-                  )}
+                  {error && <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">{error}</div>}
 
                   <Button type="submit" className="w-full bg-green-900 hover:bg-emerald-700" disabled={isLoading}>
                     {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Iniciar Sesión"}
@@ -227,124 +170,51 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleRegister} className="space-y-4">
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium text-gray-900">Datos Personales</h3>
-
-                    <div>
-                      <Label>Nombre Completo</Label>
-                      <Input
-                        value={registerData.fullName}
-                        onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label>Email</Label>
-                      <Input
-                        type="email"
-                        value={registerData.email}
-                        onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label>Teléfono</Label>
-                      <Input
-                        value={registerData.phone}
-                        onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label>Contraseña</Label>
-                      <Input
-                        type={showPassword ? "text" : "password"}
-                        value={registerData.password}
-                        onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label>Confirmar Contraseña</Label>
-                      <Input
-                        type={showPassword ? "text" : "password"}
-                        value={registerData.confirmPassword}
-                        onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
-                        required
-                      />
-                    </div>
+                  <div>
+                    <Label>Nombre Completo</Label>
+                    <Input
+                      value={registerData.fullName}
+                      onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={registerData.email}
+                      onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Teléfono</Label>
+                    <Input
+                      value={registerData.phone}
+                      onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Contraseña</Label>
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      value={registerData.password}
+                      onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Confirmar Contraseña</Label>
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      value={registerData.confirmPassword}
+                      onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                      required
+                    />
                   </div>
 
-                  <div className="pt-4 space-y-4 border-t">
-                    <h3 className="text-sm font-medium text-gray-900">Datos Bancarios para CashBak</h3>
-                    <p className="px-3 py-1 mt-1 text-xs text-green-900 bg-green-100 rounded-md">
-                      Es necesario que ingreses esta información para que podamos depositarte el CashBak respectivo de tu compra!.
-                    </p>
-
-                    <div>
-                      <Label>Banco</Label>
-                      <Select
-                        value={registerData.bankName}
-                        onValueChange={(value) => setRegisterData({ ...registerData, bankName: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona tu banco" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {BANK_OPTIONS.map((bank) => (
-                            <SelectItem key={bank} value={bank}>
-                              {bank}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label>Tipo de Cuenta</Label>
-                      <Select
-                        value={registerData.accountType}
-                        onValueChange={(value) => setRegisterData({ ...registerData, accountType: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona el tipo de cuenta" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ACCOUNT_TYPES.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label>Número de Cuenta</Label>
-                      <Input
-                        value={registerData.accountNumber}
-                        onChange={(e) => setRegisterData({ ...registerData, accountNumber: e.target.value })}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label>RUT</Label>
-                      <Input
-                        value={registerData.rut}
-                        onChange={(e) => setRegisterData({ ...registerData, rut: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {error && (
-                    <div className="p-3 mt-4 text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">{error}</div>
-                  )}
+                  {error && <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">{error}</div>}
 
                   <Button type="submit" className="w-full bg-green-900 hover:bg-emerald-700" disabled={isLoading}>
                     {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Crear Cuenta"}
@@ -356,7 +226,6 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         </Tabs>
       </div>
 
-      {/* Modal de éxito */}
       <Dialog open={showSuccessModal} onOpenChange={() => setShowSuccessModal(false)}>
         <DialogContent>
           <DialogHeader>
@@ -368,7 +237,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
               className="w-full bg-green-900 hover:bg-emerald-700"
               onClick={() => {
                 setShowSuccessModal(false)
-                onSuccess?.() // Cierra el modal externo
+                onSuccess?.()
               }}
             >
               OK
