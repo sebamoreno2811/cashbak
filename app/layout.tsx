@@ -15,9 +15,12 @@ import { ShippingAddressProvider } from "@/context/shipping-context"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "CashBak - Camisetas con cashbak",
-  description: "Compra camisetas retro y recibe CashBak cuando tu equipo gane",
+  title: "CashBak",
+  description: "Compra productos y recibe CashBak!",
   generator: "Next.js",
+  icons: {
+    icon: "/favicon.ico", // ruta dentro de public
+  },
 }
 
 export default function RootLayout({
