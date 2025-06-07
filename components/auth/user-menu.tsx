@@ -72,11 +72,13 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
         onClick={onAuthRequired}
         variant="outline"
         size="sm"
-        className="text-green-900 border-green-900 hover:bg-green-900 hover:text-white"
+        className="text-green-900 border-green-900 hover:bg-green-900 hover:text-white px-2 min-[1000px]:px-4 gap-1"
       >
-        <User className="w-4 h-4 mr-2" />
-        Iniciar Sesión
+        <User className="w-4 h-4" />
+        <span className="hidden min-[1000px]:inline">Iniciar Sesión</span>
       </Button>
+
+
     )
   }
 
