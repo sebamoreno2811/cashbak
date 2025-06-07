@@ -19,7 +19,10 @@ export const metadata: Metadata = {
   description: "Compra productos y recibe CashBak!",
   generator: "Next.js",
   icons: {
-    icon: "/favicon.ico", // ruta dentro de public
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icon-dark.png', media: '(prefers-color-scheme: dark)' },
+    ],
   },
 }
 
