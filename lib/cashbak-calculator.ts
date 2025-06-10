@@ -15,10 +15,10 @@ function getPricesAndCostsByCategory(category: number, products: Product[] = [])
 }
 
 function descuentoSegunCuota(cuota: number, precioVenta: number, precioCompra: number, hasPrint: boolean = false): number {
-  const margen = hasPrint ?  (precioCompra * (precioCompra / precioVenta)) / (precioCompra + 2500) : precioCompra / precioVenta;
+  const margen = hasPrint ?  (precioCompra * 0.4) / (precioCompra + 2500) : 0.4;
   const resultado = (cuota / precioVenta) * (precioVenta - precioCompra - (0.4 * precioCompra))
-  const resultado2 = cuota * (1 - margen - 0.4 * margen)
-  return Math.min(1, Math.max(0, resultado))
+  const resultado2 = (cuota / precioVenta) * (precioVenta - precioCompra - (margen * precioCompra))
+  return Math.min(1, Math.max(0, resultado2))
 }
 
 export function calculatecashbak(
