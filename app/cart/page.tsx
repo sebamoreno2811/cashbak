@@ -25,6 +25,7 @@ import useSupabaseUser from "@/hooks/use-supabase-user"
 import AuthModal from "@/components/auth/auth-modal"
 import ShippingDetailsForm from "@/components/shipping-modal"
 import { useShipping } from "@/context/shipping-context"
+import { Switch } from "@/components/ui/switch"
 
 
 export default function CartPage() {
@@ -36,6 +37,7 @@ export default function CartPage() {
     updateItemQuantity,
     updateItemBetOption,
     updateItemSize,
+    updateItemHasPrint,
     getCartTotal,
     getTotalcashbak,
     getItemDetails,
@@ -57,7 +59,7 @@ export default function CartPage() {
   const { hasShippingDetails } = useShipping()
 
   const shippingCost = deliveryType === "envio" ? 2990 : 0
-  const total = getCartTotal(shippingCost)
+  const total = getCartTotal(shippingCost) 
 
   // Validar que las apuestas seleccionadas sean válidas
   const validateBets = () => {
@@ -164,7 +166,7 @@ export default function CartPage() {
 
                 <div className="divide-y divide-gray-200">
                   {items.map((item, index) => {
-                    const { product, subtotal, cashbakAmount} = getItemDetails(item)
+                    const { product, subtotal, cashbakAmount, } = getItemDetails(item)
                     if (!product) return null
 
                     return (
@@ -188,7 +190,22 @@ export default function CartPage() {
                                 onChange={(value) => updateItemBetOption(index, value)}
                               />
                             </div>
-
+                            <div>
+                              <Switch
+                                checked={item.hasPrint}
+                                onCheckedChange={(checked) => {
+                                  updateItemHasPrint(index, checked)
+                                }}
+                                className="data-[state=checked]:bg-green-900"
+                              />
+                            </div>
+                            <div className="flex items-center mt-2 text-sm text-emerald-600">
+                              {item.hasPrint && product?.print_text && (
+                                  <label className="text-sm text-gray-600">
+                                Estampado: <span className="font-semibold text-gray-800">“{product.print_text}”</span>
+                                  </label>
+                                )}
+                            </div>
                             <div className="flex items-center mt-2 text-sm text-emerald-600">
                               <span>CashBak: {(item.cashbakPercentage ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}%</span>
                             </div>
@@ -205,7 +222,7 @@ export default function CartPage() {
                             <div className="mt-4 space-y-1 text-sm text-gray-700 md:hidden">
                               <div className="flex justify-between">
                                 <span>Precio:</span>
-                                <span>${product.price.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                                <span>${(product.price + (item.hasPrint ? 2990 : 0)).toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                               </div>
                                <div className="flex justify-between text-emerald-600">
                                 <span>CashBak potencial:</span>
@@ -221,7 +238,7 @@ export default function CartPage() {
 
                         {/* Precio */}
                         <div className="hidden md:flex md:col-span-2 md:items-center">
-                          <span>${product.price.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                          <span>${(product.price + (item.hasPrint ? 2990 : 0)).toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                         </div>
 
                         {/* Cantidad y Talla */}
@@ -360,7 +377,7 @@ export default function CartPage() {
 
                 <div className="flex justify-between text-emerald-600">
                   <span>CashBak potencial</span>
-                  <span>${Math.ceil(getTotalcashbak()).toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                  <span>${getTotalcashbak().toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                 </div>
 
                 <div className="pt-3 mt-3 border-t border-gray-200">

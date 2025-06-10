@@ -12,4 +12,6 @@ export type Product = {
   brand: string | null
   stock: Record<string, number> // suponiendo que stock es un JSON del tipo { "S": 5, "M": 2, "L": 0 }
   video_url: string | null
+  hasPrint: boolean | null
+  print_text: string | null
 }

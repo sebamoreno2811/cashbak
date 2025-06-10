@@ -19,17 +19,19 @@ export type CartItem = {
   cashbakPercentage: number
   bet_amount: number
   size: string
+  hasPrint: boolean
 }
 
 export type Delivery = "envio" | "Entrega Metro Tobalaba" | "Entrega Metro Fernando Castillo Velasco" | null
 
 type CartContextType = {
   items: CartItem[]
-  addItem: (productId: number, quantity: number, betOptionId: string, size: string) => Promise<void>
+  addItem: (productId: number, quantity: number, betOptionId: string, size: string, hasPrint: boolean) => Promise<void>
   removeItem: (index: number) => void
   updateItemQuantity: (index: number, quantity: number) => void
   updateItemBetOption: (index: number, betOptionId: string) => Promise<void>
   updateItemSize: (index: number, size: string) => void
+  updateItemHasPrint: (index: number, hasPrint: boolean) => void
   clearCart: () => void
   getItemsCount: () => number
   getCartTotal: (shippingCost: number) => number
@@ -44,6 +46,7 @@ type CartContextType = {
     cashbakPercentage: number
     bet_amount: number
     size: string
+    hasPrint: boolean
   }
 }
 
@@ -75,7 +78,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     productId: number,
     quantity: number,
     betOptionId: string,
-    size: string
+    size: string,
+    hasPrint: boolean
   ) => {
     const product = products.find((p) => p.id === productId)
     if (!product) return
@@ -84,21 +88,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
       Number.parseFloat(betOptionId),
       product.category,
       products,
-      bets
+      bets,
+      hasPrint
     )
 
     const bet_amount = calcularMontoApostar(
       Number.parseFloat(betOptionId),
       product.category,
       products,
-      bets
+      bets,
+      hasPrint
     )
 
     const existingItemIndex = items.findIndex(
       (item) =>
         item.productId === productId &&
         item.betOptionId === betOptionId &&
-        item.size === size
+        item.size === size &&
+        item.hasPrint === hasPrint
     )
 
     if (existingItemIndex >= 0) {
@@ -115,6 +122,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           cashbakPercentage,
           bet_amount,
           size,
+          hasPrint
         },
       ])
     }
@@ -131,17 +139,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
         Number.parseFloat(betOptionId),
         product.category,
         products,
-        bets
+        bets,
+        item.hasPrint
       )
       item.bet_amount = calcularMontoApostar(
         Number.parseInt(betOptionId),
         product.category,
         products,
-        bets
+        bets,
+        item.hasPrint
       )
     }
-    console.log("acaaaaa")
-    console.log(item.bet_amount)
 
     setItems(updatedItems)
   }
@@ -168,6 +176,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(updatedItems)
   }
 
+  const updateItemHasPrint = (index: number, hasPrint: boolean) => {
+    const updatedItems = [...items]
+    updatedItems[index].hasPrint = hasPrint
+    const item = updatedItems[index]
+
+    const product = products.find((p) => p.id === item.productId)
+    if (product) {
+      item.cashbakPercentage = calculatecashbak(
+        Number.parseFloat(item.betOptionId),
+        product.category,
+        products,
+        bets,
+        item.hasPrint
+      )
+      item.bet_amount = calcularMontoApostar(
+        Number.parseInt(item.betOptionId),
+        product.category,
+        products,
+        bets,
+        item.hasPrint
+      )
+    }
+
+    
+    setItems(updatedItems)
+  }
+
   const clearCart = () => {
     setItems([])
   }
@@ -179,7 +214,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const getCartTotal = (shippingCost: number) => {
     return items.reduce((total, item) => {
       const product = products.find((p) => p.id === item.productId)
-      return total + (product?.price || 0) * item.quantity
+      return total + ((product?.price || 0) + (item.hasPrint ? 2990 : 0)) * item.quantity
     }, 0) + shippingCost
   }
 
@@ -187,7 +222,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return items.reduce((total, item) => {
       const product = products.find((p) => p.id === item.productId)
       if (!product) return total
-      const cashbakAmount = (product.price * item.quantity * item.cashbakPercentage) / 100
+      const cashbakAmount = (((product?.price || 0) + (item.hasPrint ? 2990 : 0)) * item.quantity * item.cashbakPercentage) / 100
       return total + cashbakAmount
     }, 0)
   }
@@ -195,7 +230,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const getItemDetails = (item: CartItem) => {
     const product = products.find((p) => p.id === item.productId)
     const bet = bets.find((b) => b.id.toString() === item.betOptionId) // <-- ✅ usa el context
-    const subtotal = (product?.price || 0) * item.quantity
+    const subtotal = ((product?.price || 0) + (item.hasPrint ? 2990 : 0)) * item.quantity
     const cashbakAmount = (subtotal * item.cashbakPercentage) / 100
 
     return {
@@ -206,6 +241,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       cashbakPercentage: item.cashbakPercentage,
       bet_amount: item.bet_amount,
       size: item.size,
+      hasPrint: item.hasPrint,
     }
   }
 
@@ -229,6 +265,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateItemQuantity,
         updateItemBetOption,
         updateItemSize,
+        updateItemHasPrint,
         clearCart,
         getItemsCount,
         getCartTotal,

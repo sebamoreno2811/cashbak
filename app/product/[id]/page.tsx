@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useProducts } from "@/context/product-context"
 import type { Product } from "@/types/product"
 import { useBets } from "@/context/bet-context"
+import { Switch } from "@/components/ui/switch"
 
 export default function ProductPage() {
   const params = useParams()
@@ -24,6 +25,7 @@ export default function ProductPage() {
   const [cashbak, setcashbak] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
+  const [hasPrint, setHasPrint] = useState(false)
   const [size, setSize] = useState<string>("L")
   const { bets } = useBets()
 
@@ -33,12 +35,13 @@ export default function ProductPage() {
     if (!loading && products) {
       const foundProduct = products.find(p => p.id.toString() === params.id)
       setProduct(foundProduct ?? null)
+      setHasPrint(foundProduct?.hasPrint ?? false)
     }
   }, [params.id, products, loading])
 
   useEffect(() => {
     if (product) {
-      const initialcashbak = calculatecashbak(Number.parseFloat(selectedOption), product.category, products || [], bets)
+      const initialcashbak = calculatecashbak(Number.parseFloat(selectedOption), product.category, products || [], bets, hasPrint)
       setcashbak(initialcashbak)
     }
   }, [product, selectedOption, products])
@@ -62,7 +65,7 @@ export default function ProductPage() {
   const handleOptionChange = (value: string) => {
     setSelectedOption(value)
     if (product) {
-      const newcashbak = calculatecashbak(Number.parseFloat(value), product.category, products || [], bets)
+      const newcashbak = calculatecashbak(Number.parseFloat(value), product.category, products || [], bets, hasPrint)
       setcashbak(newcashbak)
     }
   }
@@ -81,7 +84,7 @@ export default function ProductPage() {
       return
     }
 
-    addItem(product.id, quantity, selectedOption, size)
+    addItem(product.id, quantity, selectedOption, size, hasPrint)
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 1500)
 
@@ -145,6 +148,10 @@ export default function ProductPage() {
     )
   }
 
+  function formatPrice(arg0: number): import("react").ReactNode {
+    throw new Error("Function not implemented.")
+  }
+
   return (
     <div className="container px-4 py-8 mx-auto">
       <Button variant="ghost" className="mb-6" onClick={() => router.back()}>
@@ -158,7 +165,10 @@ export default function ProductPage() {
 
         <div className="p-6 bg-white rounded-lg shadow-lg">
           <h1 className="mb-4 text-3xl font-bold">{product.name}</h1>
-          <p className="mb-6 text-xl font-semibold">${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
+          <p className="mb-6 text-xl font-semibold">
+            ${ (product.price + (hasPrint ? 2990 : 0)).toLocaleString("es-CL", { maximumFractionDigits: 0 }) }
+          </p>
+
 
           <div className="mb-6">
             <h3 className="mb-2 text-lg font-medium">Descripción</h3>
@@ -170,11 +180,12 @@ export default function ProductPage() {
           <div className="p-4 mt-4 border rounded-lg border-emerald-200 bg-emerald-50">
             <p className="text-lg font-semibold text-green-900">CashBak del: {cashbak.toLocaleString("es-CL", { maximumFractionDigits: 0 })}%</p>
             <p className="mt-1 text-sm text-green-800">
-              Recibirás ${Math.ceil((product.price * cashbak) / 100).toLocaleString("es-CL", { maximumFractionDigits: 0 })} de vuelta, en caso de que se cumpla el evento seleccionado.
+              Recibirás ${(((product.price + (hasPrint ? 2990 : 0)) * cashbak) / 100).toLocaleString("es-CL", { maximumFractionDigits: 0 })} de vuelta, en caso de que se cumpla el evento seleccionado.
             </p>
           </div>
 
-          <div className="flex items-center gap-4 mt-6 mb-6">
+          <div className="flex flex-col gap-4 mt-6 mb-6">
+          <div className="flex gap-4">
             <div className="w-32">
               <Select
                 value={outOfStock ? "0" : quantity.toString()}
@@ -223,25 +234,61 @@ export default function ProductPage() {
                 </SelectContent>
               </Select>
             </div>
-
-            <Button
-              className={`flex-1 ${addedToCart ? "bg-emerald-600" : "bg-green-900 hover:bg-emerald-700"}`}
-              onClick={handleAddToCart}
-              disabled={addedToCart || outOfStock}
-            >
-              {addedToCart ? (
-                <>
-                  <Check className="mr-2 size-4" /> Agregado
-                </>
-              ) : outOfStock ? (
-                <>Sin stock</>
-              ) : (
-                <>
-                  <ShoppingCart className="mr-2 size-4" /> Añadir al carrito
-                </>
-              )}
-            </Button>
           </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-4">
+              <Switch
+                id="hasPrintSwitch"
+                checked={hasPrint}
+                onCheckedChange={(val) => {
+                  setHasPrint(val)
+                  if (product) {
+                    const newCashbak = calculatecashbak(
+                      Number.parseFloat(selectedOption),
+                      product.category,
+                      products || [],
+                      bets,
+                      val
+                    )
+                    setcashbak(newCashbak)
+                  }
+                }}
+                className="data-[state=checked]:bg-green-900"
+              />
+              <label htmlFor="hasPrintSwitch" className="text-sm text-gray-700">
+                ¿Agregar estampado?{" "}
+                <span className="font-medium text-gray-500">(+ $2.990, sujeto a CashBak!)</span>
+              </label>
+            </div>
+
+            {hasPrint && product?.print_text && (
+              <p className="ml-8 text-sm text-gray-600">
+                Estampado:{" "}
+                <span className="font-semibold text-gray-800">“{product.print_text}”</span>
+              </p>
+            )}
+          </div>
+
+          <Button
+            className={`flex-1 ${addedToCart ? "bg-emerald-600" : "bg-green-900 hover:bg-emerald-700"}`}
+            onClick={handleAddToCart}
+            disabled={addedToCart || outOfStock}
+          >
+            {addedToCart ? (
+              <>
+                <Check className="mr-2 size-4" /> Agregado
+              </>
+            ) : outOfStock ? (
+              <>Sin stock</>
+            ) : (
+              <>
+                <ShoppingCart className="mr-2 size-4" /> Añadir al carrito
+              </>
+            )}
+          </Button>
+        </div>
+
 
           {remainingStock <= 2 && remainingStock >= 0 && (
             <p className="mt-2 text-sm font-semibold text-red-600">

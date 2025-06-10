@@ -14,32 +14,53 @@ function getPricesAndCostsByCategory(category: number, products: Product[] = [])
   return { price: product.price, cost: product.cost }
 }
 
-function descuentoSegunCuota(cuota: number, precioVenta: number, precioCompra: number): number {
+function descuentoSegunCuota(cuota: number, precioVenta: number, precioCompra: number, hasPrint: boolean = false): number {
+  const margen = hasPrint ?  (precioCompra * (precioCompra / precioVenta)) / (precioCompra + 2500) : precioCompra / precioVenta;
   const resultado = (cuota / precioVenta) * (precioVenta - precioCompra - (0.4 * precioCompra))
+  const resultado2 = cuota * (1 - margen - 0.4 * margen)
   return Math.min(1, Math.max(0, resultado))
 }
 
-export function calculatecashbak(option: number, category: number, products: Product[] = [], bets: Bet[] = []): number {
+export function calculatecashbak(
+  option: number,
+  category: number,
+  products: Product[] = [],
+  bets: Bet[] = [],
+  hasPrint: boolean = false
+): number {
   const bet = bets.find((b) => b.id === option)
   const cuota = bet?.odd ?? 0
 
   const priceAndCost = getPricesAndCostsByCategory(category, products)
   if (!priceAndCost) return 0
 
-  const { price, cost } = priceAndCost
-  const cashbak = descuentoSegunCuota(cuota, price, cost)
+  let { price, cost } = priceAndCost
+
+  if (hasPrint) {
+    price += 2990
+    cost += 2500
+  }
+
+  const cashbak = descuentoSegunCuota(cuota, price, cost, hasPrint)
   return Math.floor(cashbak * 100)
 }
 
-export function calcularMontoApostar(option: number, category: number, products: Product[] = [], bets: Bet[] = []): number {
+
+export function calcularMontoApostar(option: number, category: number, products: Product[] = [], bets: Bet[] = [], hasPrint: boolean = false): number {
   const bet = bets.find((b) => b.id === option)
   const cuota = bet?.odd ?? 0
 
   const priceAndCost = getPricesAndCostsByCategory(category, products)
   if (!priceAndCost) return 0
 
-  const { price, cost } = priceAndCost
-  const cashbak = descuentoSegunCuota(cuota, price, cost)
+  let { price, cost } = priceAndCost
+
+  if (hasPrint) {
+    price += 2990
+    cost += 2500
+  }
+
+  const cashbak = descuentoSegunCuota(cuota, price, cost, hasPrint)
 
   console.log(`cuota: ${bet?.id ?? 30}`)
   console.log(`priceAndCost: ${price}`)

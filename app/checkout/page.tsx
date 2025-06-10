@@ -379,7 +379,7 @@ export default function CheckoutPage() {
                 </p>
                 <p className="text-green-700">
                   <span className="font-semibold">CashBak potencial:</span> $
-                  {Math.ceil(getTotalcashbak()).toLocaleString("es-CL", { maximumFractionDigits: 0 })}
+                  {(getTotalcashbak()).toLocaleString("es-CL", { maximumFractionDigits: 0 })}
                 </p>
               </div>
             </div>
@@ -438,7 +438,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between text-emerald-600">
                     <span>CashBak potencial:</span>
-                    <span className="font-semibold">${Math.ceil(getTotalcashbak()).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+                    <span className="font-semibold">${(getTotalcashbak()).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                   </div>
                 </div>
               </div>
@@ -501,7 +501,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium">${subtotal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
-                      <p className="text-sm text-emerald-600">CashBak: ${Math.ceil(cashbakAmount).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
+                      <p className="text-sm text-emerald-600">CashBak: ${(cashbakAmount).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
                     </div>
                   </div>
                 )
@@ -514,7 +514,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-emerald-600">
                   <span>CashBak potencial</span>
-                  <span className="font-medium">${Math.ceil(getTotalcashbak()).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+                  <span className="font-medium">${(getTotalcashbak()).toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
                 </div>
               </div>
             </div>
