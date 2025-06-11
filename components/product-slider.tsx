@@ -24,12 +24,11 @@ export default function ProductSlider() {
     }
   }, [products])
 
-  const categories = Array.isArray(products) ? [...new Set(products.map((p) => p.category))] : []
+  const categories = Array.isArray(products) ? [...new Set(products.map((p) => p.category_name))] : []
 
-  const slideProducts = categories.map((category) =>
-    Array.isArray(products) ? products.filter((p) => p.category === category) : []
+  const slideProducts = categories.map((category_name) =>
+    Array.isArray(products) ? products.filter((p) => p.category_name === category_name) : []
   )
-
 
   useEffect(() => {
     const cashbakDisplay = document.getElementById("cashbak-display")
@@ -76,7 +75,11 @@ export default function ProductSlider() {
   return (
     <div className="relative">
       <div className="flex justify-between mb-4">
-        <h2 className="text-xl font-bold">Productos por Categoría</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold">
+          Productos por Categoría:
+          <span className="font-semibold text-green-900">{categories[currentSlide]}</span>
+        </h2>
+
         <div className="flex gap-2">
           <Button
             variant="outline"
