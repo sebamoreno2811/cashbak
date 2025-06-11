@@ -76,32 +76,59 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         },
       })
 
-      if (authError) throw authError
-
-      if (authData.user) {
-        await supabase.from("customers").insert({
-          id: authData.user.id,
-          full_name: registerData.fullName,
-          email: registerData.email,
-          phone: registerData.phone,
-        })
-
-        setRegisterData({
-          email: "",
-          password: "",
-          confirmPassword: "",
-          fullName: "",
-          phone: "+569",
-        })
-
-        setShowSuccessModal(true)
+      if (authError) {
+        const msg = authError.message.toLowerCase()
+        if (
+          msg.includes("user already registered") ||
+          (msg.includes("email") && msg.includes("already"))
+        ) {
+          setError("Ya existe una cuenta con este correo electrónico")
+        } else {
+          setError(authError.message || "Error al registrar usuario")
+        }
+        return
       }
+
+      if (!authData.user) {
+        setError("No se pudo crear el usuario. Intenta nuevamente.")
+        return
+      }
+
+      const { error: insertError } = await supabase.from("customers").insert({
+        id: authData.user.id,
+        full_name: registerData.fullName,
+        email: registerData.email,
+        phone: registerData.phone,
+      })
+
+      if (insertError) {
+        if (insertError.message.toLowerCase().includes("duplicate key")) {
+          setError("Ya existe un usuario registrado con estos datos.")
+        } else {
+          setError("Ocurrió un error al guardar los datos del usuario.")
+        }
+        return
+      }
+
+      // Limpia el formulario y muestra el modal de éxito
+      setRegisterData({
+        email: "",
+        password: "",
+        confirmPassword: "",
+        fullName: "",
+        phone: "+569",
+      })
+
+      setShowSuccessModal(true)
+
     } catch (error: any) {
       setError(error.message || "Error al registrar usuario")
     } finally {
       setIsLoading(false)
     }
   }
+
+
 
   return (
     <>
