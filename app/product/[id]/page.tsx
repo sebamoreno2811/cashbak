@@ -238,6 +238,9 @@ export default function ProductPage() {
 
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-4">
+              <label htmlFor="hasPrintSwitch" className="text-sm text-gray-700">
+                ¿Agregar estampado?
+              </label>
               <Switch
                 id="hasPrintSwitch"
                 checked={hasPrint}
@@ -257,16 +260,19 @@ export default function ProductPage() {
                 }}
                 className="data-[state=checked]:bg-green-900"
               />
-
-              <label htmlFor="hasPrintSwitch" className="text-sm text-gray-500">
-                {hasPrint === product?.hasPrint ? (
-                  <span className="font-medium text-gray-500">Solo disponible esta opción de momento{" "}</span>
-                ) : (
-                  <span className="font-medium text-gray-500">¿Agregar estampado?{" "}</span>
-                )}
-                (+ $2.990, <span className="font-semibold text-emerald-600">sujeto a CashBak!</span>)
-              </label>
             </div>
+
+            {hasPrint === product?.hasPrint && (
+              <p className="ml-8 text-sm text-gray-500">
+                Solo disponible esta opción de momento
+              </p>
+            )}
+
+            {hasPrint && hasPrint !== product?.hasPrint && (
+              <p className="ml-8 text-sm text-gray-500">
+                (+ $2.990, sujeto a CashBak!)
+              </p>
+            )}
 
             {hasPrint && product?.print_text && (
               <p className="ml-8 text-sm text-gray-600">
@@ -276,8 +282,9 @@ export default function ProductPage() {
             )}
           </div>
 
+
           <Button
-            className={`flex-1 ${addedToCart ? "bg-emerald-600" : "bg-green-900 hover:bg-emerald-700"}`}
+            className={`flex-1 ${addedToCart ? "bg-emerald-600 rounded-md border-2 border-black" : "bg-green-900 ounded-md border-2 border-black hover:bg-green-700 hover:shadow-lg"}`}
             onClick={handleAddToCart}
             disabled={addedToCart || outOfStock}
           >

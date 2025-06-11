@@ -7,6 +7,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { useEffect } from "react"
 import { useBetOption } from "@/hooks/use-bet-option"
 import { useBets } from "@/context/bet-context"
@@ -20,7 +26,6 @@ export default function BetSelector({ value, onChange }: BetSelectorProps) {
   const { selectedOption, setSelectedOption } = useBetOption()
   const { bets, loading } = useBets()
 
-  // Obtener la hora actual en Chile en cada render
   const nowChile = new Date(
     new Intl.DateTimeFormat("en-US", {
       timeZone: "America/Santiago",
@@ -39,10 +44,19 @@ export default function BetSelector({ value, onChange }: BetSelectorProps) {
       )
   )
 
-  // Apuestas cuya fecha de finalización es mayor a la hora actual
-  const availableBets = bets.filter((bet) => new Date(bet.end_date) > nowChile)
+  const availableBets = bets.filter(
+    (bet) => new Date(bet.end_date) > nowChile
+  )
 
-  // Seleccionar automáticamente la opción con menor ID si no hay valor seleccionado
+  const groupedBets: Record<string, typeof availableBets> = availableBets.reduce((groups, bet) => {
+    const category = bet.category || "Sin categoría"
+    if (!groups[category]) {
+      groups[category] = []
+    }
+    groups[category].push(bet)
+    return groups
+  }, {} as Record<string, typeof availableBets>)
+
   useEffect(() => {
     if (!value && availableBets.length > 0) {
       const minIdBet = availableBets.reduce((min, bet) =>
@@ -60,18 +74,38 @@ export default function BetSelector({ value, onChange }: BetSelectorProps) {
     )
   }
 
+  // Buscar la apuesta seleccionada para mostrar su nombre en SelectValue
+  const selectedBet = bets.find((bet) => bet.id.toString() === value)
+
   return (
     <div className="mb-6">
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Selecciona una opción" />
+          <SelectValue placeholder="Selecciona una opción">
+            {selectedBet ? selectedBet.name : null}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {availableBets.map((bet) => (
-            <SelectItem key={bet.id} value={bet.id.toString()}>
-              {bet.name}
-            </SelectItem>
-          ))}
+          <Accordion type="multiple" className="w-full">
+            {Object.entries(groupedBets).map(([category, bets]) => (
+              <AccordionItem key={category} value={category}>
+                <AccordionTrigger className="px-3 text-sm font-medium">
+                  {category}
+                </AccordionTrigger>
+                <AccordionContent>
+                  {bets.map((bet) => (
+                    <SelectItem
+                      key={bet.id}
+                      value={bet.id.toString()}
+                      className="ml-3 border-b border-black last:border-b-0"
+                    >
+                      {bet.name}
+                    </SelectItem>
+                  ))}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </SelectContent>
       </Select>
     </div>
