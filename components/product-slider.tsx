@@ -75,9 +75,11 @@ export default function ProductSlider() {
   return (
     <div className="relative">
       <div className="flex justify-between mb-4">
-        <h2 className="flex items-center gap-2 text-xl font-bold">
-          Productos por Categoría:
-          <span className="font-semibold text-green-900">{categories[currentSlide]}</span>
+        <h2 className="flex flex-col gap-1 text-lg font-bold sm:flex-row sm:items-center sm:gap-2 sm:text-2xl">
+          <span className="text-gray-800">Productos por Categoría:</span>
+          <span className="font-semibold text-green-700 sm:text-green-900 sm:text-2xl">
+            {categories[currentSlide]}
+          </span>
         </h2>
 
         <div className="flex gap-2">
