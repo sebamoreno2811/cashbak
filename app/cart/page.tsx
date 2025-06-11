@@ -193,6 +193,7 @@ export default function CartPage() {
                             <div>
                               <Switch
                                 checked={item.hasPrint}
+                                disabled={item.hasPrint === product?.hasPrint}
                                 onCheckedChange={(checked) => {
                                   updateItemHasPrint(index, checked)
                                 }}

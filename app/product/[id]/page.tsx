@@ -241,6 +241,7 @@ export default function ProductPage() {
               <Switch
                 id="hasPrintSwitch"
                 checked={hasPrint}
+                disabled={hasPrint === product?.hasPrint}
                 onCheckedChange={(val) => {
                   setHasPrint(val)
                   if (product) {
@@ -256,9 +257,14 @@ export default function ProductPage() {
                 }}
                 className="data-[state=checked]:bg-green-900"
               />
-              <label htmlFor="hasPrintSwitch" className="text-sm text-gray-700">
-                ¿Agregar estampado?{" "}
-                <span className="font-medium text-gray-500">(+ $2.990, sujeto a CashBak!)</span>
+
+              <label htmlFor="hasPrintSwitch" className="text-sm text-gray-500">
+                {hasPrint === product?.hasPrint ? (
+                  <span className="font-medium text-gray-500">Solo disponible esta opción de momento{" "}</span>
+                ) : (
+                  <span className="font-medium text-gray-500">¿Agregar estampado?{" "}</span>
+                )}
+                (+ $2.990, <span className="font-semibold text-emerald-600">sujeto a CashBak!</span>)
               </label>
             </div>
 
