@@ -10,6 +10,9 @@ import ClientLayout from "@/components/ClientLayout"
 import { OrdersProvider } from "@/context/orders-context"
 import { BetProvider } from "@/context/bet-context"
 import { ShippingAddressProvider } from "@/context/shipping-context"
+import { CommentProvider } from "@/context/comment-context"
+import { CustomerProvider } from "@/context/customer-context"
+
 
 
 const inter = Inter({ subsets: ["latin"] })
@@ -36,17 +39,21 @@ export default function RootLayout({
       <body className={inter.className}>
         <ProductsProvider>
           <BetProvider>
-            <BetOptionProvider>
-              <OrdersProvider>
-                <ProductSelectionProvider>
-                    <CartProvider>
-                      <ShippingAddressProvider>
-                        <ClientLayout>{children}</ClientLayout>
-                      </ShippingAddressProvider>
-                    </CartProvider>
-                </ProductSelectionProvider>
-              </OrdersProvider>
-            </BetOptionProvider>
+            <CustomerProvider>
+              <CommentProvider>
+                <BetOptionProvider>
+                  <OrdersProvider>
+                    <ProductSelectionProvider>
+                        <CartProvider>
+                          <ShippingAddressProvider>
+                            <ClientLayout>{children}</ClientLayout>
+                          </ShippingAddressProvider>
+                        </CartProvider>
+                    </ProductSelectionProvider>
+                  </OrdersProvider>
+                </BetOptionProvider>
+              </CommentProvider>
+            </CustomerProvider>
           </BetProvider>
         </ProductsProvider> 
       </body>

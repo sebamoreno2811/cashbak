@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { calculatecashbak } from "@/lib/cashbak-calculator"
 import { useBetOption } from "@/hooks/use-bet-option"
 import { useCart } from "@/hooks/use-cart"
-import { ArrowLeft, ShoppingCart, Check } from "lucide-react"
+import { ArrowLeft, ShoppingCart, Check, Loader2 } from "lucide-react"
 import BetSelector from "@/components/bet-selector"
 import { toast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -15,6 +15,33 @@ import { useProducts } from "@/context/product-context"
 import type { Product } from "@/types/product"
 import { useBets } from "@/context/bet-context"
 import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+
+import { Input } from "@/components/ui/input"
+import { createClient } from "@/utils/supabase/client"
+import useSupabaseUser from "@/hooks/use-supabase-user"
+import { useComments } from "@/context/comment-context"
+import { useCustomers } from "@/context/customer-context"
+
+function Star({ filled, onMouseEnter, onMouseLeave, onClick }: { filled: boolean, onMouseEnter: () => void, onMouseLeave: () => void, onClick: () => void }) {
+  return (
+    <svg
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+      xmlns="http://www.w3.org/2000/svg"
+      className={`h-6 w-6 cursor-pointer transition-colors ${filled ? "text-emerald-400" : "text-gray-300"}`}
+      fill={filled ? "currentColor" : "none"}
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 17.75l-6.172 3.245 1.179-6.872L2 9.75l6.914-1.005L12 2.75l3.086 6.005L22 9.75l-5.007 4.372 1.179 6.873z" />
+    </svg>
+  )
+}
+
+
 
 export default function ProductPage() {
   const params = useParams()
@@ -28,6 +55,24 @@ export default function ProductPage() {
   const [hasPrint, setHasPrint] = useState(false)
   const [size, setSize] = useState<string>("L")
   const { bets } = useBets()
+  const [isLoading, setIsLoading] = useState(false)
+  const [commentError, setCommentError] = useState<string | null>(null)
+  const { comments, loading: commentsLoading, error: commentsError, refreshComments } = useComments()
+  const { customers, loading: customerLoading, error: customerError } = useCustomers()
+  const [commentData, setComment] = useState({
+    comment: "",
+    stars: 0,
+  })
+
+  const [hoverRating, setHoverRating] = useState<number | null>(null)
+
+
+  const productComments = comments.filter((c) => c.product_id === product?.id)
+
+  
+  const { user, loading: loadingUser } = useSupabaseUser()
+
+  const customer_active = customers.filter((c) => c.id === user?.id)
 
   const { addItem, items } = useCart()
 
@@ -93,6 +138,64 @@ export default function ProductPage() {
       description: `${quantity} x ${product.name}`,
     })
   }
+
+  async function handleComment(e: React.FormEvent) {
+    e.preventDefault()
+    setCommentError(null)
+    setIsLoading(true)
+
+    console.log({
+      product_id: product?.id,
+      comment: commentData.comment.trim(),
+      user_id: user?.id ?? null,
+    })
+
+    try {
+      if (!product?.id) {
+        throw new Error("Producto no definido")
+      }
+      if (!commentData.comment.trim()) {
+        throw new Error("El comentario no puede estar vacío")
+      }
+      const supabase = createClient()
+      if (!product) return
+
+      const { error } = await supabase
+        .from("comments")
+        .insert([
+          {
+            product_id: product.id,
+            content: commentData.comment.trim(),
+            user_id: user?.id ?? null,
+            user_name: customer_active[0].full_name,
+            stars: commentData.stars
+          },
+        ])
+
+      if (error) throw error
+
+      toast({
+        title: "Comentario agregado",
+        description: "Tu comentario fue publicado con éxito.",
+      })
+
+      setComment({ comment: "", stars: 5 })
+
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Error desconocido"
+      setCommentError(message)
+      toast({
+        title: "Error al agregar comentario",
+        description: message,
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+
+    await refreshComments()
+  }
+
 
   const handleGoToCart = () => router.push("/cart")
 
@@ -318,8 +421,7 @@ export default function ProductPage() {
           </Button>
 
           <div className="mt-4 text-sm text-gray-500">
-            <p>Envío gratis en compras superiores a $50.000</p>
-            <p>Garantía de devolución de 30 días</p>
+            <p>Réplica de alta calidad</p>
           </div>
         </div>
       </div>
@@ -339,6 +441,85 @@ export default function ProductPage() {
           </div>
         </div>
       )}
+      {/* Sección de Comentarios */}
+      <div className="mt-12 space-y-8">
+        <h2 className="text-2xl font-bold text-gray-900">Comentarios</h2>
+
+        {user ? (
+          <form onSubmit={handleComment} className="space-y-4">
+            <Label htmlFor="comment">Agrega tu comentario</Label>
+            <textarea
+              id="comment"
+              rows={4}
+              className="w-full p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-green-600"
+              placeholder="Escribe aquí tu comentario..."
+              value={commentData.comment}
+              onChange={(e) => setComment({ ...commentData, comment: e.target.value })}
+              disabled={isLoading}
+            />
+
+            {/* Selector de estrellas */}
+            <div>
+              <Label>Calificación</Label>
+              <div className="flex mt-1">
+                {Array.from({ length: 5 }, (_, i) => {
+                  const starIndex = i + 1
+                  // Estado local para hover de estrellas
+                  return (
+                    <Star
+                      key={starIndex}
+                      filled={starIndex <= (hoverRating ?? commentData.stars)}
+                      onMouseEnter={() => setHoverRating(starIndex)}
+                      onMouseLeave={() => setHoverRating(null)}
+                      onClick={() => setComment({ ...commentData, stars: starIndex })}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+
+
+            {commentError && <p className="text-red-600">{commentError}</p>}
+
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Enviando..." : "Enviar comentario"}
+            </Button>
+          </form>
+          
+
+        ) : (
+          <p className="text-gray-600">Debes iniciar sesión para dejar un comentario.</p>
+        )}
+
+        {commentsLoading ? (
+          <p>Cargando comentarios...</p>
+        ) : productComments.length === 0 ? (
+          <p className="text-gray-600">No hay comentarios aún. Sé el primero en opinar.</p>
+        ) : (
+          <div className="space-y-6">
+            {productComments.map((c, idx) => (
+              <div key={idx} className="p-4 border rounded-lg shadow-sm bg-gray-50">
+                <div className="flex items-center mb-2">
+                  <div className="flex text-emerald-400">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <svg
+                        key={i}
+                        className={`w-5 h-5 fill-current ${i < (c.stars ?? 0) ? "text-emerald-400" : "text-gray-200"}`}
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M10 15l-5.878 3.09 1.123-6.545L.49 6.91l6.561-.955L10 0l2.949 5.955 6.561.955-4.755 4.635 1.123 6.545z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="ml-4 text-sm text-gray-500">Usuario: {c.user_name ?? "Anónimo"}</p>
+                </div>
+                <p className="text-gray-800 whitespace-pre-wrap">{c.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
