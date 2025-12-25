@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRef } from "react"
-import { createClient } from "@/utils/supabase/client"
+import { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { createClient } from "@/utils/supabase/client"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,76 +15,48 @@ import {
 } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
 
-type AuthEvent =
-  | "SIGNED_IN"
-  | "SIGNED_OUT"
-  | "TOKEN_REFRESHED"
-  | "USER_UPDATED"
-  | "PASSWORD_RECOVERY"
-
 export default function ResetPasswordPage() {
   const supabase = createClient()
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  // 🔒 Evita que el code se consuma más de una vez (Strict Mode)
   const exchangedRef = useRef(false)
+
   const [ready, setReady] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [expired, setExpired] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
 
-  // 🔴 Detectar error en URL
+  // ✅ ÚNICO efecto de auth permitido
   useEffect(() => {
     const code = searchParams.get("code")
 
     if (!code) {
-        setError("Link inválido o incompleto")
-        setExpired(true)
-        return
+      setExpired(true)
+      return
     }
 
-    // ⛔️ Evita doble ejecución (Strict Mode)
     if (exchangedRef.current) return
     exchangedRef.current = true
 
     const exchange = async () => {
-        const { error } =
-        await supabase.auth.exchangeCodeForSession(code)
+      const { error } = await supabase.auth.exchangeCodeForSession(code)
 
-        if (error) {
-        console.error(error)
-        setError("El link expiró o ya fue usado. Solicita uno nuevo.")
+      if (error) {
+        console.error("Exchange error:", error)
         setExpired(true)
         return
-        }
+      }
 
-        setReady(true)
+      setReady(true)
     }
 
     exchange()
-    }, [searchParams, supabase])
-
-
-
-  // ✅ Escuchar evento correcto SOLO si no expiró
-  useEffect(() => {
-    if (expired) return
-
-    const { data } = supabase.auth.onAuthStateChange(
-      (event: AuthEvent) => {
-        if (event === "PASSWORD_RECOVERY") {
-          setReady(true)
-        }
-      }
-    )
-
-    return () => {
-      data.subscription.unsubscribe()
-    }
-  }, [supabase, expired])
+  }, [searchParams, supabase])
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -111,10 +83,10 @@ export default function ResetPasswordPage() {
     }
 
     await supabase.auth.signOut()
-    router.replace("/")
+    router.replace("/login")
   }
 
-  // 🔴 Link expirado
+  // 🔴 Estado: link inválido / expirado
   if (expired) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -124,7 +96,7 @@ export default function ResetPasswordPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              El link de recuperación ya no es válido.
+              El link de recuperación ya no es válido o ya fue utilizado.
             </p>
             <Button
               className="w-full"
@@ -138,6 +110,7 @@ export default function ResetPasswordPage() {
     )
   }
 
+  // ⏳ Estado: validando OTP
   if (!ready) {
     return (
       <p className="mt-10 text-sm text-center text-muted-foreground">
@@ -146,6 +119,7 @@ export default function ResetPasswordPage() {
     )
   }
 
+  // ✅ Estado: form válido
   return (
     <div className="flex items-center justify-center min-h-screen">
       <Card className="w-full max-w-md">
