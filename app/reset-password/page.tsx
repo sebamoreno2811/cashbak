@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRef } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -26,6 +27,7 @@ export default function ResetPasswordPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  const exchangedRef = useRef(false)
   const [ready, setReady] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -44,8 +46,13 @@ export default function ResetPasswordPage() {
         return
     }
 
+    // ⛔️ Evita doble ejecución (Strict Mode)
+    if (exchangedRef.current) return
+    exchangedRef.current = true
+
     const exchange = async () => {
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        const { error } =
+        await supabase.auth.exchangeCodeForSession(code)
 
         if (error) {
         console.error(error)
@@ -59,6 +66,7 @@ export default function ResetPasswordPage() {
 
     exchange()
     }, [searchParams, supabase])
+
 
 
   // ✅ Escuchar evento correcto SOLO si no expiró
