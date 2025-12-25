@@ -4,23 +4,52 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
 import { createClient } from "@/utils/supabase/client"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface AuthFormProps {
   onSuccess?: () => void
 }
 
 export default function AuthForm({ onSuccess }: AuthFormProps) {
+  const supabase = createClient()
+
+  const [mode, setMode] = useState<"login" | "forgot">("login")
+
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
   const [error, setError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+
   const [showSuccessModal, setShowSuccessModal] = useState(false)
 
-  const [loginData, setLoginData] = useState({ email: "", password: "" })
+  const [loginData, setLoginData] = useState({
+    email: "",
+    password: "",
+  })
+
+  const [forgotEmail, setForgotEmail] = useState("")
+
   const [registerData, setRegisterData] = useState({
     email: "",
     password: "",
@@ -29,24 +58,52 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     phone: "+569",
   })
 
-  const supabase = createClient()
-
+  // -------------------------
+  // LOGIN
+  // -------------------------
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
 
-    try {
-      const { error } = await supabase.auth.signInWithPassword(loginData)
-      if (error) throw error
-      onSuccess?.()
-    } catch (error: any) {
+    const { error } = await supabase.auth.signInWithPassword(loginData)
+
+    if (error) {
       setError(error.message || "Error al iniciar sesión")
-    } finally {
-      setIsLoading(false)
+    } else {
+      onSuccess?.()
     }
+
+    setIsLoading(false)
   }
 
+  // -------------------------
+  // FORGOT PASSWORD
+  // -------------------------
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    setMessage(null)
+
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    })
+
+    if (error) {
+      setError(error.message)
+    } else {
+      setMessage(
+        "Si el correo existe, te enviamos un link para recuperar tu contraseña."
+      )
+    }
+
+    setIsLoading(false)
+  }
+
+  // -------------------------
+  // REGISTER
+  // -------------------------
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -64,53 +121,39 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       return
     }
 
-    try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: registerData.email,
-        password: registerData.password,
-        options: {
-          data: {
-            full_name: registerData.fullName,
-            phone: registerData.phone,
-          },
+    const { data, error } = await supabase.auth.signUp({
+      email: registerData.email,
+      password: registerData.password,
+      options: {
+        data: {
+          full_name: registerData.fullName,
+          phone: registerData.phone,
         },
-      })
+      },
+    })
 
-      if (authError) {
-        const msg = authError.message.toLowerCase()
-        if (
-          msg.includes("user already registered") ||
-          (msg.includes("email") && msg.includes("already"))
-        ) {
-          setError("Ya existe una cuenta con este correo electrónico")
-        } else {
-          setError(authError.message || "Error al registrar usuario")
-        }
-        return
-      }
+    if (error) {
+      setError(error.message)
+      setIsLoading(false)
+      return
+    }
 
-      if (!authData.user) {
-        setError("No se pudo crear el usuario. Intenta nuevamente.")
-        return
-      }
-
-      const { error: insertError } = await supabase.from("customers").insert({
-        id: authData.user.id,
-        full_name: registerData.fullName,
-        email: registerData.email,
-        phone: registerData.phone,
-      })
+    if (data.user) {
+      const { error: insertError } = await supabase
+        .from("customers")
+        .insert({
+          id: data.user.id,
+          full_name: registerData.fullName,
+          email: registerData.email,
+          phone: registerData.phone,
+        })
 
       if (insertError) {
-        if (insertError.message.toLowerCase().includes("duplicate key")) {
-          setError("Ya existe un usuario registrado con estos datos.")
-        } else {
-          setError("Ocurrió un error al guardar los datos del usuario.")
-        }
+        setError("Error al guardar los datos del usuario")
+        setIsLoading(false)
         return
       }
 
-      // Limpia el formulario y muestra el modal de éxito
       setRegisterData({
         email: "",
         password: "",
@@ -120,131 +163,275 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       })
 
       setShowSuccessModal(true)
-
-    } catch (error: any) {
-      setError(error.message || "Error al registrar usuario")
-    } finally {
-      setIsLoading(false)
     }
+
+    setIsLoading(false)
   }
 
-
-
+  // -------------------------
+  // UI
+  // -------------------------
   return (
     <>
       <div className="w-full max-w-md mx-auto">
-        <Tabs defaultValue="login" className="w-full">
+        <Tabs
+          defaultValue="login"
+          onValueChange={() => {
+            setMode("login")
+            setError(null)
+            setMessage(null)
+          }}
+        >
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
+            <TabsTrigger value="login">Iniciar sesión</TabsTrigger>
             <TabsTrigger value="register">Registrarse</TabsTrigger>
           </TabsList>
 
-          {/* Login */}
+          {/* LOGIN */}
           <TabsContent value="login">
             <Card>
               <CardHeader>
-                <CardTitle>Iniciar Sesión</CardTitle>
-                <CardDescription>Ingresa tus credenciales para acceder</CardDescription>
+                <CardTitle>
+                  {mode === "forgot"
+                    ? "Recuperar contraseña"
+                    : "Iniciar sesión"}
+                </CardTitle>
+                <CardDescription>
+                  {mode === "forgot"
+                    ? "Te enviaremos un link para restablecer tu contraseña"
+                    : "Ingresa tus credenciales para acceder"}
+                </CardDescription>
               </CardHeader>
+
               <CardContent>
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div>
-                    <Label>Email</Label>
-                    <Input
-                      type="email"
-                      value={loginData.email}
-                      onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label>Contraseña</Label>
-                    <div className="relative">
+                {mode === "login" && (
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                      <Label>Email</Label>
                       <Input
-                        type={showPassword ? "text" : "password"}
-                        value={loginData.password}
-                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                        type="email"
+                        value={loginData.email}
+                        onChange={(e) =>
+                          setLoginData({
+                            ...loginData,
+                            email: e.target.value,
+                          })
+                        }
                         required
                       />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
                     </div>
-                  </div>
 
-                  {error && <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">{error}</div>}
+                    <div>
+                      <Label>Contraseña</Label>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          value={loginData.password}
+                          onChange={(e) =>
+                            setLoginData({
+                              ...loginData,
+                              password: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute top-0 right-0 h-full px-3"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff /> : <Eye />}
+                        </Button>
+                      </div>
+                    </div>
 
-                  <Button type="submit" className="w-full bg-green-900 hover:bg-emerald-700" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Iniciar Sesión"}
-                  </Button>
-                </form>
+                    {error && (
+                      <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">
+                        {error}
+                      </div>
+                    )}
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-green-900 hover:bg-emerald-700"
+                      disabled={isLoading}
+                    >
+                      {isLoading && (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      )}
+                      Iniciar sesión
+                    </Button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode("forgot")
+                        setError(null)
+                      }}
+                      className="w-full text-sm text-center text-muted-foreground hover:underline"
+                    >
+                      ¿Recuperar contraseña?
+                    </button>
+                  </form>
+                )}
+
+                {mode === "forgot" && (
+                  <form
+                    onSubmit={handleForgotPassword}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <Label>Email</Label>
+                      <Input
+                        type="email"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    {error && (
+                      <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">
+                        {error}
+                      </div>
+                    )}
+
+                    {message && (
+                      <div className="p-3 text-sm text-green-700 bg-green-100 border border-green-300 rounded-md">
+                        {message}
+                      </div>
+                    )}
+
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={isLoading}
+                    >
+                      {isLoading && (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      )}
+                      Enviar link
+                    </Button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode("login")
+                        setMessage(null)
+                        setForgotEmail("")
+                      }}
+                      className="w-full text-sm text-center text-muted-foreground hover:underline"
+                    >
+                      Volver al login
+                    </button>
+                  </form>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Registro */}
+          {/* REGISTER */}
           <TabsContent value="register">
             <Card>
               <CardHeader>
-                <CardTitle>Crear Cuenta</CardTitle>
-                <CardDescription>Completa los datos para crear tu cuenta</CardDescription>
+                <CardTitle>Crear cuenta</CardTitle>
+                <CardDescription>
+                  Completa los datos para crear tu cuenta
+                </CardDescription>
               </CardHeader>
+
               <CardContent>
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div>
-                    <Label>Nombre Completo</Label>
+                    <Label>Nombre completo</Label>
                     <Input
                       value={registerData.fullName}
-                      onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
+                      onChange={(e) =>
+                        setRegisterData({
+                          ...registerData,
+                          fullName: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
+
                   <div>
                     <Label>Email</Label>
                     <Input
                       type="email"
                       value={registerData.email}
-                      onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                      onChange={(e) =>
+                        setRegisterData({
+                          ...registerData,
+                          email: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
+
                   <div>
                     <Label>Teléfono</Label>
                     <Input
                       value={registerData.phone}
-                      onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                      onChange={(e) =>
+                        setRegisterData({
+                          ...registerData,
+                          phone: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
+
                   <div>
                     <Label>Contraseña</Label>
                     <Input
-                      type={showPassword ? "text" : "password"}
+                      type="password"
                       value={registerData.password}
-                      onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                      onChange={(e) =>
+                        setRegisterData({
+                          ...registerData,
+                          password: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
+
                   <div>
-                    <Label>Confirmar Contraseña</Label>
+                    <Label>Confirmar contraseña</Label>
                     <Input
-                      type={showPassword ? "text" : "password"}
+                      type="password"
                       value={registerData.confirmPassword}
-                      onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                      onChange={(e) =>
+                        setRegisterData({
+                          ...registerData,
+                          confirmPassword: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
 
-                  {error && <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">{error}</div>}
+                  {error && (
+                    <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">
+                      {error}
+                    </div>
+                  )}
 
-                  <Button type="submit" className="w-full bg-green-900 hover:bg-emerald-700" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Crear Cuenta"}
+                  <Button
+                    type="submit"
+                    className="w-full bg-green-900 hover:bg-emerald-700"
+                    disabled={isLoading}
+                  >
+                    {isLoading && (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    )}
+                    Crear cuenta
                   </Button>
                 </form>
               </CardContent>
@@ -253,23 +440,28 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         </Tabs>
       </div>
 
-      <Dialog open={showSuccessModal} onOpenChange={() => setShowSuccessModal(false)}>
+      {/* SUCCESS MODAL */}
+      <Dialog
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>¡Registro exitoso!</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-gray-700">Tu cuenta ha sido creada correctamente. Revisa tu correo para confirmarla.</p>
-            <Button
-              className="w-full bg-green-900 hover:bg-emerald-700"
-              onClick={() => {
-                setShowSuccessModal(false)
-                onSuccess?.()
-              }}
-            >
-              OK
-            </Button>
-          </div>
+          <p className="text-sm text-gray-700">
+            Tu cuenta ha sido creada correctamente. Revisa tu correo para
+            confirmarla.
+          </p>
+          <Button
+            className="w-full bg-green-900 hover:bg-emerald-700"
+            onClick={() => {
+              setShowSuccessModal(false)
+              onSuccess?.()
+            }}
+          >
+            OK
+          </Button>
         </DialogContent>
       </Dialog>
     </>
