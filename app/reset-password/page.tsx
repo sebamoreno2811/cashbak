@@ -36,13 +36,30 @@ export default function ResetPasswordPage() {
 
   // 🔴 Detectar error en URL
   useEffect(() => {
-    const errorCode = searchParams.get("error_code")
+    const code = searchParams.get("code")
 
-    if (errorCode === "otp_expired") {
-      setExpired(true)
-      setError("El link expiró o ya fue usado. Solicita uno nuevo.")
+    if (!code) {
+        setError("Link inválido o incompleto")
+        setExpired(true)
+        return
     }
-  }, [searchParams])
+
+    const exchange = async () => {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+        if (error) {
+        console.error(error)
+        setError("El link expiró o ya fue usado. Solicita uno nuevo.")
+        setExpired(true)
+        return
+        }
+
+        setReady(true)
+    }
+
+    exchange()
+    }, [searchParams, supabase])
+
 
   // ✅ Escuchar evento correcto SOLO si no expiró
   useEffect(() => {
