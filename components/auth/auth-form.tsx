@@ -87,7 +87,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     setMessage(null)
 
     const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: "https://www.cashbak.cl/reset-password",
     })
 
     if (error) {

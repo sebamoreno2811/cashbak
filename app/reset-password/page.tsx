@@ -1,25 +1,54 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { createClient } from "@/utils/supabase/client"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useRouter } from "next/navigation"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Loader2 } from "lucide-react"
 
 export default function ResetPasswordPage() {
   const supabase = createClient()
   const router = useRouter()
 
+  const [ready, setReady] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
 
-  const handleReset = async (e: React.FormEvent) => {
+  // 🔐 Validar sesión de recuperación
+  useEffect(() => {
+    const validateSession = async () => {
+      const sessionResponse = await supabase.auth.getSession()
+
+      if (!sessionResponse.data.session) {
+        router.replace("/")
+        return
+      }
+
+      setReady(true)
+    }
+
+    validateSession()
+  }, [router, supabase])
+
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    if (password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres")
+      return
+    }
 
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden")
@@ -32,11 +61,20 @@ export default function ResetPasswordPage() {
 
     if (error) {
       setError(error.message)
-    } else {
-      router.push("/")
+      setLoading(false)
+      return
     }
 
-    setLoading(false)
+    await supabase.auth.signOut()
+    router.replace("/")
+  }
+
+  if (!ready) {
+    return (
+      <p className="mt-10 text-sm text-center text-muted-foreground">
+        Validando link de recuperación…
+      </p>
+    )
   }
 
   return (
@@ -45,8 +83,9 @@ export default function ResetPasswordPage() {
         <CardHeader>
           <CardTitle>Restablecer contraseña</CardTitle>
         </CardHeader>
+
         <CardContent>
-          <form onSubmit={handleReset} className="space-y-4">
+          <form onSubmit={handleResetPassword} className="space-y-4">
             <div>
               <Label>Nueva contraseña</Label>
               <Input
@@ -67,9 +106,20 @@ export default function ResetPasswordPage() {
               />
             </div>
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && (
+              <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">
+                {error}
+              </div>
+            )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full bg-green-900 hover:bg-emerald-700"
+              disabled={loading}
+            >
+              {loading && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
               Cambiar contraseña
             </Button>
           </form>
