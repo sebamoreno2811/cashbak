@@ -25,21 +25,21 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
 
-  // 🔐 Validar sesión de recuperación
+  // ✅ Esperar explícitamente el estado PASSWORD_RECOVERY
   useEffect(() => {
-    const validateSession = async () => {
-      const sessionResponse = await supabase.auth.getSession()
+    const { data } = supabase.auth.onAuthStateChange(
+        (event: "SIGNED_IN" | "SIGNED_OUT" | "TOKEN_REFRESHED" | "USER_UPDATED" | "PASSWORD_RECOVERY") => {
+        if (event === "PASSWORD_RECOVERY") {
+            setReady(true)
+        }
+        }
+    )
 
-      if (!sessionResponse.data.session) {
-        router.replace("/")
-        return
-      }
-
-      setReady(true)
+    return () => {
+        data.subscription.unsubscribe()
     }
+    }, [supabase])
 
-    validateSession()
-  }, [router, supabase])
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
