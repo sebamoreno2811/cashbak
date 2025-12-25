@@ -78,30 +78,6 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   }
 
   // -------------------------
-  // FORGOT PASSWORD
-  // -------------------------
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-    setMessage(null)
-
-    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: "https://www.cashbak.cl/reset-password",
-    })
-
-    if (error) {
-      setError(error.message)
-    } else {
-      setMessage(
-        "Si el correo existe, te enviamos un link para recuperar tu contraseña."
-      )
-    }
-
-    setIsLoading(false)
-  }
-
-  // -------------------------
   // REGISTER
   // -------------------------
   const handleRegister = async (e: React.FormEvent) => {
@@ -163,6 +139,33 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       })
 
       setShowSuccessModal(true)
+    }
+
+    setIsLoading(false)
+  }
+
+  // DENTRO DE TU COMPONENTE AuthForm
+
+const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    setMessage(null)
+
+    // ✅ CAMBIO CLAVE: Usamos window.location.origin para que sirva en local y prod
+    // y apuntamos al callback que creamos en el Paso 1
+    const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`
+
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: redirectTo,
+    })
+
+    if (error) {
+      setError(error.message)
+    } else {
+      setMessage(
+        "Si el correo existe, te enviamos un link para recuperar tu contraseña."
+      )
     }
 
     setIsLoading(false)
