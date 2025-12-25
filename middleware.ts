@@ -2,16 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-
-  // ✅ PERMITIR reset de contraseña SIN tocar sesión
-  if (pathname.startsWith("/reset-password")) {
-    return NextResponse.next()
-  }
-
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,18 +14,31 @@ export async function middleware(request: NextRequest) {
           return cookie ? cookie.value : null
         },
         set(name: string, value: string, options?: { [key: string]: any }) {
-          if (options) {
-            request.cookies.set({ name, value, ...options })
-          } else {
-            request.cookies.set(name, value)
-          }
+          response.cookies.set({ name, value, ...options })
         },
       },
     }
   )
 
-  // ⚠️ NO fuerces redirects aquí
+  // Solo sincroniza sesión, NO redirijas aquí
   await supabase.auth.getUser()
 
-  return supabaseResponse
+  return response
+}
+
+/**
+ * 🔴 ESTO ES LO QUE TE FALTABA
+ * Excluimos reset-password y auth
+ */
+export const config = {
+  matcher: [
+    /*
+     * Aplica el middleware a todas las rutas EXCEPTO:
+     * - /reset-password
+     * - /auth
+     * - /api
+     * - archivos estáticos
+     */
+    "/((?!reset-password|auth|api|_next/static|_next/image|favicon.ico).*)",
+  ],
 }
