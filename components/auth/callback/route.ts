@@ -9,11 +9,11 @@ export async function GET(request: Request) {
   if (code) {
     // 1. Usamos tu cliente de servidor (que sabe manejar cookies)
     const supabase = await createSupabaseClientWithCookies();
-    
-    // 2. Intercambiamos el código. 
+
+    // 2. Intercambiamos el código.
     // Como usamos el cliente de servidor, esto guardará la cookie de sesión automáticamente.
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    
+
     if (!error) {
       // 3. Redirigimos. El navegador recibirá el header 'Set-Cookie' aquí.
       return NextResponse.redirect(`${origin}${next}`);

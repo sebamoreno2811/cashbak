@@ -153,11 +153,11 @@ const handleForgotPassword = async (e: React.FormEvent) => {
     setMessage(null)
 
     // ✅ CAMBIO CLAVE: Usamos window.location.origin para que sirva en local y prod
-    // y apuntamos directamente a la página de reset
-    const redirectTo = `${window.location.origin}/reset-password`
+    // y apuntamos al callback para manejar la sesión antes de ir a reset
+    const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`
 
     const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
     })
 
     if (error) {
