@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { createSupabaseClientWithCookies } from "@/utils/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 
+/**
+ * Callback de OAuth (Next.js app router)
+ * - intercambia code -> session (genera cookie con createSupabaseClientWithCookies)
+ * - comprueba si existe fila en customers para user.id
+ * - si NO existe, crea una fila mínima automáticamente (solo se hace una vez)
+ * - siempre redirige al `next` decodificado (ej: "/"), evitando mostrar "complete-profile"
+ */
+
 export async function GET(request: Request) {
   try {
     const { searchParams, origin } = new URL(request.url);
@@ -12,15 +20,16 @@ export async function GET(request: Request) {
 
     const supabase = await createSupabaseClientWithCookies();
 
-    // Si viene el code, intercambiamos por sesión (Supabase guardará cookie)
+    // Si viene el code, intercambiamos por sesión (Supabase seteá cookie en la respuesta)
     if (code) {
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
       if (exchangeError) {
         console.error("exchangeCodeForSession error:", exchangeError);
+        // Redirigir al home si falla el intercambio
         return NextResponse.redirect(origin);
       }
     } else {
-      // Sin code, redirigimos al destino (evitar 404)
+      // Sin code, redirigir al destino (evita 404)
       return NextResponse.redirect(`${origin}${nextPath}`);
     }
 
@@ -32,6 +41,7 @@ export async function GET(request: Request) {
 
     if (sessionError) {
       console.error("getSession error:", sessionError);
+      // Aun con error, no mostramos complete-profile; redirigimos al home/next
       return NextResponse.redirect(`${origin}${nextPath}`);
     }
 
@@ -40,20 +50,19 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}${nextPath}`);
     }
 
-    // Intentamos ENSURE customer row: sólo crear si NO existe
-    // Preferimos realizar esto server-side con service role (si está disponible).
-    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    // Datos a insertar (no obligatorios): no forzamos nombre/phone
+    // Datos a insertar (si están en user_metadata) — si no, quedan null
     const full_name =
       user.user_metadata?.full_name || user.user_metadata?.name || null;
     const phone =
       user.user_metadata?.phone || user.user_metadata?.phone_number || null;
     const email = user.email || null;
 
-    // Helper: chequear/crear usando un cliente (admin si existe, sino el cliente con cookies)
-    const tryEnsureCustomer = async (client: ReturnType<typeof createClient> | typeof supabase) => {
+    // Preferimos crear la fila con service_role (admin) para evitar problemas de RLS.
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    // Helper para comprobar y crear customer
+    const ensureCustomer = async (client: ReturnType<typeof createClient> | typeof supabase) => {
       try {
         const { data: existing, error: selectError } = await client
           .from("customers")
@@ -67,6 +76,7 @@ export async function GET(request: Request) {
         }
 
         if (!existing) {
+          // Insertamos fila mínima: email, full_name (si existe) y phone (si existe)
           const { error: insertError } = await client.from("customers").insert({
             id: user.id,
             email,
@@ -82,40 +92,47 @@ export async function GET(request: Request) {
 
           console.log("Customer creado automáticamente para user:", user.id);
         } else {
-          // ya existía, nada que hacer
+          // Si ya existe, nada que hacer
+          console.log("Customer ya existía para user:", user.id);
         }
 
         return true;
       } catch (err) {
-        console.error("Excepción en tryEnsureCustomer:", err);
+        console.error("Excepción en ensureCustomer:", err);
         return false;
       }
     };
 
-    // 1) Intentar con admin (service role) si está disponible
+    // 1) Intentar con admin (service role) si está configurado
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-      const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-        auth: { persistSession: false },
-      });
+      try {
+        const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+          auth: { persistSession: false },
+        });
 
-      const ok = await tryEnsureCustomer(supabaseAdmin);
-      if (ok) {
-        return NextResponse.redirect(`${origin}${nextPath}`);
+        const ok = await ensureCustomer(supabaseAdmin);
+        if (ok) {
+          return NextResponse.redirect(`${origin}${nextPath}`);
+        }
+        // si falla aunque tengamos service role, hacemos fallback al cliente con cookie
+      } catch (err) {
+        console.error("Error creando cliente admin supabase:", err);
       }
-      // si falla, intentamos fallback con cliente que usa cookies (puede funcionar si RLS lo permite)
     }
 
-    // 2) Fallback: intentar con el cliente que ya tiene la cookie (si las policies lo permiten)
+    // 2) Fallback: intentar con el cliente que usa la cookie (si tus policies lo permiten)
     try {
-      await tryEnsureCustomer(supabase);
+      await ensureCustomer(supabase);
     } catch (err) {
-      console.error("Fallback ensure customer failed:", err);
+      console.error("Fallback ensureCustomer error:", err);
     }
 
-    // Siempre redirigimos al destino (no mostramos onboarding forzado)
+    // Importante: NO redirigimos a /complete-profile automáticamente.
+    // Siempre redirigimos al destino para no interrumpir el login.
     return NextResponse.redirect(`${origin}${nextPath}`);
   } catch (err) {
     console.error("Error en auth callback route:", err);
+    // Fallback final
     return NextResponse.redirect("https://www.cashbak.cl/");
   }
 }
