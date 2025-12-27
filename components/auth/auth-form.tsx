@@ -33,7 +33,7 @@ interface AuthFormProps {
 export default function AuthForm({ onSuccess }: AuthFormProps) {
   const supabase = createClient()
 
-  const [mode, setMode] = useState<"login" | "forgot">("login")
+  const [mode, setMode] = useState<"login" | "register">("login")
 
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -47,8 +47,6 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     email: "",
     password: "",
   })
-
-  const [forgotEmail, setForgotEmail] = useState("")
 
   const [registerData, setRegisterData] = useState({
     email: "",
@@ -94,11 +92,10 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       })
 
       if (error) {
-        // Si hay error, mostrarlo y seguir en la UI
         setError(error.message || "Error iniciando sesión con Google")
         setIsLoading(false)
       }
-      // Si no hay error, Supabase redirigirá hacia Google (no llegaremos aquí normalmente)
+      // Si no hay error, Supabase redirigirá hacia Google.
     } catch (err: any) {
       setError(err?.message || "Error iniciando sesión con Google")
       setIsLoading(false)
@@ -172,33 +169,6 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     setIsLoading(false)
   }
 
-  // DENTRO DE TU COMPONENTE AuthForm
-
-const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-    setMessage(null)
-
-    // ✅ CAMBIO CLAVE: Usamos window.location.origin para que sirva en local y prod
-    // y apuntamos al callback para manejar la sesión antes de ir a reset
-    const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`
-
-    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
-    })
-
-    if (error) {
-      setError(error.message)
-    } else {
-      setMessage(
-        "Si el correo existe, te enviamos un link para recuperar tu contraseña."
-      )
-    }
-
-    setIsLoading(false)
-  }
-
   // -------------------------
   // UI
   // -------------------------
@@ -222,15 +192,9 @@ const handleForgotPassword = async (e: React.FormEvent) => {
           <TabsContent value="login">
             <Card>
               <CardHeader>
-                <CardTitle>
-                  {mode === "forgot"
-                    ? "Recuperar contraseña"
-                    : "Iniciar sesión"}
-                </CardTitle>
+                <CardTitle>Iniciar sesión</CardTitle>
                 <CardDescription>
-                  {mode === "forgot"
-                    ? "Te enviaremos un link para restablecer tu contraseña"
-                    : "Ingresa tus credenciales para acceder"}
+                  Ingresa tus credenciales para acceder
                 </CardDescription>
               </CardHeader>
 
@@ -351,70 +315,7 @@ const handleForgotPassword = async (e: React.FormEvent) => {
                         )}
                       </Button>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMode("forgot")
-                        setError(null)
-                      }}
-                      className="w-full mt-4 text-sm text-center text-muted-foreground hover:underline"
-                    >
-                      ¿Recuperar contraseña?
-                    </button>
                   </>
-                )}
-
-                {mode === "forgot" && (
-                  <form
-                    onSubmit={handleForgotPassword}
-                    className="space-y-4"
-                  >
-                    <div>
-                      <Label>Email</Label>
-                      <Input
-                        type="email"
-                        value={forgotEmail}
-                        onChange={(e) => setForgotEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    {error && (
-                      <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">
-                        {error}
-                      </div>
-                    )}
-
-                    {message && (
-                      <div className="p-3 text-sm text-green-700 bg-green-100 border border-green-300 rounded-md">
-                        {message}
-                      </div>
-                    )}
-
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={isLoading}
-                    >
-                      {isLoading && (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      )}
-                      Enviar link
-                    </Button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMode("login")
-                        setMessage(null)
-                        setForgotEmail("")
-                      }}
-                      className="w-full text-sm text-center text-muted-foreground hover:underline"
-                    >
-                      Volver al login
-                    </button>
-                  </form>
                 )}
               </CardContent>
             </Card>

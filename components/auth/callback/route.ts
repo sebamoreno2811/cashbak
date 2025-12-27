@@ -4,22 +4,25 @@ import { createSupabaseClientWithCookies } from "@/utils/supabase/server"; // �
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const nextParam = searchParams.get("next") ?? "/";
+  const nextPath = decodeURIComponent(nextParam); // <-- decodificamos 'next' para evitar '/%2F'
+
+  const supabase = await createSupabaseClientWithCookies();
 
   if (code) {
-    // 1. Usamos tu cliente de servidor (que sabe manejar cookies)
-    const supabase = await createSupabaseClientWithCookies();
-
-    // 2. Intercambiamos el código.
-    // Como usamos el cliente de servidor, esto guardará la cookie de sesión automáticamente.
+    // Intercambiamos el código por sesión. El cliente de servidor guarda la cookie automáticamente.
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      // 3. Redirigimos. El navegador recibirá el header 'Set-Cookie' aquí.
-      return NextResponse.redirect(`${origin}${next}`);
+      // Redirigimos al 'next' decodificado (por ejemplo '/' para home)
+      return NextResponse.redirect(`${origin}${nextPath}`);
+    } else {
+      console.error("Error exchanging code for session:", error);
+      // Si ocurrió algún error, redirigimos al home (puedes cambiar a /login si prefieres)
+      return NextResponse.redirect(origin);
     }
   }
 
-  // Si hay error, vuelta al login
-  return NextResponse.redirect(`${origin}/login?error=auth_code_error`);
+  // Si no hay 'code', mandamos al home
+  return NextResponse.redirect(origin);
 }
