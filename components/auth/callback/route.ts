@@ -2,14 +2,6 @@ import { NextResponse } from "next/server";
 import { createSupabaseClientWithCookies } from "@/utils/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 
-/**
- * Callback de OAuth (Next.js app router)
- * - intercambia code -> session (genera cookie con createSupabaseClientWithCookies)
- * - comprueba si existe fila en customers para user.id
- * - si NO existe, crea una fila mínima automáticamente (solo se hace una vez)
- * - siempre redirige al `next` decodificado (ej: "/"), evitando mostrar "complete-profile"
- */
-
 export async function GET(request: Request) {
   try {
     const { searchParams, origin } = new URL(request.url);
@@ -20,16 +12,16 @@ export async function GET(request: Request) {
 
     const supabase = await createSupabaseClientWithCookies();
 
-    // Si viene el code, intercambiamos por sesión (Supabase seteá cookie en la respuesta)
+    // Si viene el code, intercambiamos por sesión (Supabase guardará cookie)
     if (code) {
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
       if (exchangeError) {
         console.error("exchangeCodeForSession error:", exchangeError);
-        // Redirigir al home si falla el intercambio
+        // Redirigimos al home para no mostrar UI de complete-profile
         return NextResponse.redirect(origin);
       }
     } else {
-      // Sin code, redirigir al destino (evita 404)
+      // Sin code, redirigimos al destino (evita 404)
       return NextResponse.redirect(`${origin}${nextPath}`);
     }
 
@@ -41,7 +33,6 @@ export async function GET(request: Request) {
 
     if (sessionError) {
       console.error("getSession error:", sessionError);
-      // Aun con error, no mostramos complete-profile; redirigimos al home/next
       return NextResponse.redirect(`${origin}${nextPath}`);
     }
 
@@ -51,17 +42,15 @@ export async function GET(request: Request) {
     }
 
     // Datos a insertar (si están en user_metadata) — si no, quedan null
-    const full_name =
-      user.user_metadata?.full_name || user.user_metadata?.name || null;
-    const phone =
-      user.user_metadata?.phone || user.user_metadata?.phone_number || null;
+    const full_name = user.user_metadata?.full_name || user.user_metadata?.name || null;
+    const phone = user.user_metadata?.phone || user.user_metadata?.phone_number || null;
     const email = user.email || null;
 
-    // Preferimos crear la fila con service_role (admin) para evitar problemas de RLS.
+    // Intentamos crear la fila en customers SÓLO si no existe.
+    // Preferimos service_role (admin) para evitar problemas RLS.
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
     const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    // Helper para comprobar y crear customer
     const ensureCustomer = async (client: ReturnType<typeof createClient> | typeof supabase) => {
       try {
         const { data: existing, error: selectError } = await client
@@ -76,7 +65,6 @@ export async function GET(request: Request) {
         }
 
         if (!existing) {
-          // Insertamos fila mínima: email, full_name (si existe) y phone (si existe)
           const { error: insertError } = await client.from("customers").insert({
             id: user.id,
             email,
@@ -92,8 +80,7 @@ export async function GET(request: Request) {
 
           console.log("Customer creado automáticamente para user:", user.id);
         } else {
-          // Si ya existe, nada que hacer
-          console.log("Customer ya existía para user:", user.id);
+          // Ya existe, nothing to do
         }
 
         return true;
@@ -103,7 +90,7 @@ export async function GET(request: Request) {
       }
     };
 
-    // 1) Intentar con admin (service role) si está configurado
+    // 1) Intentar con admin (service role) si está disponible
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
       try {
         const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -112,27 +99,26 @@ export async function GET(request: Request) {
 
         const ok = await ensureCustomer(supabaseAdmin);
         if (ok) {
+          // Creado/existente: redirigimos al destino
           return NextResponse.redirect(`${origin}${nextPath}`);
         }
-        // si falla aunque tengamos service role, hacemos fallback al cliente con cookie
+        // si falla, fallback al cliente con cookie
       } catch (err) {
         console.error("Error creando cliente admin supabase:", err);
       }
     }
 
-    // 2) Fallback: intentar con el cliente que usa la cookie (si tus policies lo permiten)
+    // 2) Fallback: intentar con el cliente que usa la cookie (si las policies lo permiten)
     try {
       await ensureCustomer(supabase);
     } catch (err) {
       console.error("Fallback ensureCustomer error:", err);
     }
 
-    // Importante: NO redirigimos a /complete-profile automáticamente.
-    // Siempre redirigimos al destino para no interrumpir el login.
+    // NO redirigimos nunca a /complete-profile; siempre a next/home
     return NextResponse.redirect(`${origin}${nextPath}`);
   } catch (err) {
     console.error("Error en auth callback route:", err);
-    // Fallback final
     return NextResponse.redirect("https://www.cashbak.cl/");
   }
 }
