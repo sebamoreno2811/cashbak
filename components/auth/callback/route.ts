@@ -12,20 +12,18 @@ export async function GET(request: Request) {
 
     const supabase = await createSupabaseClientWithCookies();
 
-    // Si viene el code, intercambiamos por sesión (Supabase guardará cookie)
+    // Intercambiamos code -> session y cookie (si existe code)
     if (code) {
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
       if (exchangeError) {
         console.error("exchangeCodeForSession error:", exchangeError);
-        // Redirigimos al home para no mostrar UI de complete-profile
         return NextResponse.redirect(origin);
       }
     } else {
-      // Sin code, redirigimos al destino (evita 404)
       return NextResponse.redirect(`${origin}${nextPath}`);
     }
 
-    // Obtenemos la sesión y el usuario autenticado
+    // Obtenemos sesión y usuario
     const {
       data: { session },
       error: sessionError,
@@ -41,13 +39,12 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}${nextPath}`);
     }
 
-    // Datos a insertar (si están en user_metadata) — si no, quedan null
+    // Datos a insertar (si vienen en user_metadata), si no, quedan null
     const full_name = user.user_metadata?.full_name || user.user_metadata?.name || null;
     const phone = user.user_metadata?.phone || user.user_metadata?.phone_number || null;
     const email = user.email || null;
 
-    // Intentamos crear la fila en customers SÓLO si no existe.
-    // Preferimos service_role (admin) para evitar problemas RLS.
+    // Preferimos crear la fila server-side con service_role (si está configurada)
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
     const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -80,7 +77,7 @@ export async function GET(request: Request) {
 
           console.log("Customer creado automáticamente para user:", user.id);
         } else {
-          // Ya existe, nothing to do
+          console.log("Customer ya existía para user:", user.id);
         }
 
         return true;
@@ -90,7 +87,7 @@ export async function GET(request: Request) {
       }
     };
 
-    // 1) Intentar con admin (service role) si está disponible
+    // 1) Intentar con service_role si está disponible
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
       try {
         const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -98,24 +95,20 @@ export async function GET(request: Request) {
         });
 
         const ok = await ensureCustomer(supabaseAdmin);
-        if (ok) {
-          // Creado/existente: redirigimos al destino
-          return NextResponse.redirect(`${origin}${nextPath}`);
-        }
-        // si falla, fallback al cliente con cookie
+        if (ok) return NextResponse.redirect(`${origin}${nextPath}`);
       } catch (err) {
         console.error("Error creando cliente admin supabase:", err);
       }
     }
 
-    // 2) Fallback: intentar con el cliente que usa la cookie (si las policies lo permiten)
+    // 2) Fallback: intentar con el cliente que tiene cookie (si las policies lo permiten)
     try {
       await ensureCustomer(supabase);
     } catch (err) {
       console.error("Fallback ensureCustomer error:", err);
     }
 
-    // NO redirigimos nunca a /complete-profile; siempre a next/home
+    // Siempre redirigimos al destino; NUNCA al /complete-profile automáticamente
     return NextResponse.redirect(`${origin}${nextPath}`);
   } catch (err) {
     console.error("Error en auth callback route:", err);
