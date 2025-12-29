@@ -57,7 +57,7 @@ export default function RootLayout({
           </BetProvider>
         </ProductsProvider> 
       </body>
-      <meta name="google-site-verification" content="USmfcC17Kj1WRruEUjUyDjT6Mw-nlQuWykjmbshN7XY" />
+      <meta name="google-site-verification" content="RGA8T8bZSUjuiwnKbeDj72PjJtxeZINh2Wk1UGJBt8Y" />
     </html>
   )
 }
