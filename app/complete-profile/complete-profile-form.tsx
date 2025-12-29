@@ -11,9 +11,10 @@ interface Props {
   userId: string
   initialName?: string
   initialEmail?: string
+  next?: string
 }
 
-export default function CompleteProfileForm({ userId, initialName = "", initialEmail = "" }: Props) {
+export default function CompleteProfileForm({ userId, initialName = "", initialEmail = "", next = "/" }: Props) {
   const router = useRouter()
 
   const [fullName, setFullName] = useState(initialName)
@@ -55,8 +56,8 @@ export default function CompleteProfileForm({ userId, initialName = "", initialE
         return
       }
 
-      // Si todo OK redirigimos al home
-      router.push("/")
+      // Redirige al next indicado o home
+      router.push(next || "/")
     } catch (err: any) {
       console.error("Error calling API:", err)
       setError("Ocurrió un error guardando tus datos. Intenta nuevamente.")
