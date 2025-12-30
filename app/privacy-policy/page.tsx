@@ -40,15 +40,30 @@ export default function PrivacyPolicyPage() {
         {/* Content */}
         <div className="space-y-12 md:col-span-2">
           
-          <section id="resumen">
-            <h2 className="mb-4 text-2xl font-bold text-slate-900">Resumen</h2>
-            <p className="leading-relaxed text-slate-600">
-              En <strong>CashBak</strong> (en adelante "nosotros", "nuestro" o "la aplicación") respetamos tu
-              privacidad. Esta política describe qué datos obtenemos, cómo los usamos y con quién los compartimos. 
-              Esta página incluye las secciones requeridas para la verificación de Google: 
-              <span className="italic"> "Data Accessed"</span> y <span className="italic"> "Data Usage"</span>.
-            </p>
-          </section>
+            <section id="resumen">
+                <h2 className="mb-4 text-2xl font-bold text-slate-900">Resumen de Privacidad</h2>
+                <div className="space-y-4 leading-relaxed text-slate-600">
+                    <p>
+                    En <strong>CashBak</strong>, tu privacidad es nuestra prioridad. Esta política detalla cómo 
+                    gestionamos tu información personal con un objetivo único: <strong>asegurar que recibas tus 
+                    reembolsos de forma transparente y segura.</strong>
+                    </p>
+                    <p>
+                    Para operar con transparencia y cumplir con los estándares de verificación de Google, 
+                    hemos estructurado esta declaración en dos pilares fundamentales:
+                    </p>
+                    <div className="flex flex-col gap-4 mt-2 md:flex-row">
+                    <div className="flex-1 p-4 bg-white border shadow-sm border-slate-200 rounded-xl">
+                        <span className="block mb-1 font-bold text-blue-600">Data Accessed</span>
+                        <p className="text-sm">Solo solicitamos los datos mínimos necesarios para identificarte y procesar tus pagos.</p>
+                    </div>
+                    <div className="flex-1 p-4 bg-white border shadow-sm border-slate-200 rounded-xl">
+                        <span className="block mb-1 font-bold text-green-600">Data Usage</span>
+                        <p className="text-sm">Tus datos nunca se venden; se usan exclusivamente para la logística de tu compra y tu CashBak.</p>
+                    </div>
+                    </div>
+                </div>
+            </section>
 
           <section id="datos-accedidos" className="p-6 border bg-slate-50 rounded-2xl border-slate-100">
             <h2 className="flex items-center gap-2 mb-4 text-xl font-bold text-slate-900">
@@ -110,7 +125,7 @@ export default function PrivacyPolicyPage() {
             <p className="mb-6 opacity-90">Puedes ejercer tus derechos de acceso, rectificación o eliminación contactándonos directamente.</p>
             <div className="space-y-3">
               <p className="flex items-center gap-3">
-                <span className="font-semibold underline">privacidad@cashbak.cl</span>
+                <span className="font-semibold underline">cashbak.ops@gmail.com</span>
               </p>
               <Link href="/" className="inline-block px-6 py-2 font-bold text-blue-600 transition-colors bg-white rounded-full hover:bg-slate-100">
                 Volver al inicio

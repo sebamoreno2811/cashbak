@@ -61,7 +61,7 @@ export default function TermsPage() {
             </div>
             <div className="p-5 border border-slate-200 rounded-xl">
               <h3 className="mb-2 text-xs font-bold uppercase text-slate-400">Sobre el Depósito</h3>
-              <p className="text-sm text-slate-600">Si el evento se cumple, el CashBak se depositará en la cuenta bancaria registrada en un plazo máximo de [X] días hábiles.</p>
+              <p className="text-sm text-slate-600">Si el evento se cumple, el CashBak se depositará en la cuenta bancaria registrada en un plazo máximo de 5 días hábiles.</p>
             </div>
           </div>
         </section>
@@ -93,7 +93,6 @@ export default function TermsPage() {
               Leer Política de Privacidad
             </Link>
             <span className="hidden md:inline text-slate-700">|</span>
-            <p className="text-xs text-slate-500">¿Preguntas legales? contacto@cashbak.cl</p>
           </div>
         </section>
 
