@@ -6,123 +6,126 @@ export const metadata = {
 };
 
 export default function PrivacyPolicyPage() {
-  const effectiveDate = "2025-12-30";
+  const effectiveDate = "30 de diciembre, 2025";
 
   return (
-    <main className="max-w-3xl px-6 py-12 mx-auto">
-      <h1 className="mb-4 text-3xl font-bold">Política de privacidad</h1>
-      <p className="mb-6 text-sm text-gray-600">Fecha de entrada en vigor: {effectiveDate}</p>
-
-      <section className="mb-6">
-        <h2 className="mb-2 text-xl font-semibold">Resumen</h2>
-        <p>
-          En CashBak (en adelante "nosotros", "nuestro" o "la aplicación") respetamos tu
-          privacidad. Esta política describe qué datos obtenemos de los usuarios, cómo los
-          usamos y con quién los compartimos. Esta página incluye las secciones requeridas para
-          la verificación de Google: "Data Accessed" y "Data Usage".
+    <main className="max-w-4xl px-6 py-16 mx-auto text-slate-800">
+      {/* Header */}
+      <header className="pb-8 mb-12 border-b">
+        <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-slate-900">
+          Política de Privacidad
+        </h1>
+        <p className="text-sm font-medium tracking-wider uppercase text-slate-500">
+          Fecha de entrada en vigor: {effectiveDate}
         </p>
-      </section>
+      </header>
 
-      <section className="mb-6">
-        <h2 className="mb-2 text-xl font-semibold">Data Accessed (Datos accedidos)</h2>
-        <p>Durante el proceso de inicio de sesión mediante proveedores OAuth (Google, Microsoft/Outlook) podemos acceder a los siguientes datos proporcionados por el proveedor:</p>
-        <ul className="mt-2 ml-6 list-disc">
-          <li>Email (correo electrónico) del usuario.</li>
-          <li>Nombre completo (display name) y nombre de usuario.</li>
-          <li>Foto de perfil (avatar), si el proveedor la comparte.</li>
-          <li>Metadata pública de la cuenta (p.ej. identificador único del usuario otorgado por el proveedor).</li>
-          <li>En ningún caso recopilamos contraseñas de terceros: la autenticación la realiza el proveedor (OAuth).</li>
-        </ul>
-        <p className="mt-2 text-sm text-gray-600">
-          Nota: No solicitamos ni almacenamos datos sensibles de Google (como correo de G Suite de terceros sin consentimiento adicional) ni datos que el usuario no consienta compartir.
-        </p>
-      </section>
+      <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
+        {/* Sidebar Navigation - Desktop */}
+        <aside className="hidden md:block">
+          <nav className="sticky space-y-2 top-8">
+            <p className="mb-4 text-xs font-bold uppercase text-slate-400">Secciones</p>
+            {["Resumen", "Datos Accedidos", "Uso de Datos", "Seguridad", "Contacto"].map((item) => (
+              <a 
+                key={item} 
+                href={`#${item.toLowerCase().replace(" ", "-")}`}
+                className="block text-sm transition-colors text-slate-600 hover:text-blue-600"
+              >
+                {item}
+              </a>
+            ))}
+          </nav>
+        </aside>
 
-      <section className="mb-6">
-        <h2 className="mb-2 text-xl font-semibold">Data Usage (Uso de los datos)</h2>
-        <p>Resumen de cómo utilizamos cada dato:</p>
-        <ul className="mt-2 ml-6 list-disc">
-          <li><strong>Email:</strong> usado como identificador de cuenta y para notificaciones/transacciones relacionadas con la cuenta (recuperación, comunicaciones administrativas).</li>
-          <li><strong>Nombre y foto:</strong> mostrados en la UI (perfil, recibos, comunicación dentro de la plataforma) para personalizar la experiencia.</li>
-          <li><strong>ID del proveedor (user id):</strong> asociado a la fila en la tabla <code>customers</code> para identificar al usuario de forma única en nuestra base de datos.</li>
-          <li><strong>Teléfono:</strong> normalmente no es proporcionado por el proveedor; si no lo recibe, solicitamos al usuario que lo ingrese en el formulario de completado de perfil y lo almacenamos en la tabla <code>customers</code>.</li>
-        </ul>
+        {/* Content */}
+        <div className="space-y-12 md:col-span-2">
+          
+          <section id="resumen">
+            <h2 className="mb-4 text-2xl font-bold text-slate-900">Resumen</h2>
+            <p className="leading-relaxed text-slate-600">
+              En <strong>CashBak</strong> (en adelante "nosotros", "nuestro" o "la aplicación") respetamos tu
+              privacidad. Esta política describe qué datos obtenemos, cómo los usamos y con quién los compartimos. 
+              Esta página incluye las secciones requeridas para la verificación de Google: 
+              <span className="italic"> "Data Accessed"</span> y <span className="italic"> "Data Usage"</span>.
+            </p>
+          </section>
 
-        <p className="mt-3">Finalidades concretas:</p>
-        <ol className="mt-2 ml-6 list-decimal">
-          <li>Autenticación y autorización del usuario en la aplicación.</li>
-          <li>Creación y mantenimiento del perfil de usuario en nuestra base de datos (tabla <code>customers</code>).</li>
-          <li>Comunicación relacionada con el servicio (facturas, avisos, soporte).</li>
-          <li>Prevención de fraudes y cumplimiento de obligaciones legales.</li>
-          <li>Mejora del servicio y análisis interno (agregado y anonimizado cuando sea posible).</li>
-        </ol>
-      </section>
+          <section id="datos-accedidos" className="p-6 border bg-slate-50 rounded-2xl border-slate-100">
+            <h2 className="flex items-center gap-2 mb-4 text-xl font-bold text-slate-900">
+              <span className="w-2 h-6 bg-blue-500 rounded-full"></span>
+              Data Accessed (Datos accedidos)
+            </h2>
+            <p className="mb-4 text-slate-600">Accedemos a los siguientes datos mediante proveedores OAuth (Google, Microsoft) o entrada directa:</p>
+            <ul className="grid grid-cols-1 gap-3 ml-4">
+              <li className="flex items-start gap-2">
+                <span className="font-bold text-blue-500">•</span>
+                <span><strong>Identidad:</strong> Email, nombre completo y foto de perfil.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-bold text-blue-500">•</span>
+                <span><strong>Metadatos:</strong> Identificador único del proveedor (OAuth ID).</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-bold text-blue-500">•</span>
+                <span><strong>Datos Bancarios:</strong> Número de cuenta, tipo de cuenta y banco (proporcionados por el usuario).</span>
+              </li>
+            </ul>
+            <blockquote className="p-4 mt-4 text-sm italic bg-white border-l-4 border-amber-400 text-slate-600">
+              Importante: Nunca recopilamos contraseñas de terceros ni datos sensibles sin consentimiento explícito.
+            </blockquote>
+          </section>
 
-      <section className="mb-6">
-        <h2 className="mb-2 text-xl font-semibold">Cómo guardamos los datos</h2>
-        <p>
-          Los datos personales que recopilamos se almacenan en nuestra base de datos administrada por
-          Supabase. Solo el personal autorizado y nuestros servicios internos pueden acceder a ellos.
-          Utilizamos buenas prácticas de seguridad (encriptación en tránsito TLS, claves de servicio
-          seguras en el servidor) para proteger la información.
-        </p>
-      </section>
+          <section id="uso-de-datos">
+            <h2 className="flex items-center gap-2 mb-4 text-xl font-bold text-slate-900">
+              <span className="w-2 h-6 bg-green-500 rounded-full"></span>
+              Data Usage (Uso de los datos)
+            </h2>
+            <div className="space-y-4">
+              <div className="pb-4 border-b">
+                <h3 className="font-semibold text-slate-800">Datos Bancarios</h3>
+                <p className="text-slate-600">Se utilizarán <strong>exclusivamente</strong> para gestionar el depósito del "CashBak" (reembolso) en caso de que el usuario lo consiga a través de nuestras promociones.</p>
+              </div>
+              <div className="pb-4 border-b">
+                <h3 className="font-semibold text-slate-800">Email e Identidad</h3>
+                <p className="text-slate-600">Usados para la autenticación, creación de perfil en la tabla <code>customers</code> y notificaciones transaccionales.</p>
+              </div>
+              <div className="pb-4">
+                <h3 className="font-semibold text-slate-800">Finalidades generales</h3>
+                <p className="text-slate-600">Prevención de fraudes, soporte técnico y cumplimiento de obligaciones legales en Chile.</p>
+              </div>
+            </div>
+          </section>
 
-      <section className="mb-6">
-        <h2 className="mb-2 text-xl font-semibold">Terceros con los que compartimos datos</h2>
-        <p>Podemos compartir datos con:</p>
-        <ul className="mt-2 ml-6 list-disc">
-          <li><strong>Proveedores de identidad (Google, Microsoft):</strong> actúan como origen de autenticación.</li>
-          <li><strong>Supabase:</strong> plataforma de backend y base de datos donde se almacenan los registros (<code>customers</code>).</li>
-          <li><strong>Servicios de correo y notificaciones:</strong> para enviar emails transaccionales (p. ej. facturas, confirmaciones).</li>
-        </ul>
-        <p className="mt-2 text-sm text-gray-600">
-          Antes de compartir con terceros adicionales nos aseguramos de que apliquen estándares de seguridad adecuados.
-        </p>
-      </section>
+          <section id="seguridad">
+            <h2 className="mb-4 text-xl font-bold text-slate-900">Seguridad y Almacenamiento</h2>
+            <p className="leading-relaxed text-slate-600">
+              Los datos se almacenan de forma segura en <strong>Supabase</strong>. 
+              Implementamos encriptación en tránsito (TLS) y controles de acceso estrictos. 
+              Conservamos tus datos mientras tu cuenta esté activa o sea necesario por motivos legales.
+            </p>
+          </section>
 
-      <section className="mb-6">
-        <h2 className="mb-2 text-xl font-semibold">Retención y eliminación</h2>
-        <p>
-          Conservamos los datos del usuario mientras la cuenta exista o durante el tiempo necesario para
-          cumplir obligaciones legales o resolver disputas. Si deseas que eliminemos tus datos, contáctanos
-          usando la información de contacto abajo y procesaremos la solicitud conforme a la legislación aplicable.
-        </p>
-      </section>
+          <section id="contacto" className="p-8 text-white bg-blue-600 shadow-lg rounded-3xl shadow-blue-200">
+            <h2 className="mb-2 text-2xl font-bold">¿Tienes dudas?</h2>
+            <p className="mb-6 opacity-90">Puedes ejercer tus derechos de acceso, rectificación o eliminación contactándonos directamente.</p>
+            <div className="space-y-3">
+              <p className="flex items-center gap-3">
+                <span className="font-semibold underline">privacidad@cashbak.cl</span>
+              </p>
+              <Link href="/" className="inline-block px-6 py-2 font-bold text-blue-600 transition-colors bg-white rounded-full hover:bg-slate-100">
+                Volver al inicio
+              </Link>
+            </div>
+          </section>
 
-      <section className="mb-6">
-        <h2 className="mb-2 text-xl font-semibold">Derechos del usuario</h2>
-        <p>
-          Puedes solicitar acceso, rectificación, portabilidad o supresión de tus datos personales. Para
-          ejercer estos derechos contacta a: <strong>privacidad@cashbak.cl</strong> (o usa el formulario de contacto del sitio).
-        </p>
-      </section>
-
-      <section className="mb-6">
-        <h2 className="mb-2 text-xl font-semibold">Seguridad</h2>
-        <p>
-          Implementamos controles técnicos y organizativos razonables para proteger los datos personales.
-          No obstante, ninguna medida es 100% infalible; en caso de incidente relevante te informaremos
-          conforme a la normativa aplicable.
-        </p>
-      </section>
-
-      <section className="mb-6">
-        <h2 className="mb-2 text-xl font-semibold">Contacto</h2>
-        <p>
-          Si tienes preguntas sobre esta política, puedes contactarnos en:
-        </p>
-        <ul className="mt-2 ml-6 list-disc">
-          <li>Email: <strong>privacidad@cashbak.cl</strong></li>
-          <li>Sitio web: <Link href="/"><a className="text-blue-600">https://www.cashbak.cl</a></Link></li>
-        </ul>
-      </section>
-
-      <section className="mt-8">
-        <p className="text-sm text-gray-600">
-          Esta política se complementa con nuestros <Link href="/terms"><a className="text-blue-600">Términos y condiciones</a></Link>. Al usar CashBak aceptas esta Política de privacidad.
-        </p>
-      </section>
+          <footer className="pt-8 text-xs border-t text-slate-400">
+            <p>
+              Al utilizar CashBak, aceptas nuestra Política de Privacidad y nuestros{" "}
+              <Link href="/terms" className="text-blue-500 hover:underline">Términos y Condiciones</Link>.
+            </p>
+          </footer>
+        </div>
+      </div>
     </main>
   );
 }
