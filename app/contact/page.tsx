@@ -15,7 +15,7 @@ export default function ContactPage() {
           </div>
           <div>
             <h2 className="text-xl font-semibold">Redes Sociales</h2>
-            <p className="text-gray-700">Instagram: <a href="https://instagram.com/cashbak.oficial" className="text-emerald-700 hover:underline">@cashbak.oficial</a></p>
+            <p className="text-gray-700">Instagram: <a href="https://instagram.com/cashbak.cl" className="text-emerald-700 hover:underline">@cashbak.cl</a></p>
           </div>
 
           <div className="pt-4">

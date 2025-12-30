@@ -91,7 +91,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <div>
               <h3 className="mb-4 text-xl font-bold">Contacto</h3>
               <p>cashbak.ops@gmail.com</p>
-              <p>IG: @cashbak.oficial</p>
+              <p>IG: @cashbak.cl</p>
             </div>
           </div>
           <div className="pt-8 mt-8 text-center border-t border-gray-700">
