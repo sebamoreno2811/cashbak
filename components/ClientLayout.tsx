@@ -72,8 +72,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               <h3 className="mb-4 text-xl font-bold">Enlaces</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link href="/contact" className="hover:underline">
+                  <Link href="/terms" className="hover:underline">
                     Términos y condiciones
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy-policy" className="hover:underline">
+                    Política de privacidad
                   </Link>
                 </li>
                 <li>
