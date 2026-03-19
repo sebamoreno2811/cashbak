@@ -232,7 +232,7 @@ function ProductFormModal({
       .select("id, name, odd, end_date")
       .gt("end_date", new Date().toISOString())
       .order("end_date", { ascending: true })
-      .then(({ data }) => {
+      .then(({ data }: { data: Bet[] | null }) => {
         if (data && data.length > 0) {
           setBets(data)
           setSelectedBetId(data[0].id)
