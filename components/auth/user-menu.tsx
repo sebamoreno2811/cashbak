@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { createClient } from "@/utils/supabase/client"
-import { User, LogOut, Settings, ShoppingBag } from "lucide-react"
+import { User, LogOut, ShoppingBag, Shield } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 
@@ -23,6 +23,7 @@ interface UserMenuProps {
 export default function UserMenu({ onAuthRequired }: UserMenuProps) {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
@@ -33,6 +34,14 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
         data: { user },
       } = await supabase.auth.getUser()
       setUser(user)
+      if (user) {
+        const { data: customer } = await supabase
+          .from("customers")
+          .select("role")
+          .eq("id", user.id)
+          .single()
+        setIsAdmin(customer?.role === "admin")
+      }
       setLoading(false)
     }
 
@@ -105,6 +114,15 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
           <ShoppingBag className="w-4 h-4 mr-2" />
           <span>Mis Pedidos</span>
         </DropdownMenuItem>
+        {isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push("/admin/tiendas")}>
+              <Shield className="w-4 h-4 mr-2" />
+              <span>Panel Admin</span>
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="w-4 h-4 mr-2" />
