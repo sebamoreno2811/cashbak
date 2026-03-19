@@ -18,6 +18,7 @@ export async function addProduct(formData: {
   price: number
   cost: number
   margin_pct: number
+  net_margin: number
   category_name: string
   description?: string
   image_url?: string | null
@@ -34,11 +35,12 @@ export async function addProduct(formData: {
     price: formData.price,
     cost: formData.cost,
     margin_pct: formData.margin_pct,
+    net_margin: formData.net_margin,
     category_name: formData.category_name,
     description: formData.description?.trim() || null,
     image: formData.image_url || null,
     store_id: store.id,
-    category: 1, // placeholder; external products use margin_pct for cashback
+    category: 1,
     stock: {},
   })
 
@@ -52,6 +54,7 @@ export async function updateProduct(productId: number, formData: {
   price: number
   cost: number
   margin_pct: number
+  net_margin: number
   category_name: string
   description?: string
   image_url?: string | null
@@ -63,13 +66,13 @@ export async function updateProduct(productId: number, formData: {
   const store = await getVendorStore(supabase, user.id)
   if (!store) return { error: "No tienes una tienda aprobada" }
 
-  // Only update products that belong to this store
   const { error } = await supabase.from("products")
     .update({
       name: formData.name.trim(),
       price: formData.price,
       cost: formData.cost,
       margin_pct: formData.margin_pct,
+      net_margin: formData.net_margin,
       category_name: formData.category_name,
       description: formData.description?.trim() || null,
       image: formData.image_url || null,

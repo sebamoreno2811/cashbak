@@ -333,11 +333,18 @@ function ProductFormModal({
       setUploading(false)
     }
 
+    if (marginPct > maxMarginSlider) {
+      setError(`El margen no puede superar el ${maxMarginSlider}%.`)
+      setSaving(false)
+      return
+    }
+
     const payload = {
       name,
       price: priceNum,
       cost: costNum,
       margin_pct: marginPct / 100,
+      net_margin: sim?.margenVendedor ?? 0,
       category_name: categoryName,
       description,
       image_url: imageUrl,
