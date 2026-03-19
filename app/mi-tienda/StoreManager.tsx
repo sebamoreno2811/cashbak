@@ -247,36 +247,30 @@ function ProductFormModal({
   const costNum = Number(cost) || 0
   const valid = priceNum > costNum && costNum > 0
 
-  // Límites y recomendación calculados con cuota 1.5 (independiente del evento)
+  // Límites y recomendación del slider
   const pricing = useMemo(() => {
     if (!valid) return null
-    const gananciaBruta = priceNum - costNum
-    const gananciaBrutaPct = gananciaBruta / priceNum
-    const COMISION = 0.20
-    const CUOTA_BASE = 1.5
-
-    // Máximo del slider: 90% del margen bruto (siempre queda al menos 10% para cashback)
+    const gananciaBrutaPct = (priceNum - costNum) / priceNum
+    // Máximo: 90% del margen bruto
     const sliderMax = Math.floor(gananciaBrutaPct * 0.90 * 100)
-
-    // Margen para 10% cashback a cuota 1.5 (umbral de referencia)
-    const montoApuestaMin = (0.10 * priceNum) / CUOTA_BASE
-    const margenMax10Monto = gananciaBruta - montoApuestaMin / (1 - COMISION)
-    const margenMax10Pct = margenMax10Monto / priceNum
-
-    // Mostrar recomendación solo si el margen max (10% cashback) es ≥ 50% del margen bruto
-    const showRecommendation = margenMax10Pct >= gananciaBrutaPct * 0.5
-
-    // Margen recomendado: para dar 20% cashback a cuota 1.5
-    const montoApuesta20 = (0.20 * priceNum) / CUOTA_BASE
-    const margenRec20Monto = gananciaBruta - montoApuesta20 / (1 - COMISION)
-    const margenRec20Pct = margenRec20Monto / priceNum
-
-    const sliderDefault = showRecommendation && margenRec20Pct > 0
-      ? Math.floor(margenRec20Pct * 100)
-      : Math.floor(sliderMax / 2)
-
-    return { sliderMax, sliderDefault, showRecommendation, margenRec20Pct: Math.floor(margenRec20Pct * 100) }
+    // Recomendado: 60% del margen bruto
+    const recMarginPct = Math.floor(gananciaBrutaPct * 0.60 * 100)
+    return { sliderMax, sliderDefault: recMarginPct, recMarginPct }
   }, [priceNum, costNum, valid])
+
+  // Máximo cashback posible con el margen recomendado y los eventos activos
+  const maxCashbackAtRec = useMemo(() => {
+    if (!valid || !pricing || bets.length === 0) return null
+    return bets.reduce((acc, bet) => {
+      const r = calculateExternalCashbak({
+        precioVenta: priceNum,
+        costo: costNum,
+        cuota: bet.odd,
+        margenVendedorPct: pricing.recMarginPct / 100,
+      })
+      return Math.max(acc, r.cashbackPct)
+    }, 0)
+  }, [valid, pricing, bets, priceNum, costNum])
 
   // Cuando cambia precio/costo y es producto nuevo, pre-selecciona el margen recomendado
   useEffect(() => {
@@ -492,26 +486,49 @@ function ProductFormModal({
               )}
 
               <div>
-                <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-semibold text-gray-700">Tu margen por venta</label>
-                  <span className="text-base font-bold text-gray-900">{marginPct}%</span>
+                  <span className="text-sm font-bold text-white bg-green-800 px-2.5 py-0.5 rounded-full">{marginPct}%</span>
                 </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={maxMarginSlider}
-                  step={1}
-                  value={Math.min(marginPct, maxMarginSlider)}
-                  onChange={(e) => setMarginPct(Number(e.target.value))}
-                  className="w-full accent-green-700"
-                />
-                <div className="flex justify-between text-xs text-gray-400 mt-0.5">
+
+                {/* Slider con fill y marcador de recomendado */}
+                <div className="relative pb-6">
+                  <input
+                    type="range"
+                    min={0}
+                    max={maxMarginSlider}
+                    step={1}
+                    value={Math.min(marginPct, maxMarginSlider)}
+                    onChange={(e) => setMarginPct(Number(e.target.value))}
+                    style={{
+                      background: `linear-gradient(to right, #166534 ${(Math.min(marginPct, maxMarginSlider) / maxMarginSlider) * 100}%, #d1fae5 ${(Math.min(marginPct, maxMarginSlider) / maxMarginSlider) * 100}%)`,
+                    }}
+                    className="w-full h-2 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-green-800 [&::-webkit-slider-thumb]:shadow"
+                  />
+                  {/* Marcador de recomendado */}
+                  {pricing && pricing.recMarginPct > 0 && pricing.recMarginPct <= maxMarginSlider && (
+                    <div
+                      className="absolute top-3.5 flex flex-col items-center pointer-events-none"
+                      style={{ left: `${(pricing.recMarginPct / maxMarginSlider) * 100}%`, transform: "translateX(-50%)" }}
+                    >
+                      <div className="w-px h-2 bg-green-600 mt-0.5" />
+                      <span className="text-[10px] text-green-700 font-semibold mt-0.5 whitespace-nowrap">{pricing.recMarginPct}%</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-between text-xs text-gray-400 -mt-4">
                   <span>0%</span>
                   <span>Máx. {maxMarginSlider}%</span>
                 </div>
-                {pricing?.showRecommendation && pricing.margenRec20Pct > 0 && (
-                  <p className="text-xs text-emerald-600 mt-1">
-                    Recomendado: hasta {pricing.margenRec20Pct}% para ofrecer ~20% de cashback
+
+                {/* Recomendación siempre visible */}
+                {pricing && (
+                  <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mt-2">
+                    Recomendamos un margen de <strong>{pricing.recMarginPct}%</strong>
+                    {maxCashbackAtRec !== null && maxCashbackAtRec > 0
+                      ? ` — con él puedes ofrecer hasta ${maxCashbackAtRec}% de CashBak con los eventos actuales.`
+                      : ` para dejar más espacio al CashBak.`}
                   </p>
                 )}
               </div>
