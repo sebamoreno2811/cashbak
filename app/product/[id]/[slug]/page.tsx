@@ -340,6 +340,7 @@ export default function ProductPage() {
             )}
           </div>
 
+          {product.hasPrint !== null && (
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-4">
               <label htmlFor="hasPrintSwitch" className="text-sm text-gray-700">
@@ -379,6 +380,7 @@ export default function ProductPage() {
               </p>
             )}
           </div>
+          )}
 
           <Button
             className={`flex-1 ${addedToCart ? "bg-emerald-600 rounded-md border-2 border-black" : "bg-green-900 ounded-md border-2 border-black hover:bg-green-700 hover:shadow-lg"}`}

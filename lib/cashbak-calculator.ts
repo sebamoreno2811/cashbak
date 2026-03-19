@@ -76,7 +76,7 @@ export function calculateExternalCashbak(params: {
   }
 }
 
-const MARGEN_TIENDA_OFICIAL = 0.40  // margen neto por defecto para productos de CashBak
+const MARGEN_TIENDA_OFICIAL = 0.25  // margen neto por defecto para productos de CashBak
 
 /**
  * Calcula el cashback de un producto usando la fórmula unificada.
@@ -126,7 +126,6 @@ function getPricesAndCostsByCategory(category: number, products: Product[] = [])
 
 function descuentoSegunCuota(cuota: number, precioVenta: number, precioCompra: number, hasPrint: boolean = false): number {
   const margen = hasPrint ?  (precioCompra * 0.4) / (precioCompra + 2500) : 0.4;
-  const resultado = (cuota / precioVenta) * (precioVenta - precioCompra - (0.4 * precioCompra))
   const resultado2 = (cuota / precioVenta) * (precioVenta - precioCompra - (margen * precioCompra))
   return Math.min(1, Math.max(0, resultado2))
 }

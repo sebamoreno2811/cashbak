@@ -7,7 +7,7 @@ import {
   useEffect,
   type ReactNode,
 } from "react"
-import { calculatecashbak, calcularMontoApostar } from "@/lib/cashbak-calculator"
+import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
 import type { Product } from "@/types/product"
 import { useProducts } from "@/context/product-context"
 import { useBets } from "@/context/bet-context" // <-- ✅ importa el contexto de apuestas
@@ -84,21 +84,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const product = products.find((p) => p.id === productId)
     if (!product) return
 
-    const cashbakPercentage = calculatecashbak(
-      Number.parseFloat(betOptionId),
-      product.category,
-      products,
-      bets,
-      hasPrint
-    )
-
-    const bet_amount = calcularMontoApostar(
-      Number.parseFloat(betOptionId),
-      product.category,
-      products,
-      bets,
-      hasPrint
-    )
+    const bet = bets.find(b => b.id === Number.parseFloat(betOptionId))
+    const cuota = bet?.odd ?? 0
+    const price = hasPrint ? product.price + 2990 : product.price
+    const cost = hasPrint ? product.cost + 2500 : product.cost
+    const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.40 })
+    const cashbakPercentage = sim.cashbackPct
+    const bet_amount = sim.montoApuesta
 
     const existingItemIndex = items.findIndex(
       (item) =>
@@ -135,20 +127,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const product = products.find((p) => p.id === item.productId)
     if (product) {
-      item.cashbakPercentage = calculatecashbak(
-        Number.parseFloat(betOptionId),
-        product.category,
-        products,
-        bets,
-        item.hasPrint
-      )
-      item.bet_amount = calcularMontoApostar(
-        Number.parseInt(betOptionId),
-        product.category,
-        products,
-        bets,
-        item.hasPrint
-      )
+      const bet = bets.find(b => b.id === Number.parseFloat(betOptionId))
+      const cuota = bet?.odd ?? 0
+      const price = item.hasPrint ? product.price + 2990 : product.price
+      const cost = item.hasPrint ? product.cost + 2500 : product.cost
+      const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.40 })
+      item.cashbakPercentage = sim.cashbackPct
+      item.bet_amount = sim.montoApuesta
     }
 
     setItems(updatedItems)
@@ -183,20 +168,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const product = products.find((p) => p.id === item.productId)
     if (product) {
-      item.cashbakPercentage = calculatecashbak(
-        Number.parseFloat(item.betOptionId),
-        product.category,
-        products,
-        bets,
-        item.hasPrint
-      )
-      item.bet_amount = calcularMontoApostar(
-        Number.parseInt(item.betOptionId),
-        product.category,
-        products,
-        bets,
-        item.hasPrint
-      )
+      const bet = bets.find(b => b.id === Number.parseFloat(item.betOptionId))
+      const cuota = bet?.odd ?? 0
+      const price = item.hasPrint ? product.price + 2990 : product.price
+      const cost = item.hasPrint ? product.cost + 2500 : product.cost
+      const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.40 })
+      item.cashbakPercentage = sim.cashbackPct
+      item.bet_amount = sim.montoApuesta
     }
 
     
