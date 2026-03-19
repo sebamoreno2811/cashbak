@@ -1,82 +1,47 @@
 import { type NextRequest, NextResponse } from "next/server"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+
+// Valida que el orderId tenga formato esperado (solo letras, números, guiones)
+function sanitizeOrderId(raw: string | null): string | null {
+  if (!raw) return null
+  const clean = raw.replace(/[^a-zA-Z0-9\-_]/g, "")
+  return clean.length > 0 && clean.length < 200 ? clean : null
+}
+
+function redirectToCheckout(orderId: string | null) {
+  if (!orderId) {
+    return NextResponse.redirect(`${BASE_URL}/checkout?status=error&reason=invalid_order`)
+  }
+  return NextResponse.redirect(`${BASE_URL}/checkout?status=success&order_id=${orderId}`)
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // Obtener los datos de la solicitud
     const formData = await request.formData()
+    const rawOrderId = formData.get("order_id") as string | null
+    const orderId = sanitizeOrderId(rawOrderId)
 
-    // Extraer los parámetros relevantes de Webpay
-    const paymentStatus = formData.get("status") as string
-    const transactionId = formData.get("transaction_id") as string
-    const orderId = formData.get("order_id") as string
-
-    console.log("Webhook de Webpay recibido:", { paymentStatus, transactionId, orderId })
-
-    // Crear una respuesta HTML que se ejecutará en el navegador del cliente
-    const htmlResponse = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Procesando pago...</title>
-        <script>
-          // Marcar el pago como completado
-          localStorage.setItem("completed_payment_id", "${orderId}");
-          
-          // Redirigir a la página de éxito
-          window.location.href = "/checkout/success?order_id=${orderId}";
-        </script>
-      </head>
-      <body>
-        <h1>Procesando tu pago...</h1>
-        <p>Serás redirigido automáticamente.</p>
-      </body>
-      </html>
-    `
-
-    return new Response(htmlResponse, {
-      headers: {
-        "Content-Type": "text/html",
-      },
+    console.log("Webhook de Webpay recibido:", {
+      status: formData.get("status"),
+      transaction_id: formData.get("transaction_id"),
+      order_id: orderId,
     })
+
+    return redirectToCheckout(orderId)
   } catch (error) {
     console.error("Error al procesar webhook de Webpay:", error)
-    return NextResponse.json({ success: false, error: "Error al procesar el pago" }, { status: 500 })
+    return NextResponse.redirect(`${BASE_URL}/checkout?status=error&reason=system`)
   }
 }
 
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url)
-    const orderId = url.searchParams.get("order_id")
-
-    // Crear una respuesta HTML que se ejecutará en el navegador del cliente
-    const htmlResponse = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Procesando pago...</title>
-        <script>
-          // Marcar el pago como completado
-          localStorage.setItem("completed_payment_id", "${orderId}");
-          
-          // Redirigir a la página de éxito
-          window.location.href = "/checkout/success?order_id=${orderId}";
-        </script>
-      </head>
-      <body>
-        <h1>Procesando tu pago...</h1>
-        <p>Serás redirigido automáticamente.</p>
-      </body>
-      </html>
-    `
-
-    return new Response(htmlResponse, {
-      headers: {
-        "Content-Type": "text/html",
-      },
-    })
+    const orderId = sanitizeOrderId(url.searchParams.get("order_id"))
+    return redirectToCheckout(orderId)
   } catch (error) {
     console.error("Error en la redirección de Webpay:", error)
-    return NextResponse.json({ success: false, error: "Error en la redirección" }, { status: 500 })
+    return NextResponse.redirect(`${BASE_URL}/checkout?status=error&reason=system`)
   }
 }

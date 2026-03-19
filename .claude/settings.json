@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm install:*)"
+    ],
+    "additionalDirectories": [
+      "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]"
+    ]
+  }
+}

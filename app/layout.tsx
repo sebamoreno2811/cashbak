@@ -18,9 +18,20 @@ import { CustomerProvider } from "@/context/customer-context"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "CashBak",
-  description: "Compra productos y recibe CashBak!",
-  generator: "Next.js",
+  title: {
+    default: "CashBak — Compra y recupera tu dinero",
+    template: "%s | CashBak",
+  },
+  description: "Compra camisetas de fútbol y recupera hasta el 100% de tu dinero si se cumple tu evento deportivo. Envíos a todo Chile.",
+  keywords: ["camisetas fútbol", "réplicas", "cashback", "cashbak", "camisetas Chile", "deporte"],
+  openGraph: {
+    siteName: "CashBak",
+    locale: "es_CL",
+    type: "website",
+  },
+  verification: {
+    google: "RGA8T8bZSUjuiwnKbeDj72PjJtxeZINh2Wk1UGJBt8Y",
+  },
   icons: {
     icon: [
       { url: '/favicon.ico' },
@@ -55,9 +66,8 @@ export default function RootLayout({
               </CommentProvider>
             </CustomerProvider>
           </BetProvider>
-        </ProductsProvider> 
+        </ProductsProvider>
       </body>
-      <meta name="google-site-verification" content="RGA8T8bZSUjuiwnKbeDj72PjJtxeZINh2Wk1UGJBt8Y" />
     </html>
   )
 }

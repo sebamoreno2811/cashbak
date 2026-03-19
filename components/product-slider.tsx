@@ -7,6 +7,7 @@ import { useBetOption } from "@/hooks/use-bet-option"
 import { calculatecashbak } from "@/lib/cashbak-calculator"
 import { useProducts } from "@/context/product-context"
 import { useBets } from "@/context/bet-context"
+import { toSlug } from "@/lib/slug"
 
 export default function ProductSlider() {
   const sliderRef = useRef<HTMLDivElement>(null)
@@ -112,7 +113,7 @@ export default function ProductSlider() {
           <div key={slideIndex} className="flex-shrink-0 w-full snap-center" data-porcentaje={slideIndex + 1}>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 overflow-y-auto max-h-[600px] pr-2">
               {slideItems.map((product) => (
-                <a key={product.id} href={`/product/${product.id}`} className="block group">
+                <a key={product.id} href={`/product/${product.id}/${toSlug(product.name)}`} className="block group">
                   <div className="overflow-hidden transition-all duration-300 bg-white rounded-lg shadow-sm hover:shadow-md">
                     <div className="overflow-hidden aspect-square">
                       <img

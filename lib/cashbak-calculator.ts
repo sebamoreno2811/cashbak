@@ -1,6 +1,95 @@
 import type { Product } from "@/types/product"
 import type { Bet } from "@/context/bet-context"
 
+const COMISION_PLATAFORMA = 20 / 100  // 20% del fondo cashback (gananciaBruta - margenVendedor)
+const CASHBACK_MINIMO = 0.10          // 10% mínimo de cashback ofrecido
+const CASHBACK_RECOMENDADO = 0.25     // 25% cashback recomendado
+const CUOTA_MINIMA = 1.5              // cuota mínima considerada
+
+export interface ExternalCashbakResult {
+  viable: boolean
+  cashbackPct: number         // % que recibe el cliente si la apuesta gana
+  cashbackMonto: number       // CLP que recibe el cliente si la apuesta gana
+  montoApuesta: number        // CLP que se apuesta (costo fijo por venta)
+  comisionPlataforma: number  // CLP garantizados para CashBak
+  margenVendedor: number      // CLP garantizados para el vendedor
+  gananciaNeta: number        // CLP neta por venta (igual en ambos escenarios)
+  margenVendedorMaxPct: number    // % máximo para que exista cashback mínimo
+  margenVendedorMaxMonto: number  // en CLP
+  margenRecomendadoPct: number    // % recomendado para cashbacks atractivos
+  margenRecomendadoMonto: number  // en CLP
+}
+
+/**
+ * Calcula el cashback que se puede ofrecer para un producto externo.
+ *
+ * Mecánica:
+ *  fondoBruto    = gananciaBruta - margenVendedor   (el vendedor no toca esto)
+ *  comisión      = 20% × fondoBruto                 (sale del fondo, no del vendedor)
+ *  fondoNeto     = fondoBruto × 80%                 (financia el cashback)
+ *  cashback      = fondoNeto × cuota
+ */
+export function calculateExternalCashbak(params: {
+  precioVenta: number
+  costo: number
+  cuota: number
+  margenVendedorPct: number // ej: 0.20 = 20% del precio de venta
+}): ExternalCashbakResult {
+  const { precioVenta, costo, cuota, margenVendedorPct } = params
+
+  const gananciaBruta = precioVenta - costo
+  const margenVendedor = margenVendedorPct * precioVenta
+  const fondoBruto = gananciaBruta - margenVendedor
+  const comisionPlataforma = COMISION_PLATAFORMA * fondoBruto
+  const montoApuesta = fondoBruto - comisionPlataforma  // = fondoBruto × (1 - CP)
+
+  // Máximo margen del vendedor para garantizar CASHBACK_MINIMO% con CUOTA_MINIMA:
+  // montoApuesta >= montoApuestaMinimo
+  // fondoBruto × (1 - CP) >= montoApuestaMinimo
+  // (gananciaBruta - margenMax) × (1 - CP) >= montoApuestaMinimo
+  // margenMax = gananciaBruta - montoApuestaMinimo / (1 - CP)
+  const montoApuestaMinimo = (CASHBACK_MINIMO * precioVenta) / CUOTA_MINIMA
+  const margenVendedorMaxMonto = gananciaBruta - montoApuestaMinimo / (1 - COMISION_PLATAFORMA)
+  const margenVendedorMaxPct = margenVendedorMaxMonto / precioVenta
+
+  const montoApuestaRecomendado = (CASHBACK_RECOMENDADO * precioVenta) / CUOTA_MINIMA
+  const margenRecomendadoMonto = gananciaBruta - montoApuestaRecomendado / (1 - COMISION_PLATAFORMA)
+  const margenRecomendadoPct = margenRecomendadoMonto / precioVenta
+
+  if (montoApuesta < montoApuestaMinimo) {
+    return {
+      viable: false,
+      cashbackPct: 0,
+      cashbackMonto: 0,
+      montoApuesta: 0,
+      comisionPlataforma: Math.round(comisionPlataforma),
+      margenVendedor: Math.round(margenVendedor),
+      gananciaNeta: Math.round(fondoBruto - comisionPlataforma),
+      margenVendedorMaxPct,
+      margenVendedorMaxMonto: Math.round(margenVendedorMaxMonto),
+      margenRecomendadoPct,
+      margenRecomendadoMonto: Math.round(margenRecomendadoMonto),
+    }
+  }
+
+  const cashbackMonto = Math.round(montoApuesta * cuota)
+  const cashbackPct = Math.min(100, Math.floor((cashbackMonto / precioVenta) * 100))
+
+  return {
+    viable: true,
+    cashbackPct,
+    cashbackMonto,
+    montoApuesta: Math.round(montoApuesta),
+    comisionPlataforma: Math.round(comisionPlataforma),
+    margenVendedor: Math.round(margenVendedor),
+    gananciaNeta: 0,  // fondoNeto se va íntegro a la apuesta, ganancia viene de comisión
+    margenVendedorMaxPct,
+    margenVendedorMaxMonto: Math.round(margenVendedorMaxMonto),
+    margenRecomendadoPct,
+    margenRecomendadoMonto: Math.round(margenRecomendadoMonto),
+  }
+}
+
 function getPricesAndCostsByCategory(category: number, products: Product[] = []): { price: number, cost: number } | undefined {
   if (!products || products.length === 0) return undefined
 
@@ -61,10 +150,6 @@ export function calcularMontoApostar(option: number, category: number, products:
   }
 
   const cashbak = descuentoSegunCuota(cuota, price, cost, hasPrint)
-
-  console.log(`cuota: ${bet?.id ?? 30}`)
-  console.log(`priceAndCost: ${price}`)
-  console.log(`cashbak: ${cashbak}`)
 
   return ((cashbak) * price) / cuota
 }

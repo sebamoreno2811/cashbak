@@ -1,41 +1,55 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
+import { createSupabaseClientWithCookies } from "@/utils/supabase/server"
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { id, email, full_name, phone } = body;
+    // Verificar que el usuario esté autenticado
+    const supabase = await createSupabaseClientWithCookies()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!id) {
-      return NextResponse.json({ error: "Missing user id" }, { status: 400 });
+    if (authError || !user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const body = await request.json()
+    const { id, email, full_name, phone } = body
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing user id" }, { status: 400 })
+    }
+
+    // Verificar que el id del body coincide con el usuario autenticado (evitar spoofing)
+    if (id !== user.id) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+    }
+
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error("Missing SUPABASE_SERVICE_ROLE_KEY or SUPABASE_URL");
-      return NextResponse.json({ error: "Server not configured" }, { status: 500 });
+      console.error("Missing SUPABASE_SERVICE_ROLE_KEY or SUPABASE_URL")
+      return NextResponse.json({ error: "Server not configured" }, { status: 500 })
     }
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { persistSession: false },
-    });
+    })
 
-    // Comprobamos si ya existe
+    // Comprobar si ya existe
     const { data: existing, error: selectError } = await supabaseAdmin
       .from("customers")
       .select("id")
       .eq("id", id)
-      .maybeSingle();
+      .maybeSingle()
 
     if (selectError) {
-      console.error("Error checking customers:", selectError);
-      return NextResponse.json({ error: "DB error" }, { status: 500 });
+      console.error("Error checking customers:", selectError)
+      return NextResponse.json({ error: "DB error" }, { status: 500 })
     }
 
     if (existing) {
-      return NextResponse.json({ ok: true });
+      return NextResponse.json({ ok: true })
     }
 
     const { error: insertError } = await supabaseAdmin.from("customers").insert({
@@ -44,16 +58,16 @@ export async function POST(request: Request) {
       full_name: full_name || null,
       phone: phone || null,
       created_at: new Date().toISOString(),
-    });
+    })
 
     if (insertError) {
-      console.error("Error inserting customer:", insertError);
-      return NextResponse.json({ error: "Insert error" }, { status: 500 });
+      console.error("Error inserting customer:", insertError)
+      return NextResponse.json({ error: "Insert error" }, { status: 500 })
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true })
   } catch (err) {
-    console.error("Unhandled error in /api/complete-profile:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    console.error("Unhandled error in /api/complete-profile:", err)
+    return NextResponse.json({ error: "Server error" }, { status: 500 })
   }
 }

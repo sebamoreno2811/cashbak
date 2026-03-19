@@ -1,7 +1,11 @@
-"use client"
-
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "¿Qué es CashBak?",
+  description: "Descubre cómo funciona CashBak: compra productos, elige un evento deportivo y recupera hasta el 100% de tu dinero si se cumple.",
+}
 
 export default function cashbakInfoPage() {
   return (

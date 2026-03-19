@@ -36,11 +36,7 @@ interface OrdersContextType {
   error: string | null
 }
 
-const OrdersContext = createContext<OrdersContextType>({
-  orders: [],
-  loading: false,
-  error: null,
-})
+const OrdersContext = createContext<OrdersContextType>({ orders: [], loading: false, error: null })
 
 export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   const supabase = createClient()
@@ -52,31 +48,30 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
+        const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
           setLoading(false)
           return
         }
 
-        const { data: customer, error: customerError } = await supabase
-          .from("customers")
-          .select("id")
-          .eq("email", user.email)
-          .single()
-
-        if (customerError || !customer) {
-          setError("No se pudo obtener el cliente")
-          setLoading(false)
-          return
-        }
-
+        // Usar user.id directamente como customer_id (evita lookup extra por email)
+        // Una sola query con JOIN — evita N+1 queries
         const { data: ordersData, error: ordersError } = await supabase
           .from("orders")
-          .select("*")
-          .eq("customer_id", customer.id)
+          .select(`
+            *,
+            order_items (
+              id,
+              quantity,
+              price,
+              bet_option_id,
+              cashback_percentage,
+              product_id,
+              product_name
+            )
+          `)
+          .eq("customer_id", user.id)
           .order("created_at", { ascending: false })
 
         if (ordersError || !ordersData) {
@@ -85,28 +80,19 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
           return
         }
 
-        const enrichedOrders = await Promise.all(
-          ordersData.map(async (order: { id: any }) => {
-            const { data: items, error: itemsError } = await supabase
-              .from("order_items")
-              .select("id, quantity, price, bet_option_id, cashback_percentage, product_id, product_name")
-              .eq("order_id", order.id)
-
-            if (itemsError || !items) return { ...order, order_items: [] }
-
-            const itemsWithProducts = items.map((item: { product_id: string }) => {
-              const product = products.find((p) => String(p.id) === item.product_id)
-              return { ...item, product }
-            })
-
-            return { ...order, order_items: itemsWithProducts }
-          })
-        )
+        // Enriquecer items con datos de producto desde el contexto (ya en memoria)
+        const enrichedOrders = ordersData.map((order: Order & { order_items: OrderItem[] }) => ({
+          ...order,
+          order_items: (order.order_items ?? []).map((item: OrderItem) => ({
+            ...item,
+            product: products.find((p) => String(p.id) === item.product_id),
+          })),
+        }))
 
         setOrders(enrichedOrders)
       } catch (err) {
-        setError("Error general al obtener órdenes")
-        console.error(err)
+        console.error("Error al obtener órdenes:", err)
+        setError("Error al obtener órdenes")
       } finally {
         setLoading(false)
       }

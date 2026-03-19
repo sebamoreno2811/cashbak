@@ -47,6 +47,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               <Link href="/products" className="transition-colors hover:text-green-200">
                 Productos
               </Link>
+              <Link href="/sell" className="transition-colors hover:text-green-200">
+                Vende con nosotros
+              </Link>
               <Link href="/howto" className="transition-colors hover:text-green-200">
                 ¿Qué es CashBak?
               </Link>

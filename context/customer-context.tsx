@@ -1,12 +1,6 @@
 "use client"
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react"
+import React, { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import { createClient } from "@/utils/supabase/client"
 
 export interface Customer {
@@ -37,17 +31,26 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError(null)
 
+    // Solo cargar el perfil del usuario autenticado
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      setCustomers([])
+      setLoading(false)
+      return
+    }
+
     const { data, error } = await supabase
       .from("customers")
       .select("*")
-      .order("created_at", { ascending: false })
+      .eq("id", user.id)
+      .single()
 
     if (error) {
-      console.error("Error fetching customers:", error)
-      setError(error.message || "Error desconocido al cargar clientes")
+      setError(error.message || "Error al cargar perfil")
       setCustomers([])
-    } else {
-      setCustomers(data)
+    } else if (data) {
+      setCustomers([data])
     }
 
     setLoading(false)
@@ -58,14 +61,7 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <CustomerContext.Provider
-      value={{
-        customers,
-        loading,
-        error,
-        refreshCustomers: fetchCustomers,
-      }}
-    >
+    <CustomerContext.Provider value={{ customers, loading, error, refreshCustomers: fetchCustomers }}>
       {children}
     </CustomerContext.Provider>
   )
@@ -73,8 +69,6 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
 
 export function useCustomers() {
   const context = useContext(CustomerContext)
-  if (!context) {
-    throw new Error("useCustomers must be used within a CustomerProvider")
-  }
+  if (!context) throw new Error("useCustomers must be used within a CustomerProvider")
   return context
 }

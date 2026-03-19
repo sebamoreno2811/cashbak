@@ -449,13 +449,13 @@ export default function CartPage() {
         </div>
       )}
       
-      {/* Modal apuestas inválidas */}
+      {/* Modal eventos inválidos */}
       {invalidBets.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
-            <h2 className="mb-4 text-lg font-bold text-red-600">Apuesta inválida</h2>
+            <h2 className="mb-4 text-lg font-bold text-red-600">Evento inválido</h2>
             <p className="mb-4 text-sm text-gray-700">
-              Debes cambiar las apuestas para los siguientes productos, ya que están vencidas:
+              Debes cambiar el evento para los siguientes productos, ya que están vencidos:
             </p>
             <ul className="mb-4 text-sm text-gray-800 list-disc list-inside">
               {invalidBets.map((name, i) => (
@@ -464,7 +464,7 @@ export default function CartPage() {
             </ul>
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => setInvalidBets([])}>
-                Cambiar apuestas
+                Cambiar evento
               </Button>
             </div>
           </div>

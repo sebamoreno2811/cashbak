@@ -4,16 +4,16 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   images: {
-    unoptimized: true,
-  },
-  // Asegurarse de que Next.js use el directorio pages en lugar de app
-  useFileSystemPublicRoutes: true,
-  // Desactivar el directorio app
-  experimental: {
-    appDir: false,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
   },
 }
 

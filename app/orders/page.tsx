@@ -6,6 +6,7 @@ import { useProducts } from "@/context/product-context"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
+import { toSlug } from "@/lib/slug"
 
 export default function OrdersPage() {
   const { orders, loading: ordersLoading } = useOrders()
@@ -64,7 +65,6 @@ export default function OrdersPage() {
             </div>
             <div className="mt-2 space-y-1">
               {order.order_items.map((item, index) => {
-                console.log(order)
                 const bet = bets.find((b) => b.id === Number(item.bet_option_id))
                 const product = products.find((p) => p.id === Number(item.product_id))
 
@@ -113,7 +113,7 @@ export default function OrdersPage() {
                       </div>
 
                         {product?.image && (
-                            <Link href={`/product/${product.id}`} className="block">
+                            <Link href={`/product/${product.id}/${toSlug(product.name)}`} className="block">
                                 <img
                                 src={product.image}
                                 alt={product.name}

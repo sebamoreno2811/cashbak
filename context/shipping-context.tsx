@@ -57,16 +57,7 @@ export function ShippingAddressProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError(null)
 
-    const { data: customerData, error: customerError } = await supabase
-        .from("customers")
-        .select("id") 
-        .eq("email", user.email)
-        .single()
-
-        if (customerError || !customerData) {
-        setError("No se encontró información del cliente.")
-        return
-    }
+    const customerData = { id: user.id }
 
     const { data, error } = await supabase
       .from("customer_shipping_details")
@@ -99,16 +90,7 @@ export function ShippingAddressProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError(null)
 
-    const { data: customerData, error: customerError } = await supabase
-        .from("customers")
-        .select("id") 
-        .eq("email", user.email)
-        .single()
-
-        if (customerError || !customerData) {
-        setError("No se encontró información del cliente.")
-        return
-    }
+    const customerData = { id: user.id }
 
     const { data, error } = await supabase
       .from("customer_shipping_details")

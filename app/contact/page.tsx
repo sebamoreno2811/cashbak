@@ -1,6 +1,10 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Contacto",
+  description: "Contacta a CashBak por email o redes sociales. Estamos disponibles en Instagram @cashbak.cl.",
+}
 
 export default function ContactPage() {
   return (

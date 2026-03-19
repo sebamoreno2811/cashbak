@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, CreditCard, AlertCircle, CheckCircle, XCircle, Loader2 } from "lucide-react"
+import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { saveCheckoutData, updateProductStock } from "./actions"
 import AuthModal from "@/components/auth/auth-modal"
@@ -41,8 +42,6 @@ export default function CheckoutPage() {
 
   // Verificar autenticación y cargar datos del usuario
   useEffect(() => {
-    console.log(orderId)
-    console.log("orderId")
     const fetchUserData = async () => {
     if (!user) return
     const supabase = createClient()
@@ -50,21 +49,16 @@ export default function CheckoutPage() {
     const { data: profile } = await supabase
       .from("customers")
       .select("*")
-      .eq("email", user.email)
+      .eq("id", user.id)
       .single()
     const { data: bankData } = await supabase
       .from("bank_accounts")
       .select("*")
-      .eq("customer_id", profile.id)
+      .eq("customer_id", user.id)
       .single()
 
     setUserProfile(profile)
     setBankAccount(bankData)
-
-    //if (profile && bankData && items.length > 0) {
-    //  handlePayment()
-    //}
-
     setIsLoadingProfile(false)
   }
 
@@ -139,8 +133,6 @@ export default function CheckoutPage() {
         return { success: false, error: stockResult.error }
       }
 
-      console.log(Date.now())
-
       if (result.success) {
         const supabase = createClient()
 
@@ -169,7 +161,6 @@ export default function CheckoutPage() {
 
 
   const handlePayment = async () => {
-    console.log("handlePayment called", { user, userProfile, bankAccount })
     if (!user || !userProfile || !bankAccount) {
       setIsAuthModalOpen(true)
       return
@@ -179,11 +170,7 @@ export default function CheckoutPage() {
       setPaymentError(null)
       setPaymentProcessing(true)
 
-      const randomNumber = Math.floor(Math.random() * 100)
-
-      const emailPrefix = user.email?.split("@")[0]?.replace(/[^a-zA-Z0-9]/g, "") || "user"
-
-      const uniqueOrderId = `order-${emailPrefix}-${randomNumber}`
+      const uniqueOrderId = `order-${crypto.randomUUID()}`
       const encodedOrderId = encodeURIComponent(uniqueOrderId)
       setOrderId(uniqueOrderId)
 
@@ -224,8 +211,6 @@ export default function CheckoutPage() {
       localStorage.setItem("checkout_order_id", encodedOrderId)
       localStorage.setItem("checkout_delivery_type", deliveryType!.toString())
 
-      console.log("Iniciando transacción con Webpay:", { cartTotal, uniqueOrderId })
-
       const response = await fetch("/api/webpay/initiate", {
         method: "POST",
         headers: {
@@ -240,11 +225,8 @@ export default function CheckoutPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        console.error("Error en respuesta de API:", data)
         throw new Error(data.error || "Error al iniciar el pago con Webpay")
       }
-
-      console.log("Respuesta de API Webpay:", data)
 
       if (!data.token || !data.url) {
         throw new Error("Respuesta inválida del servidor de pago")
@@ -263,7 +245,6 @@ export default function CheckoutPage() {
       form.appendChild(tokenInput)
       document.body.appendChild(form)
 
-      console.log("Redirigiendo a Webpay:", { url: data.url, token: data.token })
       form.submit()
     } catch (error: any) {
       console.error("Error al iniciar el pago:", error)
@@ -296,14 +277,58 @@ export default function CheckoutPage() {
     return <div className="p-8 text-center">Redirigiendo al carrito...</div>
   }
 
+  const checkoutStep = paymentSuccess ? 4 : paymentProcessing ? 3 : user && userProfile && bankAccount ? 2 : 1
+
+  const steps = [
+    { label: "Carrito", step: 0 },
+    { label: "Cuenta", step: 1 },
+    { label: "Confirmar", step: 2 },
+    { label: "Pago", step: 3 },
+  ]
+
   return (
     <div className="container px-4 py-8 mx-auto">
       <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">Checkout</h1>
           <Button variant="ghost" onClick={() => router.push("/cart")} disabled={paymentProcessing}>
             <ArrowLeft className="mr-2 size-4" /> Volver
           </Button>
+        </div>
+
+        {/* Stepper de progreso */}
+        <div className="flex items-center mb-8">
+          {steps.map((s, i) => (
+            <div key={s.step} className="flex items-center flex-1">
+              <div className="flex flex-col items-center flex-1">
+                <div
+                  className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold border-2 transition-colors ${
+                    checkoutStep > s.step
+                      ? "bg-green-900 border-green-900 text-white"
+                      : checkoutStep === s.step
+                      ? "border-green-900 text-green-900 bg-white"
+                      : "border-gray-300 text-gray-400 bg-white"
+                  }`}
+                >
+                  {checkoutStep > s.step ? <CheckCircle className="size-4" /> : i + 1}
+                </div>
+                <span
+                  className={`mt-1 text-xs font-medium ${
+                    checkoutStep >= s.step ? "text-green-900" : "text-gray-400"
+                  }`}
+                >
+                  {s.label}
+                </span>
+              </div>
+              {i < steps.length - 1 && (
+                <div
+                  className={`h-0.5 flex-1 mb-5 transition-colors ${
+                    checkoutStep > s.step ? "bg-green-900" : "bg-gray-200"
+                  }`}
+                />
+              )}
+            </div>
+          ))}
         </div>
 
         <div className="p-6 bg-white rounded-lg shadow-lg">
@@ -485,11 +510,13 @@ export default function CheckoutPage() {
                 return (
                   <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100">
                     <div className="flex items-center">
-                      <div className="w-12 h-12 overflow-hidden rounded-md">
-                        <img
+                      <div className="relative w-12 h-12 overflow-hidden rounded-md">
+                        <Image
                           src={product.image || "/placeholder.svg"}
                           alt={product.name}
-                          className="object-cover w-full h-full"
+                          fill
+                          sizes="48px"
+                          className="object-cover"
                         />
                       </div>
                       <div className="ml-4">

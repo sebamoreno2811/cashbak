@@ -9,23 +9,16 @@ export async function createSupabaseClientWithCookies() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
+        getAll() {
+          return cookieStore.getAll()
         },
-        // ✅ CAMBIO CLAVE AQUÍ: Usar sintaxis de objeto para el set
-        set(name: string, value: string, options: any) {
+        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
           try {
-            cookieStore.set({ name, value, ...options })
-          } catch (error) {
-            // Este try/catch evita errores si se intenta setear cookies desde un Server Component 
-            // (aunque en el route handler funcionará bien)
-          }
-        },
-        remove(name: string, options: any) {
-          try {
-            cookieStore.set({ name, value: '', ...options })
-          } catch (error) {
-            // Ignorar error
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
+            )
+          } catch {
+            // Ignorar errores al setear cookies desde Server Components
           }
         },
       },
@@ -33,7 +26,6 @@ export async function createSupabaseClientWithCookies() {
   )
 }
 
-// Función auxiliar para crear un cliente sin necesidad de cookies
 export const createSupabaseClientWithoutCookies = () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -42,20 +34,13 @@ export const createSupabaseClientWithoutCookies = () => {
     throw new Error("Missing Supabase environment variables")
   }
 
-  // Aquí estamos agregando la propiedad cookies vacía, para cumplir con la interfaz que exige SupabaseClientOptions
   return createServerClient(supabaseUrl, supabaseKey, {
     auth: {
       persistSession: false,
     },
-    global: {
-      headers: {
-        "x-client-info": `nextjs-app-router`,
-      },
-    },
     cookies: {
-      // Solo agregamos un objeto vacío porque no estamos utilizando cookies en este caso
-      get: () => null,
-      set: () => {},
+      getAll: () => [],
+      setAll: () => {},
     },
   })
 }
