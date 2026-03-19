@@ -485,9 +485,6 @@ function ProductFormModal({
                         }`}
                       >
                         <span className="font-medium truncate">{bet.name}</span>
-                        <span className={`shrink-0 ml-2 font-bold ${selectedBetId === bet.id ? "text-green-200" : "text-gray-500"}`}>
-                          cuota {bet.odd}
-                        </span>
                       </button>
                     ))}
                   </div>
@@ -510,7 +507,7 @@ function ProductFormModal({
                 />
                 <div className="flex justify-between text-xs text-gray-400 mt-0.5">
                   <span>0%</span>
-                  <span>Máx. {maxMarginSlider}% (90% del margen bruto)</span>
+                  <span>Máx. {maxMarginSlider}%</span>
                 </div>
                 {pricing?.showRecommendation && pricing.margenRec20Pct > 0 && (
                   <p className="text-xs text-emerald-600 mt-1">
@@ -520,23 +517,12 @@ function ProductFormModal({
               </div>
 
               {/* Resultado principal: ganancia vendedor */}
-              <div className={`rounded-lg px-4 py-3 ${sim.viable ? "bg-emerald-50 border border-emerald-200" : "bg-red-50 border border-red-200"}`}>
-                {sim.viable ? (
-                  <>
-                    <p className="text-xs text-emerald-600 font-medium mb-1">Tu ganancia garantizada por venta</p>
-                    <p className="text-2xl font-bold text-emerald-700">${FMT(sim.margenVendedor)}</p>
-                    <p className="text-xs text-emerald-500 mt-0.5">
-                      Este monto es tuyo independiente de si el evento se gana o se pierde.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-xs text-red-600 font-medium">
-                      Con este margen no hay fondo suficiente para ofrecer al menos 10% de cashback.
-                      Baja el margen a {maxMarginSlider}% o menos.
-                    </p>
-                  </>
-                )}
+              <div className="rounded-lg px-4 py-3 bg-emerald-50 border border-emerald-200">
+                <p className="text-xs text-emerald-600 font-medium mb-1">Tu ganancia garantizada por venta</p>
+                <p className="text-2xl font-bold text-emerald-700">${FMT(sim.margenVendedor)}</p>
+                <p className="text-xs text-emerald-500 mt-0.5">
+                  Este monto es tuyo independiente de si el evento se gana o se pierde.
+                </p>
               </div>
 
               {/* Desglose */}
@@ -552,8 +538,8 @@ function ProductFormModal({
                   </div>
                   <p className="text-xs text-gray-400 pt-1 border-t border-gray-100">
                     {selectedBet
-                      ? `Simulado con "${selectedBet.name}" (cuota ${selectedBet.odd}).`
-                      : `Simulado con cuota ${cuota}.`}{" "}
+                      ? `Simulado con el evento "${selectedBet.name}".`
+                      : "Selecciona un evento para simular."}{" "}
                     El cashback varía según el evento activo.
                   </p>
                 </div>
