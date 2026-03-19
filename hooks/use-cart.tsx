@@ -196,28 +196,39 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }, 0) + shippingCost
   }
 
+  const calcItemCashbak = (item: CartItem, product: Product): { pct: number; montoApuesta: number } => {
+    const bet = bets.find(b => b.id.toString() === item.betOptionId)
+    if (!bet) return { pct: 0, montoApuesta: 0 }
+    const price = item.hasPrint ? product.price + 2990 : product.price
+    const cost = item.hasPrint ? product.cost + 2500 : product.cost
+    const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota: bet.odd, margenVendedorPct: product.margin_pct ?? 0.25 })
+    return { pct: sim.cashbackPct, montoApuesta: sim.montoApuesta }
+  }
+
   const getTotalcashbak = () => {
     return items.reduce((total, item) => {
       const product = products.find((p) => p.id === item.productId)
       if (!product) return total
-      const cashbakAmount = (((product?.price || 0) + (item.hasPrint ? 2990 : 0)) * item.quantity * item.cashbakPercentage) / 100
-      return total + cashbakAmount
+      const { pct } = calcItemCashbak(item, product)
+      const subtotal = (product.price + (item.hasPrint ? 2990 : 0)) * item.quantity
+      return total + (subtotal * pct) / 100
     }, 0)
   }
 
   const getItemDetails = (item: CartItem) => {
     const product = products.find((p) => p.id === item.productId)
-    const bet = bets.find((b) => b.id.toString() === item.betOptionId) // <-- ✅ usa el context
+    const bet = bets.find((b) => b.id.toString() === item.betOptionId)
     const subtotal = ((product?.price || 0) + (item.hasPrint ? 2990 : 0)) * item.quantity
-    const cashbakAmount = (subtotal * item.cashbakPercentage) / 100
+    const { pct: cashbakPercentage, montoApuesta } = product ? calcItemCashbak(item, product) : { pct: 0, montoApuesta: 0 }
+    const cashbakAmount = (subtotal * cashbakPercentage) / 100
 
     return {
       product,
       betName: bet?.name || "Opción no disponible",
       subtotal,
       cashbakAmount,
-      cashbakPercentage: item.cashbakPercentage,
-      bet_amount: item.bet_amount,
+      cashbakPercentage,
+      bet_amount: montoApuesta,
       size: item.size,
       hasPrint: item.hasPrint,
     }
