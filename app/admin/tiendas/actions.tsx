@@ -1,24 +1,30 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { approveStore, rejectStore } from "@/app/stores/actions"
 
 export default function AdminStoreActions({ storeId }: { storeId: string }) {
   const [rejectReason, setRejectReason] = useState("")
   const [showReject, setShowReject] = useState(false)
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   async function handleApprove() {
     setLoading(true)
-    await approveStore(storeId)
+    const res = await approveStore(storeId)
     setLoading(false)
+    if (res.error) { alert(res.error); return }
+    router.refresh()
   }
 
   async function handleReject() {
     if (!rejectReason.trim()) return
     setLoading(true)
-    await rejectStore(storeId, rejectReason.trim())
+    const res = await rejectStore(storeId, rejectReason.trim())
     setLoading(false)
+    if (res.error) { alert(res.error); return }
+    router.refresh()
   }
 
   return (
