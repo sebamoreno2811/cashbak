@@ -39,15 +39,15 @@ export function calculateExternalCashbak(params: {
 
   const gananciaBruta = precioVenta - costo
   const margenVendedor = margenVendedorPct * precioVenta
-  const fondoBruto = gananciaBruta - margenVendedor
-  const comisionPlataforma = COMISION_PLATAFORMA * fondoBruto
-  const montoApuesta = fondoBruto - comisionPlataforma  // = fondoBruto × (1 - CP)
+  const fondoBruto = Math.max(0, gananciaBruta - margenVendedor)
 
-  // Máximo margen del vendedor para garantizar CASHBACK_MINIMO% con CUOTA_MINIMA:
-  // montoApuesta >= montoApuestaMinimo
-  // fondoBruto × (1 - CP) >= montoApuestaMinimo
-  // (gananciaBruta - margenMax) × (1 - CP) >= montoApuestaMinimo
-  // margenMax = gananciaBruta - montoApuestaMinimo / (1 - CP)
+  // Comisión: 20% del fondoBruto, con mínimo del 2% del margen bruto
+  const comisionBase = COMISION_PLATAFORMA * fondoBruto
+  const comisionMinima = 0.02 * gananciaBruta
+  const comisionPlataforma = Math.max(comisionBase, comisionMinima)
+
+  const montoApuesta = Math.max(0, fondoBruto - comisionPlataforma)
+
   const montoApuestaMinimo = (CASHBACK_MINIMO * precioVenta) / CUOTA_MINIMA
   const margenVendedorMaxMonto = gananciaBruta - montoApuestaMinimo / (1 - COMISION_PLATAFORMA)
   const margenVendedorMaxPct = margenVendedorMaxMonto / precioVenta
@@ -56,33 +56,19 @@ export function calculateExternalCashbak(params: {
   const margenRecomendadoMonto = gananciaBruta - montoApuestaRecomendado / (1 - COMISION_PLATAFORMA)
   const margenRecomendadoPct = margenRecomendadoMonto / precioVenta
 
-  if (montoApuesta < montoApuestaMinimo) {
-    return {
-      viable: false,
-      cashbackPct: 0,
-      cashbackMonto: 0,
-      montoApuesta: 0,
-      comisionPlataforma: Math.round(comisionPlataforma),
-      margenVendedor: Math.round(margenVendedor),
-      gananciaNeta: Math.round(fondoBruto - comisionPlataforma),
-      margenVendedorMaxPct,
-      margenVendedorMaxMonto: Math.round(margenVendedorMaxMonto),
-      margenRecomendadoPct,
-      margenRecomendadoMonto: Math.round(margenRecomendadoMonto),
-    }
-  }
-
+  // Siempre calcula cashback real (mínimo 0)
   const cashbackMonto = Math.round(montoApuesta * cuota)
   const cashbackPct = Math.min(100, Math.floor((cashbackMonto / precioVenta) * 100))
+  const viable = montoApuesta >= montoApuestaMinimo
 
   return {
-    viable: true,
+    viable,
     cashbackPct,
     cashbackMonto,
     montoApuesta: Math.round(montoApuesta),
     comisionPlataforma: Math.round(comisionPlataforma),
     margenVendedor: Math.round(margenVendedor),
-    gananciaNeta: 0,  // fondoNeto se va íntegro a la apuesta, ganancia viene de comisión
+    gananciaNeta: 0,
     margenVendedorMaxPct,
     margenVendedorMaxMonto: Math.round(margenVendedorMaxMonto),
     margenRecomendadoPct,

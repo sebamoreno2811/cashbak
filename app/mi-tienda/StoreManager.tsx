@@ -526,24 +526,22 @@ function ProductFormModal({
               </div>
 
               {/* Desglose */}
-              {sim.viable && (
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">CashBak que recibirá el cliente</span>
-                    <span className="font-semibold text-gray-800">{sim.cashbackPct}% · ${FMT(sim.cashbackMonto)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Comisión CashBak</span>
-                    <span className="text-gray-600">${FMT(sim.comisionPlataforma)}</span>
-                  </div>
-                  <p className="text-xs text-gray-400 pt-1 border-t border-gray-100">
-                    {selectedBet
-                      ? `Simulado con el evento "${selectedBet.name}".`
-                      : "Selecciona un evento para simular."}{" "}
-                    El cashback varía según el evento activo.
-                  </p>
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">CashBak que recibirá el cliente</span>
+                  <span className="font-semibold text-gray-800">{sim.cashbackPct}% · ${FMT(sim.cashbackMonto)}</span>
                 </div>
-              )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Comisión CashBak</span>
+                  <span className="text-gray-600">${FMT(sim.comisionPlataforma)}</span>
+                </div>
+                <p className="text-xs text-gray-400 pt-1 border-t border-gray-100">
+                  {selectedBet
+                    ? `Simulado con el evento "${selectedBet.name}".`
+                    : "Selecciona un evento para simular."}{" "}
+                  El cashback varía según el evento activo.
+                </p>
+              </div>
             </div>
           ) : valid === false && (priceNum > 0 || costNum > 0) ? (
             <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
