@@ -31,7 +31,10 @@ interface StoreProduct {
   category_name: string | null
   description: string | null
   image: string | null
+  stock: Record<string, number> | null
 }
+
+const SIZES = ["S", "M", "L", "XL"]
 
 const FMT = (n: number) => n.toLocaleString("es-CL", { maximumFractionDigits: 0 })
 
@@ -216,6 +219,19 @@ function ProductFormModal({
   const [marginPct, setMarginPct] = useState(
     initial?.margin_pct != null ? Math.round(initial.margin_pct * 100) : 20
   )
+  const initStockMode = (): "sizes" | "single" => {
+    if (!initial?.stock) return "sizes"
+    const keys = Object.keys(initial.stock)
+    return keys.length === 1 && keys[0] === "Única" ? "single" : "sizes"
+  }
+  const [stockMode, setStockMode] = useState<"sizes" | "single">(initStockMode)
+  const [stockSizes, setStockSizes] = useState<Record<string, number>>(() => {
+    if (!initial?.stock || initStockMode() === "single") return { S: 0, M: 0, L: 0, XL: 0 }
+    return { S: initial.stock.S ?? 0, M: initial.stock.M ?? 0, L: initial.stock.L ?? 0, XL: initial.stock.XL ?? 0 }
+  })
+  const [stockSingle, setStockSingle] = useState<number>(() =>
+    initial?.stock?.["Única"] ?? 0
+  )
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(initial?.image ?? null)
   const [uploading, setUploading] = useState(false)
@@ -339,6 +355,16 @@ function ProductFormModal({
       return
     }
 
+    const stockPayload: Record<string, number> = stockMode === "sizes"
+      ? { S: stockSizes.S, M: stockSizes.M, L: stockSizes.L, XL: stockSizes.XL }
+      : { "Única": stockSingle }
+
+    if (Object.values(stockPayload).reduce((a, b) => a + b, 0) === 0) {
+      setError("Debes agregar al menos 1 unidad de stock.")
+      setSaving(false)
+      return
+    }
+
     const payload = {
       name,
       price: priceNum,
@@ -348,6 +374,7 @@ function ProductFormModal({
       category_name: categoryName,
       description,
       image_url: imageUrl,
+      stock: stockPayload,
     }
 
     const res = initial
@@ -369,6 +396,7 @@ function ProductFormModal({
       category_name: payload.category_name,
       description: payload.description || null,
       image: imageUrl,
+      stock: stockPayload,
     })
     setSaving(false)
   }
@@ -573,6 +601,53 @@ function ProductFormModal({
               El precio de venta debe ser mayor al costo.
             </p>
           ) : null}
+
+          {/* Stock */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-semibold text-gray-700">Stock disponible</label>
+              <div className="flex rounded-lg overflow-hidden border border-gray-200 text-xs">
+                <button type="button"
+                  onClick={() => setStockMode("sizes")}
+                  className={`px-3 py-1.5 font-medium transition-colors ${stockMode === "sizes" ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+                >
+                  Con tallas
+                </button>
+                <button type="button"
+                  onClick={() => setStockMode("single")}
+                  className={`px-3 py-1.5 font-medium transition-colors ${stockMode === "single" ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+                >
+                  Sin tallas
+                </button>
+              </div>
+            </div>
+
+            {stockMode === "sizes" ? (
+              <div className="grid grid-cols-4 gap-2">
+                {SIZES.map((s) => (
+                  <div key={s} className="text-center">
+                    <div className="text-xs text-gray-500 mb-1 font-medium">{s}</div>
+                    <input
+                      type="number" min={0} max={999}
+                      value={stockSizes[s]}
+                      onChange={(e) => setStockSizes(prev => ({ ...prev, [s]: Math.max(0, Number(e.target.value)) }))}
+                      className="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-700"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <label className="text-sm text-gray-600">Cantidad disponible</label>
+                <input
+                  type="number" min={0} max={9999}
+                  value={stockSingle}
+                  onChange={(e) => setStockSingle(Math.max(0, Number(e.target.value)))}
+                  className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-700"
+                />
+              </div>
+            )}
+          </div>
 
           {/* Descripción */}
           <div>

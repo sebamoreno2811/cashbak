@@ -50,7 +50,11 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
   const [hasPrint, setHasPrint] = useState(false)
-  const [size, setSize] = useState<string>("L")
+  const stockKeys = product ? Object.keys(product.stock ?? {}) : []
+  const isSingleSize = stockKeys.length === 1 && stockKeys[0] === "Única"
+  const availableSizes = isSingleSize ? [] : ["S", "M", "L", "XL"]
+  const defaultSize = isSingleSize ? "Única" : (["S","M","L","XL"].find(s => (product?.stock?.[s] ?? 0) > 0) ?? "L")
+  const [size, setSize] = useState<string>(defaultSize)
   const { bets } = useBets()
   const [isLoading, setIsLoading] = useState(false)
   const [commentError, setCommentError] = useState<string | null>(null)
@@ -76,6 +80,11 @@ export default function ProductPage() {
       const foundProduct = products.find(p => p.id.toString() === params.id)
       setProduct(foundProduct ?? null)
       setHasPrint(foundProduct?.hasPrint ?? false)
+      if (foundProduct) {
+        const keys = Object.keys(foundProduct.stock ?? {})
+        const single = keys.length === 1 && keys[0] === "Única"
+        setSize(single ? "Única" : (["S","M","L","XL"].find(s => (foundProduct.stock?.[s] ?? 0) > 0) ?? "L"))
+      }
     }
   }, [params.id, products, loading])
 
@@ -310,13 +319,14 @@ export default function ProductPage() {
               </Select>
             </div>
 
+            {!isSingleSize && (
             <div className="w-16">
               <Select value={size} onValueChange={setSize}>
                 <SelectTrigger>
                   <SelectValue placeholder="Talla" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["S", "M", "L", "XL"].map((talla) => {
+                  {availableSizes.map((talla) => {
                     const stockDisponible = product.stock?.[talla] ?? 0
                     return (
                       <SelectItem key={talla} value={talla} disabled={stockDisponible === 0}>
@@ -327,6 +337,7 @@ export default function ProductPage() {
                 </SelectContent>
               </Select>
             </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-1">

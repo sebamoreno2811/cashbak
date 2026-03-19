@@ -22,6 +22,7 @@ export async function addProduct(formData: {
   category_name: string
   description?: string
   image_url?: string | null
+  stock: Record<string, number>
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -41,7 +42,7 @@ export async function addProduct(formData: {
     image: formData.image_url || null,
     store_id: store.id,
     category: 1,
-    stock: {},
+    stock: formData.stock,
   })
 
   if (error) return { error: error.message }
@@ -58,6 +59,7 @@ export async function updateProduct(productId: number, formData: {
   category_name: string
   description?: string
   image_url?: string | null
+  stock: Record<string, number>
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -76,6 +78,7 @@ export async function updateProduct(productId: number, formData: {
       category_name: formData.category_name,
       description: formData.description?.trim() || null,
       image: formData.image_url || null,
+      stock: formData.stock,
     })
     .eq("id", productId)
     .eq("store_id", store.id)
