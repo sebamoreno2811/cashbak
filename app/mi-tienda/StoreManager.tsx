@@ -247,6 +247,47 @@ function ProductFormModal({
   const costNum = Number(cost) || 0
   const valid = priceNum > costNum && costNum > 0
 
+  // Límites del slider calculados siempre con cuota 1.5 (independiente del evento)
+  const pricing = useMemo(() => {
+    if (!valid) return null
+    const gananciaBruta = priceNum - costNum
+    const COMISION = 0.20
+    const CUOTA_BASE = 1.5
+
+    // Máximo: margen con el que aún se puede dar 10% cashback a cuota 1.5
+    const montoApuestaMin = (0.10 * priceNum) / CUOTA_BASE
+    const margenMaxMonto = gananciaBruta - montoApuestaMin / (1 - COMISION)
+    const margenMaxPct = margenMaxMonto / priceNum
+
+    // Default: margen para dar exactamente 20% cashback a cuota 1.5
+    const montoApuesta20 = (0.20 * priceNum) / CUOTA_BASE
+    const margenDefaultMonto = gananciaBruta - montoApuesta20 / (1 - COMISION)
+    const margenDefaultPct = margenDefaultMonto / priceNum
+
+    const canOfferCashback = margenMaxPct > 0
+
+    // Si el margen bruto es tan chico que no se puede dar cashback, sin límite
+    const sliderMax = canOfferCashback
+      ? Math.min(Math.floor(margenMaxPct * 100), 99)
+      : Math.floor((gananciaBruta / priceNum) * 100)
+
+    const sliderDefault = canOfferCashback
+      ? Math.max(0, Math.floor(margenDefaultPct * 100))
+      : Math.floor((gananciaBruta / priceNum) * 100 / 2)
+
+    return { sliderMax, sliderDefault, canOfferCashback }
+  }, [priceNum, costNum, valid])
+
+  // Cuando cambia precio/costo y es producto nuevo, pre-selecciona el margen recomendado
+  useEffect(() => {
+    if (!initial && pricing) {
+      setMarginPct(pricing.sliderDefault)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pricing?.sliderDefault])
+
+  const maxMarginSlider = pricing?.sliderMax ?? 99
+
   const sim = useMemo(() => {
     if (!valid) return null
     return calculateExternalCashbak({
@@ -256,8 +297,6 @@ function ProductFormModal({
       margenVendedorPct: marginPct / 100,
     })
   }, [priceNum, costNum, marginPct, cuota, valid])
-
-  const maxMarginSlider = sim ? Math.min(Math.floor(sim.margenVendedorMaxPct * 100), 99) : 99
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -471,7 +510,11 @@ function ProductFormModal({
                 />
                 <div className="flex justify-between text-xs text-gray-400 mt-0.5">
                   <span>0%</span>
-                  <span>Máx. {maxMarginSlider}%</span>
+                  <span>
+                    {pricing?.canOfferCashback
+                      ? `Máx. ${maxMarginSlider}% (para dar al menos 10% cashback)`
+                      : `Máx. ${maxMarginSlider}% (margen bruto)`}
+                  </span>
                 </div>
               </div>
 
