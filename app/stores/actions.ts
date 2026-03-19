@@ -91,16 +91,20 @@ export async function approveStore(storeId: string) {
   const { data: customer } = await supabase.from("customers").select("role").eq("id", user.id).single()
   if (customer?.role !== "admin") return { error: "No autorizado" }
 
-  const { data: store } = await supabase
+  const { error: updateError } = await supabase
     .from("stores")
     .update({ status: "approved", reject_reason: null })
     .eq("id", storeId)
+
+  if (updateError) return { error: updateError.message }
+
+  const { data: store } = await supabase
+    .from("stores")
     .select("name, email")
+    .eq("id", storeId)
     .single()
 
-  if (!store) return { error: "Tienda no encontrada" }
-
-  if (store.email) {
+  if (store?.email) {
     await resend.emails.send({
       from: EMAIL_FROM,
       to: store.email,
@@ -138,16 +142,20 @@ export async function rejectStore(storeId: string, reason: string) {
   const { data: customer } = await supabase.from("customers").select("role").eq("id", user.id).single()
   if (customer?.role !== "admin") return { error: "No autorizado" }
 
-  const { data: store } = await supabase
+  const { error: updateError } = await supabase
     .from("stores")
     .update({ status: "rejected", reject_reason: reason })
     .eq("id", storeId)
+
+  if (updateError) return { error: updateError.message }
+
+  const { data: store } = await supabase
+    .from("stores")
     .select("name, email")
+    .eq("id", storeId)
     .single()
 
-  if (!store) return { error: "Tienda no encontrada" }
-
-  if (store.email) {
+  if (store?.email) {
     await resend.emails.send({
       from: EMAIL_FROM,
       to: store.email,
