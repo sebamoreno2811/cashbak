@@ -1,122 +1,272 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Search } from "lucide-react"
+import { Search, SlidersHorizontal, X } from "lucide-react"
 import { toSlug } from "@/lib/slug"
 import { calculateProductCashbak, calculateMaxProductCashbak } from "@/lib/cashbak-calculator"
 import { useProducts } from "@/context/product-context"
 import { useBets } from "@/context/bet-context"
 import { useBetOption } from "@/hooks/use-bet-option"
+import { createClient } from "@/utils/supabase/client"
+import type { Product } from "@/types/product"
+
+interface Store {
+  id: string
+  name: string
+  slug: string
+  logo_url: string | null
+}
 
 export default function ProductsPage() {
-  const { products, loading, error } = useProducts()
+  const { products, loading } = useProducts()
   const { bets } = useBets()
   const { selectedOption } = useBetOption()
 
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [stores, setStores] = useState<Store[]>([])
   const [search, setSearch] = useState("")
+  const [storeFilter, setStoreFilter] = useState<string | null>(null)
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
+  const [showFilters, setShowFilters] = useState(false)
 
-  const categories = Array.from(new Set(products.map((p) => p.category_name)))
+  useEffect(() => {
+    createClient()
+      .from("stores")
+      .select("id, name, slug, logo_url")
+      .eq("status", "approved")
+      .then(({ data }: { data: Store[] | null }) => { if (data) setStores(data) })
+  }, [])
 
-  const filteredProducts = products.filter((p) => {
-    const matchesCategory = selectedCategory === null || p.category_name === selectedCategory
-    const matchesSearch = search.trim() === "" || p.name.toLowerCase().includes(search.toLowerCase())
-    return matchesCategory && matchesSearch
-  })
+  const storeMap = useMemo(() =>
+    Object.fromEntries(stores.map(s => [s.id, s])),
+    [stores]
+  )
 
-  const countByCategory = (cat: string | null) =>
-    products.filter((p) => (cat === null ? true : p.category_name === cat)).length
+  const selectedBet = bets.find(b => b.id === Number(selectedOption))
 
-  if (loading) return <div>Cargando productos...</div>
-  if (error) return <div>Error al cargar productos: {error}</div>
+  const categories = useMemo(() =>
+    Array.from(new Set(products.map(p => p.category_name).filter(Boolean))).sort(),
+    [products]
+  )
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return products.filter(p => {
+      if (storeFilter && p.store_id !== storeFilter) return false
+      if (categoryFilter && p.category_name !== categoryFilter) return false
+      if (q && !p.name.toLowerCase().includes(q) && !p.category_name?.toLowerCase().includes(q)) return false
+      return true
+    })
+  }, [products, search, storeFilter, categoryFilter])
+
+  const activeFilters = [
+    storeFilter ? storeMap[storeFilter]?.name : null,
+    categoryFilter,
+  ].filter(Boolean) as string[]
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="w-8 h-8 border-4 border-green-700 rounded-full border-t-transparent animate-spin" />
+    </div>
+  )
 
   return (
-    <main className="min-h-screen bg-white">
-      <div className="container px-4 py-8 mx-auto">
-        <h1 className="mb-8 text-3xl font-bold text-center">Todos los Productos</h1>
-
-        {/* Buscador */}
-        <div className="relative max-w-md mx-auto mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Buscar camiseta..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
-          />
-        </div>
-
-        {/* Filtros con conteo */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
-          <Button
-            variant={selectedCategory === null ? "default" : "outline"}
-            className={selectedCategory === null ? "bg-emerald-600 hover:bg-emerald-700" : ""}
-            onClick={() => setSelectedCategory(null)}
+    <main className="min-h-screen bg-gray-50">
+      {/* Header buscador */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
+        <div className="container mx-auto max-w-5xl px-4 py-3 flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar producto..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-green-700 transition"
+              autoFocus
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+                <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setShowFilters(v => !v)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition ${showFilters || activeFilters.length > 0 ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-300 bg-white"}`}
           >
-            Todos ({countByCategory(null)})
-          </Button>
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              className={selectedCategory === category ? "bg-emerald-600 hover:bg-emerald-700" : ""}
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category} ({countByCategory(category)})
-            </Button>
-          ))}
+            <SlidersHorizontal className="w-4 h-4" />
+            Filtros
+            {activeFilters.length > 0 && (
+              <span className="bg-white text-green-900 rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold">
+                {activeFilters.length}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Grilla de productos */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {filteredProducts.map((product) => (
-            <Link key={product.id} href={`/product/${product.id}/${toSlug(product.name)}`} className="group">
-              <div className="overflow-hidden transition-all duration-300 bg-white rounded-lg shadow-md hover:shadow-xl">
-                <div className="relative overflow-hidden aspect-square">
-                  <Image
-                    src={product.image || "/placeholder.svg"}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="mb-2 text-lg font-semibold">{product.name}</h3>
-                  <p className="text-gray-700">${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
-                  <div className="mt-2 flex flex-col gap-1">
-                    {selectedOption && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                        <span className="text-sm font-semibold text-emerald-700">
-                          {calculateProductCashbak(product, bets.find(b => b.id === Number(selectedOption))?.odd ?? 0)}% con evento seleccionado
-                        </span>
-                      </div>
-                    )}
-                    <div className="text-xs text-gray-400">
-                      Hasta {calculateMaxProductCashbak(product, bets)}% con el mejor evento
-                    </div>
-                  </div>
-                  <div className="mt-1 text-xs text-gray-400">{product.category_name}</div>
-                </div>
+        {/* Panel de filtros */}
+        {showFilters && (
+          <div className="container mx-auto max-w-5xl px-4 pb-3 flex flex-wrap gap-4">
+            {/* Filtro tienda */}
+            <div className="flex-1 min-w-48">
+              <p className="text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Tienda</p>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  onClick={() => setStoreFilter(null)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition ${storeFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
+                >
+                  Todas
+                </button>
+                {stores.map(s => (
+                  <button
+                    key={s.id}
+                    onClick={() => setStoreFilter(storeFilter === s.id ? null : s.id)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition ${storeFilter === s.id ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
+                  >
+                    {s.name}
+                  </button>
+                ))}
               </div>
-            </Link>
-          ))}
-        </div>
+            </div>
 
-        {/* Mensaje si no hay productos */}
-        {filteredProducts.length === 0 && (
-          <div className="p-8 mt-4 text-center bg-gray-100 rounded-lg">
-            <p className="text-lg text-gray-600">
-              {search ? `No se encontraron resultados para "${search}".` : "No se encontraron productos en esta categoría."}
+            {/* Filtro categoría */}
+            <div className="flex-1 min-w-48">
+              <p className="text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Categoría</p>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  onClick={() => setCategoryFilter(null)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition ${categoryFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
+                >
+                  Todas
+                </button>
+                {categories.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(categoryFilter === cat ? null : cat)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition ${categoryFilter === cat ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="container mx-auto max-w-5xl px-4 py-6">
+        {/* Tags activos */}
+        {activeFilters.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {storeFilter && (
+              <span className="flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-800 text-xs font-medium px-3 py-1 rounded-full">
+                {storeMap[storeFilter]?.name}
+                <button onClick={() => setStoreFilter(null)}><X className="w-3 h-3" /></button>
+              </span>
+            )}
+            {categoryFilter && (
+              <span className="flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-800 text-xs font-medium px-3 py-1 rounded-full">
+                {categoryFilter}
+                <button onClick={() => setCategoryFilter(null)}><X className="w-3 h-3" /></button>
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Contador */}
+        <p className="text-sm text-gray-500 mb-5">
+          {filtered.length === 0
+            ? "Sin resultados"
+            : `${filtered.length} producto${filtered.length !== 1 ? "s" : ""}${search ? ` para "${search}"` : ""}`}
+        </p>
+
+        {/* Grilla */}
+        {filtered.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+            {filtered.map(product => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                store={product.store_id ? storeMap[product.store_id] : undefined}
+                bets={bets}
+                selectedBetOdd={selectedBet?.odd ?? null}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <p className="text-4xl mb-4">🔍</p>
+            <p className="text-gray-500 text-lg font-medium">
+              {search ? `No encontramos "${search}"` : "No hay productos con estos filtros"}
             </p>
+            <button
+              onClick={() => { setSearch(""); setStoreFilter(null); setCategoryFilter(null) }}
+              className="mt-4 text-sm text-green-700 underline"
+            >
+              Limpiar filtros
+            </button>
           </div>
         )}
       </div>
     </main>
+  )
+}
+
+function ProductCard({
+  product,
+  store,
+  bets,
+  selectedBetOdd,
+}: {
+  product: Product
+  store: Store | undefined
+  bets: ReturnType<typeof useBets>["bets"]
+  selectedBetOdd: number | null
+}) {
+  const maxCashbak = calculateMaxProductCashbak(product, bets)
+  const selectedCashbak = selectedBetOdd ? calculateProductCashbak(product, selectedBetOdd) : null
+
+  return (
+    <Link href={`/product/${product.id}/${toSlug(product.name)}`} className="group">
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 h-full flex flex-col">
+        <div className="relative aspect-square overflow-hidden">
+          <Image
+            src={product.image || "/placeholder.svg"}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+          {maxCashbak > 0 && (
+            <div className="absolute top-2 right-2 bg-green-900/80 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-lg">
+              hasta {maxCashbak}% CB
+            </div>
+          )}
+          {store && (
+            <div className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1">
+              {store.logo_url ? (
+                <Image src={store.logo_url} alt={store.name} width={14} height={14} className="rounded-full object-cover w-3.5 h-3.5" />
+              ) : (
+                <span className="text-[10px]">🏪</span>
+              )}
+              <span className="text-[10px] font-semibold text-gray-700 leading-none">{store.name}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="p-3 flex flex-col flex-1">
+          <p className="text-xs text-gray-400 mb-0.5">{product.category_name}</p>
+          <h3 className="text-sm font-semibold text-gray-800 leading-snug line-clamp-2 flex-1">{product.name}</h3>
+          <div className="mt-2 flex items-end justify-between">
+            <span className="font-bold text-gray-900">${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+            {selectedCashbak !== null && selectedCashbak > 0 && (
+              <span className="text-xs font-semibold text-emerald-600">{selectedCashbak}% CB</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </Link>
   )
 }
