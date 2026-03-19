@@ -255,8 +255,8 @@ function ProductFormModal({
     const COMISION = 0.20
     const CUOTA_BASE = 1.5
 
-    // Máximo del slider: siempre el margen bruto completo (sin restricción de cashback)
-    const sliderMax = Math.floor(gananciaBrutaPct * 100)
+    // Máximo del slider: 90% del margen bruto (siempre queda al menos 10% para cashback)
+    const sliderMax = Math.floor(gananciaBrutaPct * 0.90 * 100)
 
     // Margen para 10% cashback a cuota 1.5 (umbral de referencia)
     const montoApuestaMin = (0.10 * priceNum) / CUOTA_BASE
@@ -510,7 +510,7 @@ function ProductFormModal({
                 />
                 <div className="flex justify-between text-xs text-gray-400 mt-0.5">
                   <span>0%</span>
-                  <span>Máx. {maxMarginSlider}% (margen bruto)</span>
+                  <span>Máx. {maxMarginSlider}% (90% del margen bruto)</span>
                 </div>
                 {pricing?.showRecommendation && pricing.margenRec20Pct > 0 && (
                   <p className="text-xs text-emerald-600 mt-1">
