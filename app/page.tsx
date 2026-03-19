@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react"
 import { useProducts } from "@/context/product-context"
 import { useBets } from "@/context/bet-context"
 import { useBetOption } from "@/hooks/use-bet-option"
-import { calculateMaxcashbak, calculatecashbak } from "@/lib/cashbak-calculator"
+import { calculateProductCashbak, calculateMaxProductCashbak } from "@/lib/cashbak-calculator"
 import { createClient } from "@/utils/supabase/client"
 import { ProductSelection } from "@/components/product-selection"
 import { Search } from "lucide-react"
@@ -83,7 +83,7 @@ export default function Home() {
       <div className="container mx-auto max-w-4xl px-4 py-10 space-y-12">
         {filteredStores.map((store) => {
           const storeProducts = products.filter(
-            (p: Product & { store_id?: string }) => p.store_id === store.id
+            (p: Product) => p.store_id === store.id
           )
           if (storeProducts.length === 0) return null
           return (
@@ -91,7 +91,7 @@ export default function Home() {
               key={store.id}
               store={store}
               products={storeProducts}
-              allProducts={products}
+
               bets={bets}
               selectedOption={selectedOption}
             />
@@ -112,13 +112,11 @@ export default function Home() {
 function StoreSection({
   store,
   products,
-  allProducts,
   bets,
   selectedOption,
 }: {
   store: Store
   products: Product[]
-  allProducts: Product[]
   bets: Bet[]
   selectedOption: string
 }) {
@@ -173,7 +171,7 @@ function StoreSection({
           <ProductCard
             key={product.id}
             product={product}
-            allProducts={allProducts}
+
             bets={bets}
             selectedOption={selectedOption}
           />
@@ -185,19 +183,16 @@ function StoreSection({
 
 function ProductCard({
   product,
-  allProducts,
   bets,
   selectedOption,
 }: {
   product: Product
-  allProducts: Product[]
   bets: Bet[]
   selectedOption: string
 }) {
-  const maxCashbak = calculateMaxcashbak(product.category, allProducts, bets)
-  const selectedCashbak = selectedOption
-    ? calculatecashbak(Number(selectedOption), product.category, allProducts, bets)
-    : 0
+  const maxCashbak = calculateMaxProductCashbak(product, bets)
+  const selectedBet = bets.find(b => b.id === Number(selectedOption))
+  const selectedCashbak = selectedBet ? calculateProductCashbak(product, selectedBet.odd) : 0
 
   return (
     <Link href={`/product/${product.id}/${toSlug(product.name)}`} className="group snap-start shrink-0 w-44 sm:w-52">

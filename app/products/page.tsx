@@ -6,7 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Search } from "lucide-react"
 import { toSlug } from "@/lib/slug"
-import { calculateMaxcashbak, calculatecashbak } from "@/lib/cashbak-calculator"
+import { calculateProductCashbak, calculateMaxProductCashbak } from "@/lib/cashbak-calculator"
 import { useProducts } from "@/context/product-context"
 import { useBets } from "@/context/bet-context"
 import { useBetOption } from "@/hooks/use-bet-option"
@@ -93,12 +93,12 @@ export default function ProductsPage() {
                       <div className="flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                         <span className="text-sm font-semibold text-emerald-700">
-                          {calculatecashbak(Number(selectedOption), product.category, products, bets)}% con evento seleccionado
+                          {calculateProductCashbak(product, bets.find(b => b.id === Number(selectedOption))?.odd ?? 0)}% con evento seleccionado
                         </span>
                       </div>
                     )}
                     <div className="text-xs text-gray-400">
-                      Hasta {calculateMaxcashbak(product.category, products, bets)}% con el mejor evento
+                      Hasta {calculateMaxProductCashbak(product, bets)}% con el mejor evento
                     </div>
                   </div>
                   <div className="mt-1 text-xs text-gray-400">{product.category_name}</div>

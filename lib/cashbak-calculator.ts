@@ -76,6 +76,41 @@ export function calculateExternalCashbak(params: {
   }
 }
 
+const MARGEN_TIENDA_OFICIAL = 0.40  // margen neto por defecto para productos de CashBak
+
+/**
+ * Calcula el cashback de un producto usando la fórmula unificada.
+ * Si el producto no tiene margin_pct definido, asume 40% (tienda oficial CashBak).
+ */
+export function calculateProductCashbak(
+  product: Product,
+  cuota: number,
+  hasPrint = false
+): number {
+  if (cuota <= 0) return 0
+  const price = hasPrint ? product.price + 2990 : product.price
+  const cost = hasPrint ? product.cost + 2500 : product.cost
+  const margenVendedorPct = product.margin_pct ?? MARGEN_TIENDA_OFICIAL
+  const result = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct })
+  return result.cashbackPct
+}
+
+/**
+ * Retorna el máximo cashback posible para un producto con los eventos activos.
+ */
+export function calculateMaxProductCashbak(
+  product: Product,
+  bets: Bet[],
+  hasPrint = false
+): number {
+  const active = getAllBettingOptions(bets)
+  if (active.length === 0) return 0
+  return Math.max(...active.map(id => {
+    const bet = bets.find(b => b.id === id)
+    return bet ? calculateProductCashbak(product, bet.odd, hasPrint) : 0
+  }))
+}
+
 function getPricesAndCostsByCategory(category: number, products: Product[] = []): { price: number, cost: number } | undefined {
   if (!products || products.length === 0) return undefined
 

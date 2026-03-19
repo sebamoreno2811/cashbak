@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { calculatecashbak } from "@/lib/cashbak-calculator"
+import { calculateProductCashbak } from "@/lib/cashbak-calculator"
 import { useBetOption } from "@/hooks/use-bet-option"
 import { useCart } from "@/hooks/use-cart"
 import { ArrowLeft, ShoppingCart, Check } from "lucide-react"
@@ -81,8 +81,8 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (product) {
-      const initialcashbak = calculatecashbak(Number.parseFloat(selectedOption), product.category, products || [], bets, hasPrint)
-      setcashbak(initialcashbak)
+      const bet = bets.find(b => b.id === Number.parseFloat(selectedOption))
+      setcashbak(bet ? calculateProductCashbak(product, bet.odd, hasPrint) : 0)
     }
   }, [product, selectedOption, products])
 
@@ -105,8 +105,8 @@ export default function ProductPage() {
   const handleOptionChange = (value: string) => {
     setSelectedOption(value)
     if (product) {
-      const newcashbak = calculatecashbak(Number.parseFloat(value), product.category, products || [], bets, hasPrint)
-      setcashbak(newcashbak)
+      const bet = bets.find(b => b.id === Number.parseFloat(value))
+      setcashbak(bet ? calculateProductCashbak(product, bet.odd, hasPrint) : 0)
     }
   }
 
@@ -341,14 +341,8 @@ export default function ProductPage() {
                 onCheckedChange={(val) => {
                   setHasPrint(val)
                   if (product) {
-                    const newCashbak = calculatecashbak(
-                      Number.parseFloat(selectedOption),
-                      product.category,
-                      products || [],
-                      bets,
-                      val
-                    )
-                    setcashbak(newCashbak)
+                    const bet = bets.find(b => b.id === Number.parseFloat(selectedOption))
+                    setcashbak(bet ? calculateProductCashbak(product, bet.odd, val) : 0)
                   }
                 }}
                 className="data-[state=checked]:bg-green-900"

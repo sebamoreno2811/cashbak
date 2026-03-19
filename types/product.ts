@@ -10,8 +10,11 @@ export type Product = {
   category: number
   category_name: string | null
   brand: string | null
-  stock: Record<string, number> // suponiendo que stock es un JSON del tipo { "S": 5, "M": 2, "L": 0 }
+  stock: Record<string, number>
   video_url: string | null
   hasPrint: boolean | null
   print_text: string | null
+  margin_pct?: number | null  // margen neto del vendedor como fracción (ej: 0.40 = 40%)
+  net_margin?: number | null  // margen neto en CLP
+  store_id?: string | null
 }

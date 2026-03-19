@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useBetOption } from "@/hooks/use-bet-option"
-import { calculatecashbak } from "@/lib/cashbak-calculator"
+import { calculateProductCashbak } from "@/lib/cashbak-calculator"
 import { useProducts } from "@/context/product-context"
 import { useBets } from "@/context/bet-context"
 import { toSlug } from "@/lib/slug"
@@ -36,7 +36,9 @@ export default function ProductSlider() {
     if (cashbakDisplay && products) {
       cashbakDisplay.textContent = "Calculando CashBak..."
       setTimeout(() => {
-        const cashbak = calculatecashbak(Number.parseFloat(selectedOption), currentSlide + 1, products, bets)
+        const firstProduct = slideProducts[currentSlide]?.[0]
+        const bet = bets.find(b => b.id === Number.parseFloat(selectedOption))
+        const cashbak = firstProduct && bet ? calculateProductCashbak(firstProduct, bet.odd) : 0
         cashbakDisplay.textContent = `CashBak del: ${cashbak.toLocaleString("es-CL", { maximumFractionDigits: 0 })}%`
       }, 500)
     }
