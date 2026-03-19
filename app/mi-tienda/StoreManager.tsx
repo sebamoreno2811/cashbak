@@ -247,35 +247,35 @@ function ProductFormModal({
   const costNum = Number(cost) || 0
   const valid = priceNum > costNum && costNum > 0
 
-  // Límites del slider calculados siempre con cuota 1.5 (independiente del evento)
+  // Límites y recomendación calculados con cuota 1.5 (independiente del evento)
   const pricing = useMemo(() => {
     if (!valid) return null
     const gananciaBruta = priceNum - costNum
+    const gananciaBrutaPct = gananciaBruta / priceNum
     const COMISION = 0.20
     const CUOTA_BASE = 1.5
 
-    // Máximo: margen con el que aún se puede dar 10% cashback a cuota 1.5
+    // Máximo del slider: siempre el margen bruto completo (sin restricción de cashback)
+    const sliderMax = Math.floor(gananciaBrutaPct * 100)
+
+    // Margen para 10% cashback a cuota 1.5 (umbral de referencia)
     const montoApuestaMin = (0.10 * priceNum) / CUOTA_BASE
-    const margenMaxMonto = gananciaBruta - montoApuestaMin / (1 - COMISION)
-    const margenMaxPct = margenMaxMonto / priceNum
+    const margenMax10Monto = gananciaBruta - montoApuestaMin / (1 - COMISION)
+    const margenMax10Pct = margenMax10Monto / priceNum
 
-    // Default: margen para dar exactamente 20% cashback a cuota 1.5
+    // Mostrar recomendación solo si el margen max (10% cashback) es ≥ 50% del margen bruto
+    const showRecommendation = margenMax10Pct >= gananciaBrutaPct * 0.5
+
+    // Margen recomendado: para dar 20% cashback a cuota 1.5
     const montoApuesta20 = (0.20 * priceNum) / CUOTA_BASE
-    const margenDefaultMonto = gananciaBruta - montoApuesta20 / (1 - COMISION)
-    const margenDefaultPct = margenDefaultMonto / priceNum
+    const margenRec20Monto = gananciaBruta - montoApuesta20 / (1 - COMISION)
+    const margenRec20Pct = margenRec20Monto / priceNum
 
-    const canOfferCashback = margenMaxPct > 0
+    const sliderDefault = showRecommendation && margenRec20Pct > 0
+      ? Math.floor(margenRec20Pct * 100)
+      : Math.floor(sliderMax / 2)
 
-    // Si el margen bruto es tan chico que no se puede dar cashback, sin límite
-    const sliderMax = canOfferCashback
-      ? Math.min(Math.floor(margenMaxPct * 100), 99)
-      : Math.floor((gananciaBruta / priceNum) * 100)
-
-    const sliderDefault = canOfferCashback
-      ? Math.max(0, Math.floor(margenDefaultPct * 100))
-      : Math.floor((gananciaBruta / priceNum) * 100 / 2)
-
-    return { sliderMax, sliderDefault, canOfferCashback }
+    return { sliderMax, sliderDefault, showRecommendation, margenRec20Pct: Math.floor(margenRec20Pct * 100) }
   }, [priceNum, costNum, valid])
 
   // Cuando cambia precio/costo y es producto nuevo, pre-selecciona el margen recomendado
@@ -510,12 +510,13 @@ function ProductFormModal({
                 />
                 <div className="flex justify-between text-xs text-gray-400 mt-0.5">
                   <span>0%</span>
-                  <span>
-                    {pricing?.canOfferCashback
-                      ? `Máx. ${maxMarginSlider}% (para dar al menos 10% cashback)`
-                      : `Máx. ${maxMarginSlider}% (margen bruto)`}
-                  </span>
+                  <span>Máx. {maxMarginSlider}% (margen bruto)</span>
                 </div>
+                {pricing?.showRecommendation && pricing.margenRec20Pct > 0 && (
+                  <p className="text-xs text-emerald-600 mt-1">
+                    Recomendado: hasta {pricing.margenRec20Pct}% para ofrecer ~20% de cashback
+                  </p>
+                )}
               </div>
 
               {/* Resultado principal: ganancia vendedor */}
@@ -583,7 +584,7 @@ function ProductFormModal({
 
           <button
             type="submit"
-            disabled={saving || !valid || !sim?.viable || !name.trim() || !categoryName.trim()}
+            disabled={saving || !valid || !name.trim() || !categoryName.trim()}
             className="w-full py-3 bg-green-900 text-white rounded-xl font-semibold hover:bg-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {uploading ? "Subiendo imagen..." : saving ? "Guardando..." : initial ? "Guardar cambios" : "Agregar producto"}
