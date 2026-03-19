@@ -1,11 +1,18 @@
 "use client"
 
-import { useState, useMemo, useRef } from "react"
+import { useState, useMemo, useRef, useEffect } from "react"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
 import { addProduct, updateProduct, deleteProduct } from "./actions"
 import { Pencil, Trash2, Plus, X } from "lucide-react"
+
+interface Bet {
+  id: number
+  name: string
+  odd: number
+  end_date: string
+}
 
 interface Store {
   id: string
@@ -26,7 +33,6 @@ interface StoreProduct {
   image: string | null
 }
 
-const DEFAULT_CUOTA = 2.0
 const FMT = (n: number) => n.toLocaleString("es-CL", { maximumFractionDigits: 0 })
 
 export default function StoreManager({
@@ -215,7 +221,27 @@ function ProductFormModal({
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [bets, setBets] = useState<Bet[]>([])
+  const [selectedBetId, setSelectedBetId] = useState<number | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from("bets")
+      .select("id, name, odd, end_date")
+      .gt("end_date", new Date().toISOString())
+      .order("end_date", { ascending: true })
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setBets(data)
+          setSelectedBetId(data[0].id)
+        }
+      })
+  }, [])
+
+  const selectedBet = bets.find((b) => b.id === selectedBetId) ?? null
+  const cuota = selectedBet?.odd ?? 2.0
 
   const priceNum = Number(price) || 0
   const costNum = Number(cost) || 0
@@ -226,10 +252,10 @@ function ProductFormModal({
     return calculateExternalCashbak({
       precioVenta: priceNum,
       costo: costNum,
-      cuota: DEFAULT_CUOTA,
+      cuota,
       margenVendedorPct: marginPct / 100,
     })
-  }, [priceNum, costNum, marginPct, valid])
+  }, [priceNum, costNum, marginPct, cuota, valid])
 
   const maxMarginSlider = sim ? Math.min(Math.floor(sim.margenVendedorMaxPct * 100), 99) : 99
 
@@ -402,6 +428,33 @@ function ProductFormModal({
           {/* Simulador de margen */}
           {valid && sim ? (
             <div className="bg-gray-50 rounded-xl p-4 space-y-4 border border-gray-200">
+
+              {/* Selector de evento */}
+              {bets.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Simular con evento real</p>
+                  <div className="flex flex-col gap-1.5">
+                    {bets.map((bet) => (
+                      <button
+                        key={bet.id}
+                        type="button"
+                        onClick={() => setSelectedBetId(bet.id)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg border text-left text-sm transition-colors ${
+                          selectedBetId === bet.id
+                            ? "bg-green-900 border-green-900 text-white"
+                            : "bg-white border-gray-200 text-gray-700 hover:border-green-700"
+                        }`}
+                      >
+                        <span className="font-medium truncate">{bet.name}</span>
+                        <span className={`shrink-0 ml-2 font-bold ${selectedBetId === bet.id ? "text-green-200" : "text-gray-500"}`}>
+                          cuota {bet.odd}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-sm font-semibold text-gray-700">Tu margen por venta</label>
@@ -454,7 +507,10 @@ function ProductFormModal({
                     <span className="text-gray-600">${FMT(sim.comisionPlataforma)}</span>
                   </div>
                   <p className="text-xs text-gray-400 pt-1 border-t border-gray-100">
-                    Simulado con evento de cuota {DEFAULT_CUOTA}. El cashback varía según el evento activo.
+                    {selectedBet
+                      ? `Simulado con "${selectedBet.name}" (cuota ${selectedBet.odd}).`
+                      : `Simulado con cuota ${cuota}.`}{" "}
+                    El cashback varía según el evento activo.
                   </p>
                 </div>
               )}
