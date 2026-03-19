@@ -6,6 +6,8 @@ interface Store {
   id: string
   name: string
   description: string | null
+  category: string | null
+  email: string | null
   whatsapp: string | null
   status: "pending" | "approved" | "rejected"
   reject_reason: string | null
@@ -91,12 +93,20 @@ function StoreCard({ store, showActions = false }: { store: Store; showActions?:
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="font-semibold text-gray-800">{store.name}</p>
+          {store.category && (
+            <span className="inline-block text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full mt-1">{store.category}</span>
+          )}
           {store.description && (
-            <p className="text-sm text-gray-500 mt-0.5">{store.description}</p>
+            <p className="text-sm text-gray-500 mt-1">{store.description}</p>
           )}
-          {store.whatsapp && (
-            <p className="text-xs text-gray-400 mt-1">WhatsApp: {store.whatsapp}</p>
-          )}
+          <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5">
+            {store.email && (
+              <a href={`mailto:${store.email}`} className="text-xs text-emerald-700 hover:underline font-medium">{store.email}</a>
+            )}
+            {store.whatsapp && (
+              <p className="text-xs text-gray-400">WhatsApp: {store.whatsapp}</p>
+            )}
+          </div>
           <p className="text-xs text-gray-400 mt-1">
             Solicitada el {new Date(store.created_at).toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric" })}
           </p>

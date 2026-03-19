@@ -109,14 +109,14 @@ export async function approveStore(storeId: string) {
         <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #f9fafb; border-radius: 12px;">
           <h2 style="color: #14532d;">¡Bienvenido a CashBak!</h2>
           <p style="color: #374151;">Tu tienda <strong>${store.name}</strong> ha sido aprobada y ya forma parte de CashBak.</p>
-          <p style="color: #374151;">Pronto podrás acceder a tu panel para agregar tus productos y comenzar a ofrecer cashback a tus clientes.</p>
+          <p style="color: #374151;">Ya puedes acceder a tu panel para agregar tus productos y comenzar a ofrecer cashback a tus clientes.</p>
           <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0;">
             <p style="color: #166534; margin: 0; font-size: 14px;">
               ¿Tienes dudas? Responde este correo y te ayudamos.
             </p>
           </div>
-          <a href="${APP_URL}" style="display: inline-block; padding: 12px 24px; background: #14532d; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600;">
-            Ir a CashBak →
+          <a href="${APP_URL}/mi-tienda" style="display: inline-block; padding: 12px 24px; background: #14532d; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600;">
+            Administrar mi tienda →
           </a>
           <p style="color: #9ca3af; font-size: 12px; margin-top: 32px;">CashBak · cashbak.cl</p>
         </div>

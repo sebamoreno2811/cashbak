@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { createClient } from "@/utils/supabase/client"
-import { User, LogOut, ShoppingBag, Shield } from "lucide-react"
+import { User, LogOut, ShoppingBag, Shield, Building2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 
@@ -24,6 +24,7 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [hasStore, setHasStore] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
@@ -35,12 +36,12 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
       } = await supabase.auth.getUser()
       setUser(user)
       if (user) {
-        const { data: customer } = await supabase
-          .from("customers")
-          .select("role")
-          .eq("id", user.id)
-          .single()
+        const [{ data: customer }, { data: store }] = await Promise.all([
+          supabase.from("customers").select("role").eq("id", user.id).single(),
+          supabase.from("stores").select("id").eq("owner_id", user.id).eq("status", "approved").maybeSingle(),
+        ])
         setIsAdmin(customer?.role === "admin")
+        setHasStore(!!store)
       }
       setLoading(false)
     }
@@ -114,6 +115,12 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
           <ShoppingBag className="w-4 h-4 mr-2" />
           <span>Mis Pedidos</span>
         </DropdownMenuItem>
+        {hasStore && (
+          <DropdownMenuItem onClick={() => router.push("/mi-tienda")}>
+            <Building2 className="w-4 h-4 mr-2" />
+            <span>Mi Tienda</span>
+          </DropdownMenuItem>
+        )}
         {isAdmin && (
           <>
             <DropdownMenuSeparator />
