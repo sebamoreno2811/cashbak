@@ -322,7 +322,8 @@ function ProductFormModal({
         .from("product-images")
         .upload(path, imageFile, { upsert: true })
       if (upErr) {
-        setError("Error al subir la imagen.")
+        console.error("Storage error:", upErr)
+        setError(`Error al subir la imagen: ${upErr.message}`)
         setUploading(false)
         setSaving(false)
         return
