@@ -6,9 +6,12 @@ import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
 import type { Talla } from "@/types/cart"
 import type { Delivery } from "@/hooks/use-cart"
-import { TrainIcon, Truck as TruckIcon } from "lucide-react"
+import { TrainIcon, Truck as TruckIcon, AlertTriangle, Building2 } from "lucide-react"
 import { useBankAccount } from "@/hooks/use-bank-accounts"
 import BankAccountForm from "@/components/bank-form"
+import { createClient } from "@/utils/supabase/client"
+
+interface StoreInfo { id: string; name: string; logo_url: string | null }
 
 
 import {
@@ -49,6 +52,7 @@ export default function CartPage() {
   const { bets, loading: loadingBets } = useBets()
   
   const { hasBankAccount, loading: loadingBank } = useBankAccount()
+  const [storeInfoMap, setStoreInfoMap] = useState<Record<string, StoreInfo>>({})
   const [isProcessing, setIsProcessing] = useState(false)
   const [requiresAddress, setRequiresAddress] = useState(false)
   const [requiresBankAccount, setRequiresBankAccount] = useState(false)
@@ -58,8 +62,28 @@ export default function CartPage() {
 
   const { hasShippingDetails } = useShipping()
 
+  // Fetch store info for products in cart
+  useEffect(() => {
+    const storeIds = [...new Set(
+      items.map(item => getItemDetails(item).product?.store_id).filter(Boolean) as string[]
+    )]
+    if (storeIds.length === 0) return
+    const supabase = createClient()
+    supabase.from("stores").select("id, name, logo_url").in("id", storeIds).then(({ data }: { data: StoreInfo[] | null }) => {
+      if (!data) return
+      const map: Record<string, StoreInfo> = {}
+      data.forEach((s: StoreInfo) => { map[s.id] = s })
+      setStoreInfoMap(map)
+    })
+  }, [items.length])
+
+  const uniqueStoreIds = [...new Set(
+    items.map(item => getItemDetails(item).product?.store_id).filter(Boolean) as string[]
+  )]
+  const hasMultipleStores = uniqueStoreIds.length > 1
+
   const shippingCost = deliveryType === "envio" ? 2990 : 0
-  const total = getCartTotal(shippingCost) 
+  const total = getCartTotal(shippingCost)
 
   // Validar que las apuestas seleccionadas sean válidas
   const validateBets = () => {
@@ -155,6 +179,17 @@ export default function CartPage() {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* LISTA DE PRODUCTOS */}
           <div className="lg:col-span-2">
+            {hasMultipleStores && (
+              <div className="flex items-start gap-3 p-4 mb-4 border border-amber-300 rounded-lg bg-amber-50">
+                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-800">Tienes productos de varias tiendas</p>
+                  <p className="mt-1 text-sm text-amber-700">
+                    Por ahora solo puedes hacer pedidos de una tienda a la vez. Paga primero los productos de una tienda y luego continúa con los de la siguiente.
+                  </p>
+                </div>
+              </div>
+            )}
             <div className="overflow-hidden bg-white rounded-lg shadow-lg">
               <div className="p-6">
                 <div className="hidden mb-4 md:grid md:grid-cols-12 md:gap-4 md:text-sm md:font-medium md:text-gray-500">
@@ -182,6 +217,12 @@ export default function CartPage() {
                           </div>
                           <div className="flex flex-col flex-1 ml-4">
                             <h3 className="text-base font-medium">{product.name}</h3>
+                            {product.store_id && storeInfoMap[product.store_id] && (
+                              <div className="flex items-center gap-1 mt-1">
+                                <Building2 className="w-3.5 h-3.5 text-gray-400" />
+                                <span className="text-xs text-gray-500">{storeInfoMap[product.store_id].name}</span>
+                              </div>
+                            )}
                             <p className="mt-1 text-sm text-gray-500">Categoría: {product.category_name}</p>
 
                             <div className="mt-2">
@@ -393,10 +434,15 @@ export default function CartPage() {
               <Button
                 className="w-full mt-6 bg-green-900 hover:bg-emerald-700"
                 onClick={handleCheckout}
-                disabled={isProcessing}
+                disabled={isProcessing || hasMultipleStores}
               >
                 {isProcessing ? "Procesando..." : "Finalizar compra"}
               </Button>
+              {hasMultipleStores && (
+                <p className="mt-2 text-xs text-center text-amber-700">
+                  Elimina los productos de otras tiendas para continuar.
+                </p>
+              )}
 
               <div className="mt-6">
                 <h3 className="mb-2 text-sm font-medium">Información de CashBak</h3>
