@@ -55,6 +55,10 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
 
       // Mostrar recordatorio si no tiene cuenta bancaria
       // SIGNED_IN = login fresco, INITIAL_SESSION = sesión existente al cargar página
+      if (event === "SIGNED_OUT") {
+        sessionStorage.removeItem("bank_reminder_shown")
+      }
+
       if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user) {
         const alreadyShown = sessionStorage.getItem("bank_reminder_shown")
         if (alreadyShown) return
