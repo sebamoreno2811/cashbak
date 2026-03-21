@@ -53,14 +53,22 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
       setUser(session?.user ?? null)
       setLoading(false)
 
-      // Al iniciar sesión, verificar si tiene cuenta bancaria
-      if (event === "SIGNED_IN" && session?.user) {
+      // Mostrar recordatorio si no tiene cuenta bancaria
+      // SIGNED_IN = login fresco, INITIAL_SESSION = sesión existente al cargar página
+      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user) {
+        const alreadyShown = sessionStorage.getItem("bank_reminder_shown")
+        if (alreadyShown) return
+
         const { data } = await supabase
           .from("bank_accounts")
           .select("id")
           .eq("customer_id", session.user.id)
           .maybeSingle()
-        if (!data) setShowBankReminder(true)
+
+        if (!data) {
+          setShowBankReminder(true)
+          sessionStorage.setItem("bank_reminder_shown", "1")
+        }
       }
     })
 
