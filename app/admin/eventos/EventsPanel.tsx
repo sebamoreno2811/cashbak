@@ -74,6 +74,8 @@ function BetRow({ bet }: { bet: Bet }) {
       <div className="flex items-center gap-1.5 shrink-0">
         {isPending ? (
           <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+        ) : bet.active && status === "pendiente" ? (
+          <span className="text-xs text-gray-400 italic">Evento en curso</span>
         ) : (
           <>
             {status !== "ganado" && (
