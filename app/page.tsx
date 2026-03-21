@@ -127,11 +127,11 @@ function StoreSection({
     <section>
       {/* Banner */}
       <div className={`rounded-2xl p-5 mb-5 flex items-center gap-4 ${isCashbak ? "bg-green-900 text-white" : "bg-white border border-gray-200 shadow-sm"}`}>
-        <div className={`w-14 h-14 rounded-full shrink-0 overflow-hidden flex items-center justify-center ${isCashbak ? "bg-white" : "bg-gray-100"}`}>
+        <div className={`w-14 h-14 rounded-full shrink-0 overflow-hidden flex items-center justify-center ${isCashbak && !store.logo_url ? "bg-white/15" : isCashbak ? "bg-white" : "bg-gray-100"}`}>
           {store.logo_url ? (
             <Image src={store.logo_url} alt={store.name} width={56} height={56} className="object-cover w-full h-full" />
           ) : isCashbak ? (
-            <Image src="/img/logo.png" alt="CashBak" width={44} height={44} className="object-contain mix-blend-multiply" />
+            <span className="text-white font-extrabold text-lg tracking-tight">CB</span>
           ) : (
             <span className="text-2xl">🏪</span>
           )}

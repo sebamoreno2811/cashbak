@@ -156,7 +156,11 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push("/admin/tiendas")}>
               <Shield className="w-4 h-4 mr-2" />
-              <span>Panel Admin</span>
+              <span>Tiendas</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/admin/pedidos")}>
+              <ShoppingBag className="w-4 h-4 mr-2" />
+              <span>Pedidos</span>
             </DropdownMenuItem>
           </>
         )}
