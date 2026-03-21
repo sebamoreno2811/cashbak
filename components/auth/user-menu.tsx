@@ -162,6 +162,10 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
               <ShoppingBag className="w-4 h-4 mr-2" />
               <span>Pedidos</span>
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/admin/eventos")}>
+              <Shield className="w-4 h-4 mr-2" />
+              <span>Eventos</span>
+            </DropdownMenuItem>
           </>
         )}
         <DropdownMenuSeparator />
