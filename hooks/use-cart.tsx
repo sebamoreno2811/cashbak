@@ -70,6 +70,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // Cuando cargan los productos, limpia items huérfanos (producto eliminado o inválido)
+  useEffect(() => {
+    if (loading || products.length === 0) return
+    setItems(prev => {
+      const valid = prev.filter(item => products.some(p => p.id === item.productId))
+      return valid.length !== prev.length ? valid : prev
+    })
+  }, [loading, products])
+
   useEffect(() => {
     localStorage.setItem("cashbak-cart", JSON.stringify(items))
   }, [items])
