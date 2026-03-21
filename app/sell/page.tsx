@@ -31,7 +31,8 @@ export default function SellPage() {
   // Fetch apuestas activas
   useEffect(() => {
     const supabase = createClient()
-    supabase.from("bets").select("*").order("end_date", { ascending: true }).then(({ data }: { data: Bet[] | null }) => {
+    const cutoff = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
+    supabase.from("bets").select("*").eq("active", true).gt("end_date", cutoff).order("end_date", { ascending: true }).then(({ data }: { data: Bet[] | null }) => {
       if (!data) return
       const activeBets = data.filter((b: Bet) => getAllBettingOptions(data).includes(b.id))
       setBets(activeBets)

@@ -41,6 +41,10 @@ function BetRow({ bet }: { bet: Bet }) {
   const [isPending, startTransition] = useTransition()
   const status = getStatus(bet)
 
+  // Activo solo si active=true Y aún no han pasado 3h desde end_date
+  const isEffectivelyActive =
+    bet.active && Date.now() < new Date(bet.end_date).getTime() + 3 * 60 * 60 * 1000
+
   const act = (fn: () => Promise<{ error?: string; success?: boolean }>) => {
     startTransition(async () => { await fn() })
   }
@@ -59,8 +63,8 @@ function BetRow({ bet }: { bet: Bet }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap mb-0.5">
           <StatusBadge status={status} />
-          {!bet.active && status === "pendiente" && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Inactivo</span>
+          {!isEffectivelyActive && status === "pendiente" && (
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Listo para resolver</span>
           )}
         </div>
         <p className="text-sm font-semibold text-gray-800 leading-tight">{bet.name}</p>
@@ -74,7 +78,7 @@ function BetRow({ bet }: { bet: Bet }) {
       <div className="flex items-center gap-1.5 shrink-0">
         {isPending ? (
           <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-        ) : bet.active && status === "pendiente" ? (
+        ) : isEffectivelyActive && status === "pendiente" ? (
           <span className="text-xs text-gray-400 italic">Evento en curso</span>
         ) : (
           <>

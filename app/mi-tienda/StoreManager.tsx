@@ -246,7 +246,8 @@ function ProductFormModal({
     supabase
       .from("bets")
       .select("id, name, odd, end_date")
-      .gt("end_date", new Date().toISOString())
+      .eq("active", true)
+      .gt("end_date", new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())
       .order("end_date", { ascending: true })
       .then(({ data }: { data: Bet[] | null }) => {
         if (data && data.length > 0) {

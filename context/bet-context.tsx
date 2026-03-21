@@ -37,9 +37,13 @@ export function BetProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError(null) // Reinicia el error antes de cada fetch
 
+    // Solo bets activos y cuyo end_date no haya pasado hace más de 3 horas
+    const cutoff = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
     const { data, error } = await supabase
       .from("bets")
       .select("*")
+      .eq("active", true)
+      .gt("end_date", cutoff)
       .order("end_date", { ascending: true })
 
     if (error) {
