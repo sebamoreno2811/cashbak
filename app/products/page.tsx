@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Search, SlidersHorizontal, X } from "lucide-react"
@@ -23,11 +24,14 @@ export default function ProductsPage() {
   const { products, loading } = useProducts()
   const { bets } = useBets()
   const { selectedOption } = useBetOption()
+  const searchParams = useSearchParams()
 
   const [stores, setStores] = useState<Store[]>([])
   const [search, setSearch] = useState("")
   const [storeFilter, setStoreFilter] = useState<string | null>(null)
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(
+    () => searchParams.get("category")
+  )
   const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
@@ -62,7 +66,6 @@ export default function ProductsPage() {
 
   const activeFilters = [
     storeFilter ? storeMap[storeFilter]?.name : null,
-    categoryFilter,
   ].filter(Boolean) as string[]
 
   if (loading) return (
@@ -106,51 +109,47 @@ export default function ProductsPage() {
           </button>
         </div>
 
-        {/* Panel de filtros */}
-        {showFilters && (
-          <div className="container mx-auto max-w-5xl px-4 pb-3 flex flex-wrap gap-4">
-            {/* Filtro tienda */}
-            <div className="flex-1 min-w-48">
-              <p className="text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Tienda</p>
-              <div className="flex flex-wrap gap-1.5">
-                <button
-                  onClick={() => setStoreFilter(null)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium border transition ${storeFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
-                >
-                  Todas
-                </button>
-                {stores.map(s => (
-                  <button
-                    key={s.id}
-                    onClick={() => setStoreFilter(storeFilter === s.id ? null : s.id)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition ${storeFilter === s.id ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
-                  >
-                    {s.name}
-                  </button>
-                ))}
-              </div>
-            </div>
+        {/* Barra de categorías */}
+        <div className="container mx-auto max-w-5xl px-4 pb-3 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 min-w-max">
+            <button
+              onClick={() => setCategoryFilter(null)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap ${categoryFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
+            >
+              Todas
+            </button>
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(categoryFilter === cat ? null : cat)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap ${categoryFilter === cat ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
 
-            {/* Filtro categoría */}
-            <div className="flex-1 min-w-48">
-              <p className="text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Categoría</p>
-              <div className="flex flex-wrap gap-1.5">
+        {/* Panel filtro tienda */}
+        {showFilters && (
+          <div className="container mx-auto max-w-5xl px-4 pb-3">
+            <p className="text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Tienda</p>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => setStoreFilter(null)}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition ${storeFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
+              >
+                Todas
+              </button>
+              {stores.map(s => (
                 <button
-                  onClick={() => setCategoryFilter(null)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium border transition ${categoryFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
+                  key={s.id}
+                  onClick={() => setStoreFilter(storeFilter === s.id ? null : s.id)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition ${storeFilter === s.id ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
                 >
-                  Todas
+                  {s.name}
                 </button>
-                {categories.map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => setCategoryFilter(categoryFilter === cat ? null : cat)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition ${categoryFilter === cat ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
+              ))}
             </div>
           </div>
         )}

@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { createClient } from "@/utils/supabase/client"
 import { User, LogOut, ShoppingBag, Shield, Building2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import BankAccountReminderModal from "@/components/bank-account-reminder-modal"
 
 
 interface UserMenuProps {
@@ -25,15 +26,13 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [hasStore, setHasStore] = useState(false)
+  const [showBankReminder, setShowBankReminder] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
   useEffect(() => {
-    // Obtener usuario actual
     const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
       if (user) {
         const [{ data: customer }, { data: store }] = await Promise.all([
@@ -48,12 +47,21 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
 
     getUser()
 
-    // Escuchar cambios en el estado de autenticación
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event: any, session: { user: any }) => {
+    } = supabase.auth.onAuthStateChange(async (event: any, session: { user: any }) => {
       setUser(session?.user ?? null)
       setLoading(false)
+
+      // Al iniciar sesión, verificar si tiene cuenta bancaria
+      if (event === "SIGNED_IN" && session?.user) {
+        const { data } = await supabase
+          .from("bank_accounts")
+          .select("id")
+          .eq("customer_id", session.user.id)
+          .maybeSingle()
+        if (!data) setShowBankReminder(true)
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -95,6 +103,12 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
   const displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario"
 
   return (
+    <>
+    <BankAccountReminderModal
+      open={showBankReminder}
+      onClose={() => setShowBankReminder(false)}
+      context="login"
+    />
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative w-8 h-8 rounded-full">
@@ -111,6 +125,10 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator/>
+        <DropdownMenuItem onClick={() => router.push("/perfil")}>
+          <User className="w-4 h-4 mr-2" />
+          <span>Mi Perfil</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push("/orders")}>
           <ShoppingBag className="w-4 h-4 mr-2" />
           <span>Mis Pedidos</span>
@@ -137,5 +155,6 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </>
   )
 }

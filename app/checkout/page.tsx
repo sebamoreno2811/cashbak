@@ -10,6 +10,7 @@ import { createClient } from "@/utils/supabase/client"
 import { saveCheckoutData, updateProductStock } from "./actions"
 import AuthModal from "@/components/auth/auth-modal"
 import useSupabaseUser from "@/hooks/use-supabase-user"
+import BankAccountReminderModal from "@/components/bank-account-reminder-modal"
 
 
 export default function CheckoutPage() {
@@ -29,6 +30,7 @@ export default function CheckoutPage() {
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
+  const [showBankReminder, setShowBankReminder] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const shippingCost = deliveryType === "envio" ? 2990 : 0
 
@@ -138,6 +140,7 @@ export default function CheckoutPage() {
 
         localStorage.setItem("processed_order_id", orderIdParam || "")
         setPaymentSuccess(true)
+        if (!bankAccount) setShowBankReminder(true)
         clearCart()
         localStorage.removeItem("checkout_form_data")
         localStorage.removeItem("checkout_cart_items")
@@ -287,6 +290,12 @@ export default function CheckoutPage() {
   ]
 
   return (
+    <>
+    <BankAccountReminderModal
+      open={showBankReminder}
+      onClose={() => setShowBankReminder(false)}
+      context="purchase"
+    />
     <div className="container px-4 py-8 mx-auto">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-6">
@@ -552,5 +561,6 @@ export default function CheckoutPage() {
       {/* Auth Modal */}
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onSuccess={handleAuthSuccess} />
     </div>
+    </>
   )
 }
