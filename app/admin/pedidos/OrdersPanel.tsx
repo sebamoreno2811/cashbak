@@ -218,32 +218,112 @@ function OrderRow({ order }: { order: Order }) {
   )
 }
 
-export default function OrdersPanel({ orders }: { orders: Order[] }) {
-  const [filter, setFilter] = useState<"pendientes" | "todos">("pendientes")
+const SHIPPING_FILTER = [
+  { value: "todos", label: "Todos" },
+  { value: "Preparando pedido", label: "Preparando" },
+  { value: "Listo para entrega", label: "Listo para entrega" },
+  { value: "Enviado", label: "Enviado" },
+  { value: "Entregado", label: "Entregado" },
+]
 
-  const filtered = orders.filter(o =>
-    filter === "todos" ? true : o.cashback_status !== "transferido" && o.cashback_status !== "evento_perdido"
+const CASHBACK_FILTER = [
+  { value: "todos", label: "Todos" },
+  { value: "evento_pendiente", label: "Evento pendiente" },
+  { value: "transferencia_pendiente", label: "Transferencia pendiente" },
+  { value: "transferido", label: "Transferido" },
+  { value: "evento_perdido", label: "Evento perdido" },
+]
+
+function FilterRow({
+  label, icon, options, value, onChange, counts,
+}: {
+  label: string
+  icon: React.ReactNode
+  options: { value: string; label: string }[]
+  value: string
+  onChange: (v: string) => void
+  counts: Record<string, number>
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase tracking-wider pt-1.5 w-20 shrink-0">
+        {icon}{label}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map(opt => {
+          const count = opt.value === "todos" ? undefined : counts[opt.value] ?? 0
+          const active = value === opt.value
+          return (
+            <button
+              key={opt.value}
+              onClick={() => onChange(opt.value)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
+                active
+                  ? "bg-green-900 text-white border-green-900"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-green-700 hover:text-green-800"
+              }`}
+            >
+              {opt.label}
+              {count !== undefined && (
+                <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${active ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}>
+                  {count}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+export default function OrdersPanel({ orders }: { orders: Order[] }) {
+  const [shippingFilter, setShippingFilter] = useState("todos")
+  const [cashbackFilter, setCashbackFilter] = useState("todos")
+
+  const filtered = orders.filter(o => {
+    const shipOk = shippingFilter === "todos" || o.shipping_status === shippingFilter
+    const cbOk = cashbackFilter === "todos" || o.cashback_status === cashbackFilter
+    return shipOk && cbOk
+  })
+
+  // Conteos para badges
+  const shippingCounts = Object.fromEntries(
+    SHIPPING_FILTER.filter(f => f.value !== "todos").map(f => [f.value, orders.filter(o => o.shipping_status === f.value).length])
+  )
+  const cashbackCounts = Object.fromEntries(
+    CASHBACK_FILTER.filter(f => f.value !== "todos").map(f => [f.value, orders.filter(o => o.cashback_status === f.value).length])
   )
 
   return (
     <div>
-      {/* Tabs */}
-      <div className="flex gap-2 mb-5">
-        {(["pendientes", "todos"] as const).map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === f ? "bg-green-900 text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}
-          >
-            {f === "pendientes" ? `Pendientes (${orders.filter(o => o.cashback_status !== "transferido" && o.cashback_status !== "evento_perdido").length})` : `Todos (${orders.length})`}
-          </button>
-        ))}
+      {/* Filtros */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-5 space-y-3">
+        <FilterRow
+          label="Envío"
+          icon={<Truck className="w-3.5 h-3.5" />}
+          options={SHIPPING_FILTER}
+          value={shippingFilter}
+          onChange={setShippingFilter}
+          counts={shippingCounts}
+        />
+        <div className="border-t border-gray-100" />
+        <FilterRow
+          label="CashBak"
+          icon={<Banknote className="w-3.5 h-3.5" />}
+          options={CASHBACK_FILTER}
+          value={cashbackFilter}
+          onChange={setCashbackFilter}
+          counts={cashbackCounts}
+        />
       </div>
 
-      {/* Lista */}
+      {/* Resultado */}
+      <p className="text-xs text-gray-400 mb-3">{filtered.length} pedidos</p>
+
       <div className="space-y-3">
         {filtered.length === 0 && (
-          <p className="text-center py-10 text-gray-400">No hay pedidos</p>
+          <p className="text-center py-10 text-gray-400">No hay pedidos con estos filtros</p>
         )}
         {filtered.map(order => <OrderRow key={order.id} order={order} />)}
       </div>
