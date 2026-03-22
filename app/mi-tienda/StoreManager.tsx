@@ -267,13 +267,13 @@ function ProductFormModal({
   // Límites y recomendación del slider
   const pricing = useMemo(() => {
     if (!valid) return null
-    const gananciaBrutaPct = (priceNum - costNum) / priceNum
-    // Máximo: 90% del margen bruto
-    const sliderMax = Math.floor(gananciaBrutaPct * 0.90 * 100)
-    // Recomendado: 60% del margen bruto
-    const recMarginPct = Math.floor(gananciaBrutaPct * 0.60 * 100)
+    // Máximo: 98% del precio de venta
+    const sliderMax = 98
+    // Recomendado: porcentaje que permite ofrecer 25% cashback a cuota 1.5
+    // margenRec = precio - (0.25 * precio / 1.5) / 0.80 → ~79% del precio
+    const recMarginPct = Math.round((1 - 0.25 / (1.5 * 0.8)) * 100)
     return { sliderMax, sliderDefault: recMarginPct, recMarginPct }
-  }, [priceNum, costNum, valid])
+  }, [valid])
 
   // Máximo cashback posible con el margen recomendado y los eventos activos
   const maxCashbackAtRec = useMemo(() => {

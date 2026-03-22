@@ -97,7 +97,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const cuota = bet?.odd ?? 0
     const price = hasPrint ? product.price + 2990 : product.price
     const cost = hasPrint ? product.cost + 2500 : product.cost
-    const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.40 })
+    const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.25 })
     const cashbakPercentage = sim.cashbackPct
     const bet_amount = sim.montoApuesta
 
@@ -140,7 +140,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const cuota = bet?.odd ?? 0
       const price = item.hasPrint ? product.price + 2990 : product.price
       const cost = item.hasPrint ? product.cost + 2500 : product.cost
-      const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.40 })
+      const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.25 })
       item.cashbakPercentage = sim.cashbackPct
       item.bet_amount = sim.montoApuesta
     }
@@ -181,12 +181,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const cuota = bet?.odd ?? 0
       const price = item.hasPrint ? product.price + 2990 : product.price
       const cost = item.hasPrint ? product.cost + 2500 : product.cost
-      const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.40 })
+      const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.25 })
       item.cashbakPercentage = sim.cashbackPct
       item.bet_amount = sim.montoApuesta
     }
 
-    
     setItems(updatedItems)
   }
 
