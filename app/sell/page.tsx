@@ -248,23 +248,20 @@ export default function SellPage() {
                 </Card>
               </>
             ) : (
-              <Card className="border-red-200 bg-red-50">
-                <CardContent className="pt-6 space-y-3">
-                  <p className="font-semibold text-red-700">Margen demasiado alto</p>
-                  <p className="text-sm text-red-600">
-                    Con un margen de {margenCapped}% no queda fondo suficiente para el Seguro CashBak (mínimo 10% de cashback).
-                  </p>
-                  <p className="text-sm text-red-600">
-                    El máximo para poder ofrecer cashback es <strong>{margenMax}%</strong> ({formatCLP(resultado?.margenVendedorMaxMonto ?? 0)}).
-                  </p>
-                  <div className="pt-2 border-t border-red-200">
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>Comisión CashBak</span>
-                      <span>{formatCLP(resultado?.comisionPlataforma ?? 0)}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <>
+                <div className="bg-gray-100 text-gray-500 rounded-xl p-6 text-center">
+                  <p className="text-sm mb-1">Cashback que ofreces a tus clientes</p>
+                  <p className="text-6xl font-bold">0%</p>
+                </div>
+                <Card className="border-amber-200 bg-amber-50">
+                  <CardContent className="pt-6 space-y-2">
+                    <p className="font-semibold text-amber-800">Margen muy bajo para ofrecer CashBak</p>
+                    <p className="text-sm text-amber-700">
+                      Con este margen no queda fondo suficiente para el Seguro CashBak. Te recomendamos bajar tu margen a <strong>{margenMax}%</strong> o menos para poder ofrecer cashback a tus clientes.
+                    </p>
+                  </CardContent>
+                </Card>
+              </>
             )}
           </div>
         </div>
