@@ -216,8 +216,11 @@ function ProductFormModal({
   const [cost, setCost] = useState(initial?.cost.toString() ?? "")
   const [categoryName, setCategoryName] = useState(initial?.category_name ?? "")
   const [description, setDescription] = useState(initial?.description ?? "")
-  const [marginPct, setMarginPct] = useState(
-    initial?.margin_pct != null ? Math.round(initial.margin_pct * 100) : 20
+  const calcularRecomendado = (p: number) => Math.max(0, Math.round(p - (0.25 * p / 1.5) / 0.80))
+  const [gananciaCLP, setGananciaCLP] = useState<number>(() =>
+    initial?.margin_pct != null && initial.price > 0
+      ? Math.round(initial.margin_pct * initial.price)
+      : calcularRecomendado(Number(initial?.price ?? 0))
   )
   const initStockMode = (): "sizes" | "single" => {
     if (!initial?.stock) return "sizes"
@@ -264,40 +267,38 @@ function ProductFormModal({
   const costNum = Number(cost) || 0
   const valid = priceNum > costNum && costNum > 0
 
-  // Límites y recomendación del slider
+  // Recomendación del slider
   const pricing = useMemo(() => {
     if (!valid) return null
-    // Máximo: 98% del precio de venta
-    const sliderMax = 98
-    // Recomendado: porcentaje que permite ofrecer 25% cashback a cuota 1.5
-    // margenRec = precio - (0.25 * precio / 1.5) / 0.80 → ~79% del precio
-    const recMarginPct = Math.round((1 - 0.25 / (1.5 * 0.8)) * 100)
-    return { sliderMax, sliderDefault: recMarginPct, recMarginPct }
-  }, [valid])
+    const recMonto = calcularRecomendado(priceNum)
+    const recFallbackMonto = Math.round(priceNum - 0.35 * (priceNum - costNum))
+    const actualRec = recMonto > costNum ? recMonto : (recFallbackMonto > costNum ? recFallbackMonto : null)
+    return { recMonto: actualRec }
+  }, [priceNum, costNum, valid])
 
-  // Máximo cashback posible con el margen recomendado y los eventos activos
+  // Máximo cashback posible con el monto recomendado y los eventos activos
   const maxCashbackAtRec = useMemo(() => {
-    if (!valid || !pricing || bets.length === 0) return null
+    if (!valid || !pricing?.recMonto || bets.length === 0) return null
     return bets.reduce((acc, bet) => {
       const r = calculateExternalCashbak({
         precioVenta: priceNum,
         costo: costNum,
         cuota: bet.odd,
-        margenVendedorPct: pricing.recMarginPct / 100,
+        margenVendedorPct: pricing.recMonto! / priceNum,
       })
       return Math.max(acc, r.cashbackPct)
     }, 0)
   }, [valid, pricing, bets, priceNum, costNum])
 
-  // Cuando cambia precio/costo y es producto nuevo, pre-selecciona el margen recomendado
+  // Cuando cambia el precio y es producto nuevo, pre-selecciona el monto recomendado
   useEffect(() => {
-    if (!initial && pricing) {
-      setMarginPct(pricing.sliderDefault)
-    }
+    if (!initial) setGananciaCLP(calcularRecomendado(priceNum))
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pricing?.sliderDefault])
+  }, [priceNum])
 
-  const maxMarginSlider = pricing?.sliderMax ?? 99
+  const sliderMax = Math.round(priceNum * 0.98)
+  const sliderStep = Math.max(1, 10 ** Math.max(0, Math.floor(Math.log10(Math.max(1, sliderMax))) - 2))
+  const gananciaBajoElCosto = costNum > 0 && gananciaCLP < costNum
 
   const sim = useMemo(() => {
     if (!valid) return null
@@ -305,9 +306,9 @@ function ProductFormModal({
       precioVenta: priceNum,
       costo: costNum,
       cuota,
-      margenVendedorPct: marginPct / 100,
+      margenVendedorPct: priceNum > 0 ? gananciaCLP / priceNum : 0,
     })
-  }, [priceNum, costNum, marginPct, cuota, valid])
+  }, [priceNum, costNum, gananciaCLP, cuota, valid])
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -350,12 +351,6 @@ function ProductFormModal({
       setUploading(false)
     }
 
-    if (marginPct > maxMarginSlider) {
-      setError(`El margen no puede superar el ${maxMarginSlider}%.`)
-      setSaving(false)
-      return
-    }
-
     const stockPayload: Record<string, number> = stockMode === "sizes"
       ? { S: stockSizes.S, M: stockSizes.M, L: stockSizes.L, XL: stockSizes.XL }
       : { "Única": stockSingle }
@@ -370,7 +365,7 @@ function ProductFormModal({
       name,
       price: priceNum,
       cost: costNum,
-      margin_pct: marginPct / 100,
+      margin_pct: priceNum > 0 ? gananciaCLP / priceNum : 0,
       net_margin: sim?.margenVendedor ?? 0,
       category_name: categoryName,
       description,
@@ -496,7 +491,7 @@ function ProductFormModal({
           </div>
 
           {/* Simulador de margen */}
-          {valid && sim ? (
+          {valid ? (
             <div className="bg-gray-50 rounded-xl p-4 space-y-4 border border-gray-200">
 
               {/* Selector de evento */}
@@ -522,82 +517,89 @@ function ProductFormModal({
                 </div>
               )}
 
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-semibold text-gray-700">Tu margen por venta</label>
-                  <span className="text-sm font-bold text-white bg-green-800 px-2.5 py-0.5 rounded-full">{marginPct}%</span>
+              {/* Slider ¿Cuánto quieres recibir? */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-gray-700">¿Cuánto quieres recibir por venta?</label>
+                  <span className="text-sm font-bold text-green-900">${FMT(gananciaCLP)}</span>
                 </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={sliderMax}
+                  step={sliderStep}
+                  value={Math.min(gananciaCLP, sliderMax)}
+                  onChange={(e) => setGananciaCLP(Number(e.target.value))}
+                  className="w-full accent-green-900"
+                />
 
-                {/* Slider con fill y marcador de recomendado */}
-                <div className="relative pb-6">
-                  <input
-                    type="range"
-                    min={0}
-                    max={maxMarginSlider}
-                    step={1}
-                    value={Math.min(marginPct, maxMarginSlider)}
-                    onChange={(e) => setMarginPct(Number(e.target.value))}
-                    style={{
-                      background: `linear-gradient(to right, #166534 ${(Math.min(marginPct, maxMarginSlider) / maxMarginSlider) * 100}%, #d1fae5 ${(Math.min(marginPct, maxMarginSlider) / maxMarginSlider) * 100}%)`,
-                    }}
-                    className="w-full h-2 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-green-800 [&::-webkit-slider-thumb]:shadow"
-                  />
-                  {/* Marcador de recomendado */}
-                  {pricing && pricing.recMarginPct > 0 && pricing.recMarginPct <= maxMarginSlider && (
-                    <div
-                      className="absolute top-3.5 flex flex-col items-center pointer-events-none"
-                      style={{ left: `${(pricing.recMarginPct / maxMarginSlider) * 100}%`, transform: "translateX(-50%)" }}
-                    >
-                      <div className="w-px h-2 bg-green-600 mt-0.5" />
-                      <span className="text-[10px] text-green-700 font-semibold mt-0.5 whitespace-nowrap">{pricing.recMarginPct}%</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-between text-xs text-gray-400 -mt-4">
-                  <span>0%</span>
-                  <span>Máx. {maxMarginSlider}%</span>
-                </div>
-
-                {/* Recomendación siempre visible */}
-                {pricing && (
-                  <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mt-2">
-                    Recomendamos un margen de <strong>{pricing.recMarginPct}%</strong>
-                    {maxCashbackAtRec !== null && maxCashbackAtRec > 0
-                      ? ` — con él puedes ofrecer hasta ${maxCashbackAtRec}% de CashBak con los eventos actuales.`
-                      : ` para dejar más espacio al CashBak.`}
+                {/* Alerta si ganancia bajo el costo */}
+                {gananciaBajoElCosto && (
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    ⚠️ Estás eligiendo recibir menos que tu costo declarado (${FMT(costNum)}). Estarías vendiendo a pérdida.
                   </p>
+                )}
+
+                {/* Recomendación con botón Aplicar */}
+                {pricing?.recMonto && (
+                  <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                    <p className="text-xs text-emerald-800">
+                      💡 Recibiendo <strong>${FMT(pricing.recMonto)}</strong> puedes ofrecer hasta{" "}
+                      <strong>{maxCashbackAtRec ?? 0}% de cashback</strong> con los eventos actuales.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setGananciaCLP(pricing.recMonto!)}
+                      className="ml-3 shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline"
+                    >
+                      Aplicar
+                    </button>
+                  </div>
                 )}
               </div>
 
-              {/* Resultado principal: ganancia vendedor */}
-              <div className="rounded-lg px-4 py-3 bg-emerald-50 border border-emerald-200">
-                <p className="text-xs text-emerald-600 font-medium mb-1">Tu ganancia garantizada por venta</p>
-                <p className="text-2xl font-bold text-emerald-700">${FMT(sim.margenVendedor)}</p>
-                <p className="text-xs text-emerald-500 mt-0.5">
-                  Este monto es tuyo independiente de si el evento se gana o se pierde.
-                </p>
-              </div>
+              {sim && (
+                <>
+                  {/* Resultado principal: ganancia vendedor */}
+                  <div className="rounded-lg px-4 py-3 bg-emerald-50 border border-emerald-200">
+                    <p className="text-xs text-emerald-600 font-medium mb-1">Tu ganancia garantizada por venta</p>
+                    <p className="text-2xl font-bold text-emerald-700">${FMT(sim.margenVendedor)}</p>
+                    <p className="text-xs text-emerald-500 mt-0.5">
+                      Este monto es tuyo sin importar el resultado del evento.
+                    </p>
+                  </div>
 
-              {/* Desglose */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">CashBak que recibirá el cliente</span>
-                  <span className="font-semibold text-gray-800">{sim.cashbackPct}% · ${FMT(sim.cashbackMonto)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Comisión CashBak</span>
-                  <span className="text-gray-600">${FMT(sim.comisionPlataforma)}</span>
-                </div>
-                <p className="text-xs text-gray-400 pt-1 border-t border-gray-100">
-                  {selectedBet
-                    ? `Simulado con el evento "${selectedBet.name}".`
-                    : "Selecciona un evento para simular."}{" "}
-                  El cashback varía según el evento activo.
-                </p>
-              </div>
+                  {/* Desglose */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">CashBak al cliente</span>
+                      <span className="font-semibold text-gray-800">{sim.cashbackPct}% · ${FMT(sim.cashbackMonto)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Comisión CashBak</span>
+                      <span className="text-gray-600">${FMT(sim.comisionPlataforma)}</span>
+                    </div>
+                    <div className={`flex justify-between text-sm py-1.5 rounded ${sim.gananciaNeta < 0 ? "px-2 bg-red-50 border border-red-200" : ""}`}>
+                      <div>
+                        <span className={sim.gananciaNeta < 0 ? "text-red-600 font-semibold" : "text-gray-500"}>Ganancia neta estimada</span>
+                        <p className="text-xs text-gray-400">Descontando tu costo declarado</p>
+                        {sim.gananciaNeta < 0 && <p className="text-xs text-red-500">⚠️ Estarías vendiendo a pérdida</p>}
+                      </div>
+                      <span className={`font-semibold ${sim.gananciaNeta < 0 ? "text-red-600" : "text-gray-600"}`}>
+                        {sim.gananciaNeta < 0 ? `-$${FMT(Math.abs(sim.gananciaNeta))}` : `$${FMT(sim.gananciaNeta)}`}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 pt-1 border-t border-gray-100">
+                      {selectedBet
+                        ? `Simulado con el evento "${selectedBet.name}".`
+                        : "Selecciona un evento para simular."}{" "}
+                      El cashback varía según el evento activo.
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
-          ) : valid === false && (priceNum > 0 || costNum > 0) ? (
+          ) : (priceNum > 0 || costNum > 0) ? (
             <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               El precio de venta debe ser mayor al costo.
             </p>
