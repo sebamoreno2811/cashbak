@@ -2,6 +2,7 @@
 
 import { createSupabaseClientWithCookies as createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
+import type { DeliveryOption } from "@/types/delivery"
 
 async function getVendorStore(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
   const { data: store } = await supabase
@@ -82,6 +83,23 @@ export async function updateProduct(productId: number, formData: {
     })
     .eq("id", productId)
     .eq("store_id", store.id)
+
+  if (error) return { error: error.message }
+  revalidatePath("/mi-tienda")
+  return { success: true }
+}
+
+export async function updateStoreDeliveryOptions(options: DeliveryOption[]) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "No autorizado" }
+
+  const store = await getVendorStore(supabase, user.id)
+  if (!store) return { error: "No tienes una tienda aprobada" }
+
+  const { error } = await supabase.from("stores")
+    .update({ delivery_options: options })
+    .eq("id", store.id)
 
   if (error) return { error: error.message }
   revalidatePath("/mi-tienda")

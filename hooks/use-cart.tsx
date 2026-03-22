@@ -9,6 +9,8 @@ import {
 } from "react"
 import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
 import type { Product } from "@/types/product"
+import type { DeliveryOption } from "@/types/delivery"
+export type { DeliveryOption }
 import { useProducts } from "@/context/product-context"
 import { useBets } from "@/context/bet-context" // <-- ✅ importa el contexto de apuestas
 
@@ -22,7 +24,7 @@ export type CartItem = {
   hasPrint: boolean
 }
 
-export type Delivery = "envio" | "Entrega Metro Tobalaba" | "Entrega Metro Fernando Castillo Velasco" | null
+export type Delivery = string | null
 
 type CartContextType = {
   items: CartItem[]
@@ -36,8 +38,10 @@ type CartContextType = {
   getItemsCount: () => number
   getCartTotal: (shippingCost: number) => number
   getTotalcashbak: () => number
-  deliveryType: Delivery,
-  chooseDeliveryType: (type: Delivery) => void,
+  deliveryOption: DeliveryOption | null
+  deliveryType: Delivery
+  shippingCost: number
+  chooseDelivery: (option: DeliveryOption | null) => void
   getItemDetails: (item: CartItem) => {
     product: Product | undefined
     betName: string
@@ -55,7 +59,10 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 export function CartProvider({ children }: { children: ReactNode }) {
   const { products, loading, error } = useProducts()
   const { bets, loading: betsLoading, error: betsError } = useBets() // <-- ✅ usa el hook aquí
-  const [deliveryType, setDeliveryType] = useState<Delivery>("envio")
+  const [deliveryOption, setDeliveryOption] = useState<DeliveryOption | null>(null)
+  const deliveryType: Delivery = deliveryOption?.name ?? null
+  const shippingCost = deliveryOption?.price ?? 0
+  const chooseDelivery = (option: DeliveryOption | null) => setDeliveryOption(option)
 
   const [items, setItems] = useState<CartItem[]>([])
 
@@ -152,9 +159,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(items.filter((_, i) => i !== index))
   }
 
-  const chooseDeliveryType = (type: Delivery) => {
-    setDeliveryType(type)
-  }
 
 
   const updateItemQuantity = (index: number, quantity: number) => {
@@ -268,8 +272,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         getCartTotal,
         getTotalcashbak,
         getItemDetails,
+        deliveryOption,
         deliveryType,
-        chooseDeliveryType,
+        shippingCost,
+        chooseDelivery,
       }}
     >
       {children}

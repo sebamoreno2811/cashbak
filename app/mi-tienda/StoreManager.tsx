@@ -4,8 +4,9 @@ import { useState, useMemo, useRef, useEffect } from "react"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
-import { addProduct, updateProduct, deleteProduct } from "./actions"
-import { Pencil, Trash2, Plus, X } from "lucide-react"
+import { addProduct, updateProduct, deleteProduct, updateStoreDeliveryOptions } from "./actions"
+import { Pencil, Trash2, Plus, X, Truck, MapPin } from "lucide-react"
+import type { DeliveryOption } from "@/types/delivery"
 
 interface Bet {
   id: number
@@ -20,6 +21,7 @@ interface Store {
   description: string | null
   category: string | null
   logo_url: string | null
+  delivery_options: DeliveryOption[] | null
 }
 
 interface StoreProduct {
@@ -48,6 +50,46 @@ export default function StoreManager({
   const [products, setProducts] = useState<StoreProduct[]>(initialProducts)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<StoreProduct | null>(null)
+
+  // Delivery options state
+  const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>(store.delivery_options ?? [])
+  const [newOptName, setNewOptName] = useState("")
+  const [newOptPrice, setNewOptPrice] = useState("0")
+  const [newOptType, setNewOptType] = useState<"delivery" | "pickup">("pickup")
+  const [savingDelivery, setSavingDelivery] = useState(false)
+  const [deliveryError, setDeliveryError] = useState<string | null>(null)
+  const [deliverySaved, setDeliverySaved] = useState(false)
+
+  function addDeliveryOption() {
+    if (!newOptName.trim()) return
+    const opt: DeliveryOption = {
+      id: Math.random().toString(36).slice(2) + Date.now().toString(36),
+      name: newOptName.trim(),
+      price: Math.max(0, Number(newOptPrice) || 0),
+      type: newOptType,
+    }
+    setDeliveryOptions(prev => [...prev, opt])
+    setNewOptName("")
+    setNewOptPrice("0")
+    setNewOptType("pickup")
+  }
+
+  function removeDeliveryOption(id: string) {
+    setDeliveryOptions(prev => prev.filter(o => o.id !== id))
+  }
+
+  async function saveDeliveryOptions() {
+    setSavingDelivery(true)
+    setDeliveryError(null)
+    const res = await updateStoreDeliveryOptions(deliveryOptions)
+    if (res.error) {
+      setDeliveryError(res.error)
+    } else {
+      setDeliverySaved(true)
+      setTimeout(() => setDeliverySaved(false), 2500)
+    }
+    setSavingDelivery(false)
+  }
 
   function openAdd() {
     setEditing(null)
@@ -135,6 +177,100 @@ export default function StoreManager({
           {products.map((p) => (
             <ProductRow key={p.id} product={p} onEdit={openEdit} onDelete={handleDelete} />
           ))}
+        </div>
+
+        {/* Delivery options */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+          <h2 className="text-lg font-bold text-gray-800">Opciones de entrega</h2>
+
+          {deliveryOptions.length === 0 ? (
+            <p className="text-sm text-gray-400">No tienes opciones de entrega configuradas.</p>
+          ) : (
+            <div className="space-y-2">
+              {deliveryOptions.map(opt => (
+                <div key={opt.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2.5 border border-gray-100">
+                  <div className="flex items-center gap-2.5">
+                    {opt.type === "delivery"
+                      ? <Truck className="w-4 h-4 text-gray-400 shrink-0" />
+                      : <MapPin className="w-4 h-4 text-gray-400 shrink-0" />}
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{opt.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {opt.type === "delivery" ? "Envío a domicilio" : "Retiro presencial"} · {opt.price > 0 ? `$${FMT(opt.price)}` : "Gratis"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeDeliveryOption(opt.id)}
+                    className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add form */}
+          <div className="border-t border-gray-100 pt-4 space-y-3">
+            <p className="text-sm font-semibold text-gray-700">Agregar opción</p>
+            <input
+              value={newOptName}
+              onChange={e => setNewOptName(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addDeliveryOption())}
+              placeholder="Ej: Retiro en tienda, Despacho Starken..."
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={newOptPrice}
+                  onChange={e => setNewOptPrice(e.target.value)}
+                  placeholder="0"
+                  className="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+                />
+              </div>
+              <div className="flex rounded-lg overflow-hidden border border-gray-200 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setNewOptType("pickup")}
+                  className={`flex-1 py-2 font-medium transition-colors ${newOptType === "pickup" ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+                >
+                  Retiro
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNewOptType("delivery")}
+                  className={`flex-1 py-2 font-medium transition-colors ${newOptType === "delivery" ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+                >
+                  Envío
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={addDeliveryOption}
+              disabled={!newOptName.trim()}
+              className="flex items-center gap-1.5 text-sm font-semibold text-green-800 hover:text-green-900 disabled:text-gray-400 disabled:cursor-not-allowed"
+            >
+              <Plus className="w-4 h-4" /> Agregar opción
+            </button>
+          </div>
+
+          {deliveryError && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{deliveryError}</p>
+          )}
+          <button
+            onClick={saveDeliveryOptions}
+            disabled={savingDelivery}
+            className="w-full py-2.5 bg-green-900 text-white rounded-xl font-semibold hover:bg-green-800 transition-colors disabled:opacity-50 text-sm"
+          >
+            {savingDelivery ? "Guardando..." : deliverySaved ? "✓ Guardado" : "Guardar opciones de entrega"}
+          </button>
         </div>
       </div>
 

@@ -10,7 +10,7 @@ export default async function MiTiendaPage() {
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, description, category, logo_url, status")
+    .select("id, name, description, category, logo_url, status, delivery_options")
     .eq("owner_id", user.id)
     .single()
 

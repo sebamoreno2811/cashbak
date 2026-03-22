@@ -1,17 +1,23 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
 import type { Talla } from "@/types/cart"
-import type { Delivery } from "@/hooks/use-cart"
-import { TrainIcon, Truck as TruckIcon, AlertTriangle, Building2 } from "lucide-react"
+import type { DeliveryOption } from "@/hooks/use-cart"
+import { Truck as TruckIcon, MapPin, AlertTriangle, Building2 } from "lucide-react"
+
+const DEFAULT_DELIVERY_OPTIONS: DeliveryOption[] = [
+  { id: "envio", name: "Envío a domicilio", price: 2990, type: "delivery" },
+  { id: "metro-tobalaba", name: "Retiro Metro Tobalaba", price: 0, type: "pickup" },
+  { id: "metro-fcastillo", name: "Retiro Metro Fernando Castillo Velasco", price: 0, type: "pickup" },
+]
 import { useBankAccount } from "@/hooks/use-bank-accounts"
 import BankAccountForm from "@/components/bank-form"
 import { createClient } from "@/utils/supabase/client"
 
-interface StoreInfo { id: string; name: string; logo_url: string | null }
+interface StoreInfo { id: string; name: string; logo_url: string | null; delivery_options: DeliveryOption[] | null }
 
 
 import {
@@ -45,8 +51,9 @@ export default function CartPage() {
     getTotalcashbak,
     getItemDetails,
     clearCart,
-    deliveryType,
-    chooseDeliveryType,
+    deliveryOption,
+    shippingCost,
+    chooseDelivery,
   } = useCart()
   const { user, loading: loadingUser } = useSupabaseUser()
   const { bets, loading: loadingBets } = useBets()
@@ -69,7 +76,7 @@ export default function CartPage() {
     )]
     if (storeIds.length === 0) return
     const supabase = createClient()
-    supabase.from("stores").select("id, name, logo_url").in("id", storeIds).then(({ data }: { data: StoreInfo[] | null }) => {
+    supabase.from("stores").select("id, name, logo_url, delivery_options").in("id", storeIds).then(({ data }: { data: StoreInfo[] | null }) => {
       if (!data) return
       const map: Record<string, StoreInfo> = {}
       data.forEach((s: StoreInfo) => { map[s.id] = s })
@@ -82,7 +89,22 @@ export default function CartPage() {
   )]
   const hasMultipleStores = uniqueStoreIds.length > 1
 
-  const shippingCost = deliveryType === "envio" ? 2990 : 0
+  // Delivery options: from the single store in cart, or CashBak defaults for official products
+  const cartDeliveryOptions = useMemo(() => {
+    if (hasMultipleStores) return []
+    if (uniqueStoreIds.length === 0) return DEFAULT_DELIVERY_OPTIONS
+    const store = storeInfoMap[uniqueStoreIds[0]]
+    return store?.delivery_options ?? []
+  }, [hasMultipleStores, uniqueStoreIds, storeInfoMap])
+
+  // Auto-select first delivery option when options load or store changes
+  useEffect(() => {
+    if (hasMultipleStores || cartDeliveryOptions.length === 0) return
+    const stillValid = cartDeliveryOptions.find(o => o.id === deliveryOption?.id)
+    if (!stillValid) chooseDelivery(cartDeliveryOptions[0])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartDeliveryOptions.length, uniqueStoreIds.join(",")])
+
   const total = getCartTotal(shippingCost)
 
   // Validar que las apuestas seleccionadas sean válidas
@@ -114,7 +136,7 @@ export default function CartPage() {
       return
     }
 
-    if (deliveryType === "envio" && !hasShippingDetails) {
+    if (deliveryOption?.type === "delivery" && !hasShippingDetails) {
       setRequiresAddress(true)
       return
     }
@@ -351,59 +373,39 @@ export default function CartPage() {
 
               <div className="mt-6">
                 <h3 className="mb-2 text-sm font-medium text-gray-700">Método de entrega</h3>
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => {
-                      chooseDeliveryType("envio")
-                      setRequiresAddress(!hasShippingDetails)
-                    }}
-                    className={`flex items-center p-3 text-left border rounded-lg transition ${
-                      deliveryType === "envio"
-                        ? "border-green-700 bg-green-50"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    <TruckIcon className="w-5 h-5 mr-3 text-green-700" />
-                    <div>
-                      <p className="text-sm font-medium">Envío a domicilio</p>
-                      <p className="text-xs text-gray-500">Recibe tu pedido en la dirección que elijas</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => {
-                      chooseDeliveryType("Entrega Metro Tobalaba")
-                      setRequiresAddress(false)
-                    }}
-                    className={`flex items-center p-3 text-left border rounded-lg transition ${
-                      deliveryType === "Entrega Metro Tobalaba"
-                        ? "border-green-700 bg-green-50"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    <TrainIcon className="w-5 h-5 mr-3 text-green-700" />
-                    <div>
-                      <p className="text-sm font-medium">Retiro en Metro Tobalaba</p>
-                      <p className="text-xs text-gray-500">Coordinación post venta vía mail o Instagram</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => {
-                      chooseDeliveryType("Entrega Metro Fernando Castillo Velasco")
-                      setRequiresAddress(false)
-                    }}
-                    className={`flex items-center p-3 text-left border rounded-lg transition ${
-                      deliveryType === "Entrega Metro Fernando Castillo Velasco"
-                        ? "border-green-700 bg-green-50"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    <TrainIcon className="w-5 h-5 mr-3 text-green-700" />
-                    <div>
-                      <p className="text-sm font-medium">Retiro en Metro Fernando Castillo Velasco</p>
-                      <p className="text-xs text-gray-500">Coordinación post venta vía mail o Instagram</p>
-                    </div>
-                  </button>
-                </div>
+                {hasMultipleStores ? (
+                  <p className="text-xs text-amber-700">Disponible al tener productos de una sola tienda.</p>
+                ) : cartDeliveryOptions.length === 0 && uniqueStoreIds.length > 0 ? (
+                  <p className="text-xs text-gray-400">Esta tienda no ha configurado opciones de entrega.</p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {cartDeliveryOptions.map(opt => (
+                      <button
+                        key={opt.id}
+                        onClick={() => {
+                          chooseDelivery(opt)
+                          setRequiresAddress(opt.type === "delivery" && !hasShippingDetails)
+                        }}
+                        className={`flex items-center p-3 text-left border rounded-lg transition ${
+                          deliveryOption?.id === opt.id
+                            ? "border-green-700 bg-green-50"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                      >
+                        {opt.type === "delivery"
+                          ? <TruckIcon className="w-5 h-5 mr-3 text-green-700 shrink-0" />
+                          : <MapPin className="w-5 h-5 mr-3 text-green-700 shrink-0" />}
+                        <div>
+                          <p className="text-sm font-medium">{opt.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {opt.price > 0 ? `$${opt.price.toLocaleString("es-CL")}` : "Gratis"}
+                            {opt.type === "delivery" ? " · Requiere dirección de envío" : ""}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -456,7 +458,7 @@ export default function CartPage() {
       </div>
 
       {/* Modal dirección */}
-      {deliveryType === "envio" && requiresAddress && (
+      {deliveryOption?.type === "delivery" && requiresAddress && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
             <h2 className="mb-4 text-lg font-bold">Completa tus datos de envío</h2>

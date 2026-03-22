@@ -16,7 +16,7 @@ import BankAccountReminderModal from "@/components/bank-account-reminder-modal"
 export default function CheckoutPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { items, getCartTotal, getTotalcashbak, getItemDetails, clearCart, deliveryType } = useCart()
+  const { items, getCartTotal, getTotalcashbak, getItemDetails, clearCart, deliveryType, shippingCost } = useCart()
 
   const hasProcessed = useRef(false)
 
@@ -32,7 +32,6 @@ export default function CheckoutPage() {
   const [orderId, setOrderId] = useState<string | null>(null)
   const [showBankReminder, setShowBankReminder] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const shippingCost = deliveryType === "envio" ? 2990 : 0
 
   // Función helper para formatear número de cuenta
   const formatAccountNumber = (accountNumber: any) => {
