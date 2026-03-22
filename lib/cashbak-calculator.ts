@@ -40,7 +40,7 @@ export function calculateExternalCashbak(params: {
 }): ExternalCashbakResult {
   const { precioVenta, costo, cuota, margenVendedorPct } = params
 
-  const gananciaBruta = precioVenta - costo            // solo informativo
+  const gananciaBruta = precioVenta - costo  // informativo: ganancia neta del vendedor
   const margenVendedor = margenVendedorPct * precioVenta
   const fondoBruto = Math.max(0, precioVenta - margenVendedor)  // basado en precio, no en costo
 
@@ -72,8 +72,8 @@ export function calculateExternalCashbak(params: {
     montoApuesta: Math.round(montoApuesta),
     comisionPlataforma: Math.round(comisionPlataforma),
     margenVendedor: Math.round(margenVendedor),
-    gananciaBruta: Math.round(gananciaBruta),
-    gananciaNeta: Math.round(margenVendedor),
+    gananciaBruta: Math.round(margenVendedor),          // lo que recibe el vendedor por la venta
+    gananciaNeta: Math.round(margenVendedor - costo),   // ganancia real descontando el costo del producto
     margenVendedorMaxPct,
     margenVendedorMaxMonto: Math.round(margenVendedorMaxMonto),
     margenRecomendadoPct,

@@ -219,17 +219,20 @@ export default function SellPage() {
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <div>
                         <span className="text-gray-600">Ganancia bruta</span>
-                        <p className="text-xs text-gray-400">Precio venta − costo</p>
+                        <p className="text-xs text-gray-400">Lo que recibes tú por cada venta</p>
                       </div>
-                      <span className="font-semibold text-gray-700">{formatCLP(Math.max(0, resultado.gananciaBruta))}</span>
+                      <span className="font-bold text-green-900">{formatCLP(Math.max(0, resultado.gananciaBruta))}</span>
                     </div>
 
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <div className={`flex justify-between items-center py-2 border-b rounded-lg px-2 ${resultado.gananciaNeta < 0 ? "bg-red-50 border-red-200" : "border-gray-100"}`}>
                       <div>
-                        <span className="text-gray-600">Tu ganancia neta</span>
-                        <p className="text-xs text-gray-400">Después de comisión y seguro CashBak</p>
+                        <span className={resultado.gananciaNeta < 0 ? "text-red-600 font-semibold" : "text-gray-600"}>Ganancia neta</span>
+                        <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo de producto</p>
+                        {resultado.gananciaNeta < 0 && (
+                          <p className="text-xs text-red-500 mt-0.5">⚠️ Estás vendiendo por debajo de tu costo</p>
+                        )}
                       </div>
-                      <span className="font-bold text-green-900">{formatCLP(Math.max(0, resultado.gananciaNeta))}</span>
+                      <span className={`font-semibold ${resultado.gananciaNeta < 0 ? "text-red-600" : "text-gray-700"}`}>{formatCLP(resultado.gananciaNeta)}</span>
                     </div>
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
