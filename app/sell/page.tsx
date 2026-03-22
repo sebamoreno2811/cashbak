@@ -20,13 +20,24 @@ function formatDate(dateStr: string) {
 export default function SellPage() {
   const [precioVenta, setPrecioVenta] = useState<string>("20000")
   const [costo, setCosto] = useState<string>("10000")
-  const [margenPct, setMargenPct] = useState<number>(20)
+  const calcularRecomendado = (p: number) => Math.max(0, Math.round(p - (0.25 * p / 1.5) / 0.80))
+  const [gananciaCLP, setGananciaCLP] = useState<number>(() => calcularRecomendado(20000))
   const [bets, setBets] = useState<Bet[]>([])
   const [selectedBetId, setSelectedBetId] = useState<number | null>(null)
 
   const precio = Number(precioVenta)
   const costoNum = Number(costo)
-  const inputsValidos = precio > 0 && costoNum > 0 && precio > costoNum
+  const inputsValidos = precio > 0
+
+  const sliderMax = Math.round(precio * 0.98)
+  const sliderStep = Math.max(1, 10 ** Math.max(0, Math.floor(Math.log10(Math.max(1, sliderMax))) - 2))
+  const margenVendedorPct = precio > 0 ? gananciaCLP / precio : 0
+  const gananciaBajoElCosto = costoNum > 0 && gananciaCLP < costoNum
+
+  useEffect(() => {
+    // Cuando cambia el precio, mantener el mismo % aproximado
+    setGananciaCLP(calcularRecomendado(precio))
+  }, [precio])
 
   // Fetch apuestas activas
   useEffect(() => {
@@ -49,30 +60,28 @@ export default function SellPage() {
       precioVenta: precio,
       costo: costoNum,
       cuota,
-      margenVendedorPct: margenPct / 100,
+      margenVendedorPct,
     })
-  }, [precio, costoNum, margenPct, cuota, inputsValidos])
+  }, [precio, costoNum, margenVendedorPct, cuota, inputsValidos])
 
-  const margenMax = resultado ? Math.floor(resultado.margenVendedorMaxPct * 100) : 95
-  const margenCapped = Math.min(margenPct, margenMax)
+  const bestCuota = bets.length > 0 ? Math.max(...bets.map(b => b.odd)) : cuota
 
-  function handleMargenChange(val: number) {
-    setMargenPct(val)
-  }
+  // Recomendación fallback: deja 35% del margen declarado (precio-costo) para cashback
+  const recFallbackMonto = costoNum > 0 ? Math.round(precio - 0.35 * (precio - costoNum)) : null
 
-  function handlePrecioChange(val: string) {
-    setPrecioVenta(val)
-    if (resultado && margenPct > Math.floor(resultado.margenVendedorMaxPct * 100)) {
-      setMargenPct(Math.max(0, Math.floor(resultado.margenVendedorMaxPct * 100)))
-    }
-  }
+  const recMonto = resultado && resultado.margenRecomendadoMonto > costoNum
+    ? resultado.margenRecomendadoMonto
+    : (recFallbackMonto && recFallbackMonto > costoNum ? recFallbackMonto : null)
 
-  function handleCostoChange(val: string) {
-    setCosto(val)
-    if (resultado && margenPct > Math.floor(resultado.margenVendedorMaxPct * 100)) {
-      setMargenPct(Math.max(0, Math.floor(resultado.margenVendedorMaxPct * 100)))
-    }
-  }
+  const cashbackAtRec = useMemo(() => {
+    if (!inputsValidos || !recMonto) return 0
+    return calculateExternalCashbak({
+      precioVenta: precio,
+      costo: costoNum,
+      cuota: bestCuota,
+      margenVendedorPct: recMonto / precio,
+    }).cashbackPct
+  }, [precio, costoNum, bestCuota, recMonto, inputsValidos])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -100,53 +109,51 @@ export default function SellPage() {
                   type="number"
                   min={1}
                   value={precioVenta}
-                  onChange={(e) => handlePrecioChange(e.target.value)}
+                  onChange={(e) => setPrecioVenta(e.target.value)}
                   placeholder="Ej: 20000"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="costo">Tu costo (CLP)</Label>
+                <Label htmlFor="costo">Tu costo de producto (CLP) <span className="text-gray-400 font-normal">(ilustrativo)</span></Label>
                 <Input
                   id="costo"
                   type="number"
                   min={1}
                   value={costo}
-                  onChange={(e) => handleCostoChange(e.target.value)}
+                  onChange={(e) => setCosto(e.target.value)}
                   placeholder="Ej: 10000"
                 />
-                <p className="text-xs text-gray-400">Solo informativo — el cashback se calcula sobre el precio de venta, no sobre el costo.</p>
-                {!inputsValidos && precioVenta !== "" && costo !== "" && (
-                  <p className="text-sm text-red-600">El precio de venta debe ser mayor al costo.</p>
-                )}
+                <p className="text-xs text-gray-400">Solo para mostrarte tu ganancia neta estimada. No afecta el cashback ni la comisión — ingresa tu costo real para que el cálculo sea preciso.</p>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <Label>Tu margen deseado</Label>
-                  <span className="text-lg font-bold text-green-900">{margenCapped}%</span>
+                  <Label>¿Cuánto quieres recibir por venta?</Label>
+                  <span className="text-xl font-bold text-green-900">{formatCLP(gananciaCLP)}</span>
                 </div>
                 <input
                   type="range"
                   min={0}
-                  max={margenMax}
-                  step={1}
-                  value={margenCapped}
-                  onChange={(e) => handleMargenChange(Number(e.target.value))}
+                  max={sliderMax}
+                  step={sliderStep}
+                  value={gananciaCLP}
+                  onChange={(e) => setGananciaCLP(Number(e.target.value))}
                   className="w-full accent-green-900"
                 />
-                <div className="flex justify-between text-xs text-gray-400">
-                  <span>0%</span>
-                  <span>Máx: {margenMax}%</span>
-                </div>
-                {resultado && resultado.margenRecomendadoPct > 0 && (
+                {gananciaBajoElCosto && (
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    ⚠️ Estás eligiendo recibir menos que tu costo declarado ({formatCLP(costoNum)}). Estarías vendiendo a pérdida.
+                  </p>
+                )}
+                {recMonto && (
                   <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
                     <p className="text-xs text-emerald-800">
-                      💡 Recomendamos un margen de <strong>{Math.floor(resultado.margenRecomendadoPct * 100)}%</strong> para poder ofrecer cashbacks atractivos a tus clientes.
+                      💡 Recibiendo <strong>{formatCLP(recMonto)}</strong> por venta puedes ofrecer hasta <strong>{cashbackAtRec}% de cashback</strong> con los eventos disponibles hoy — muy atractivo para compradores.
                     </p>
                     <button
                       type="button"
-                      onClick={() => setMargenPct(Math.floor(resultado.margenRecomendadoPct * 100))}
+                      onClick={() => setGananciaCLP(recMonto)}
                       className="ml-3 shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline"
                     >
                       Aplicar
@@ -190,10 +197,10 @@ export default function SellPage() {
               <Card>
                 <CardContent className="pt-6 text-center text-gray-400 py-16">
                   <p className="text-5xl mb-4">📊</p>
-                  <p>Ingresa un precio y costo válidos para ver la simulación.</p>
+                  <p>Ingresa un precio de venta válido para ver la simulación.</p>
                 </CardContent>
               </Card>
-            ) : resultado && resultado.cashbackPct > 0 ? (
+            ) : resultado ? (
               <>
                 {/* Cashback highlight */}
                 <div className="bg-emerald-600 text-white rounded-xl p-6 text-center shadow">
@@ -209,35 +216,17 @@ export default function SellPage() {
                   <CardContent className="pt-6 space-y-4">
                     <h3 className="font-semibold text-gray-700">Desglose por venta</h3>
 
-                    {resultado.margenVendedorMaxPct <= 0 && (
-                      <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
-                        <span className="text-amber-600 text-sm font-semibold">⚠️ Margen bruto muy pequeño</span>
-                        <span className="text-amber-700 text-sm">— para ofrecer un cashback significativo necesitas bajar tu margen o aumentar el precio de venta.</span>
-                      </div>
-                    )}
-
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <div>
-                        <span className="text-gray-600">Ganancia bruta</span>
-                        <p className="text-xs text-gray-400">Lo que recibes tú por cada venta</p>
+                        <span className="text-gray-600">Tu ingreso por venta</span>
+                        <p className="text-xs text-gray-400">Lo que ganas por cada venta — garantizado, sin importar el resultado del evento</p>
                       </div>
-                      <span className="font-bold text-green-900">{formatCLP(Math.max(0, resultado.gananciaBruta))}</span>
-                    </div>
-
-                    <div className={`flex justify-between items-center py-2 border-b rounded-lg px-2 ${resultado.gananciaNeta < 0 ? "bg-red-50 border-red-200" : "border-gray-100"}`}>
-                      <div>
-                        <span className={resultado.gananciaNeta < 0 ? "text-red-600 font-semibold" : "text-gray-600"}>Ganancia neta</span>
-                        <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo de producto</p>
-                        {resultado.gananciaNeta < 0 && (
-                          <p className="text-xs text-red-500 mt-0.5">⚠️ Estás vendiendo por debajo de tu costo</p>
-                        )}
-                      </div>
-                      <span className={`font-semibold ${resultado.gananciaNeta < 0 ? "text-red-600" : "text-gray-700"}`}>{formatCLP(resultado.gananciaNeta)}</span>
+                      <span className="font-bold text-green-900">{formatCLP(resultado.margenVendedor)}</span>
                     </div>
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600">Comisión CashBak</span>
-                      <span className="font-semibold text-gray-500">{formatCLP(Math.max(0, resultado.comisionPlataforma))}</span>
+                      <span className="font-semibold text-gray-500">{formatCLP(resultado.comisionPlataforma)}</span>
                     </div>
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -245,50 +234,21 @@ export default function SellPage() {
                         <span className="text-gray-600">Seguro CashBak</span>
                         <p className="text-xs text-gray-400">Prima que financia el cashback al cliente</p>
                       </div>
-                      <span className="font-semibold text-gray-500">{formatCLP(Math.max(0, resultado.montoApuesta))}</span>
+                      <span className="font-semibold text-gray-500">{formatCLP(resultado.montoApuesta)}</span>
                     </div>
 
-                    {Math.max(0, margenMax) > 0 && (
-                      <>
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-sm text-gray-500">Margen máximo para CashBak</span>
-                          <span className="text-sm font-semibold text-gray-700">{Math.max(0, margenMax)}%</span>
-                        </div>
-
-                        {/* Barra de uso del margen */}
-                        <div>
-                          <div className="flex justify-between text-xs text-gray-400 mb-1">
-                            <span>Tu margen ({margenCapped}%)</span>
-                            <span>Máx ({Math.max(0, margenMax)}%)</span>
-                          </div>
-                          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-emerald-500 rounded-full transition-all"
-                              style={{ width: `${margenMax > 0 ? Math.min(100, (margenCapped / margenMax) * 100) : 0}%` }}
-                            />
-                          </div>
-                        </div>
-                      </>
-                    )}
+                    <div className={`flex justify-between items-center py-2 rounded-lg ${resultado.gananciaNeta < 0 ? "px-2 bg-red-50 border border-red-200" : ""}`}>
+                      <div>
+                        <span className={`text-sm ${resultado.gananciaNeta < 0 ? "text-red-600 font-semibold" : "text-gray-500"}`}>Tu ganancia neta estimada</span>
+                        <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo declarado ({formatCLP(costoNum)})</p>
+                        {resultado.gananciaNeta < 0 && <p className="text-xs text-red-500 mt-0.5">⚠️ Estarías vendiendo a pérdida</p>}
+                      </div>
+                      <span className={`font-semibold ${resultado.gananciaNeta < 0 ? "text-red-600" : "text-gray-700"}`}>{formatCLP(resultado.gananciaNeta)}</span>
+                    </div>
                   </CardContent>
                 </Card>
               </>
-            ) : (
-              <>
-                <div className="bg-gray-100 text-gray-500 rounded-xl p-6 text-center">
-                  <p className="text-sm mb-1">Cashback que ofreces a tus clientes</p>
-                  <p className="text-6xl font-bold">0%</p>
-                </div>
-                <Card className="border-amber-200 bg-amber-50">
-                  <CardContent className="pt-6 space-y-2">
-                    <p className="font-semibold text-amber-800">Margen muy bajo para ofrecer CashBak</p>
-                    <p className="text-sm text-amber-700">
-                      Con este margen no queda fondo suficiente para el Seguro CashBak. Te recomendamos bajar tu margen a <strong>{margenMax}%</strong> o menos para poder ofrecer cashback a tus clientes.
-                    </p>
-                  </CardContent>
-                </Card>
-              </>
-            )}
+            ) : null}
           </div>
         </div>
 

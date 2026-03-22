@@ -12,9 +12,8 @@ export interface ExternalCashbakResult {
   cashbackMonto: number       // CLP que recibe el cliente si la apuesta gana
   montoApuesta: number        // CLP que se apuesta (costo fijo por venta)
   comisionPlataforma: number  // CLP garantizados para CashBak
-  margenVendedor: number      // CLP garantizados para el vendedor (= gananciaNeta)
-  gananciaBruta: number       // precioVenta - costo
-  gananciaNeta: number        // precioVenta - costo - comision - seguroCashBak (= margenVendedor)
+  margenVendedor: number      // CLP garantizados para el vendedor
+  gananciaNeta: number        // CLP neta por venta (igual en ambos escenarios)
   margenVendedorMaxPct: number    // % máximo para que exista cashback mínimo
   margenVendedorMaxMonto: number  // en CLP
   margenRecomendadoPct: number    // % recomendado para cashbacks atractivos
@@ -24,46 +23,46 @@ export interface ExternalCashbakResult {
 /**
  * Calcula el cashback que se puede ofrecer para un producto externo.
  *
- * Mecánica (basada solo en precio de venta, no en costo):
- *  fondoBruto    = precioVenta - margenVendedor   (lo que no se queda el vendedor)
- *  comisión      = 20% × fondoBruto               (sale del fondo)
- *  montoApuesta  = fondoBruto - comisión          (financia el cashback)
- *  cashback      = montoApuesta × cuota
+ * Mecánica (basada en precio de venta, costo es solo ilustrativo):
+ *  margenVendedor = margenVendedorPct × precioVenta   (lo que el vendedor se lleva)
+ *  fondoBruto     = precioVenta - margenVendedor       (diferencia entre precio y ganancia del vendedor)
+ *  comisión       = 20% × fondoBruto  (mín 1% del precio)
+ *  montoApuesta   = fondoBruto - comisión              (financia el cashback)
+ *  cashback       = montoApuesta × cuota
  *
- *  El costo es solo informativo (para mostrar ganancia bruta al vendedor).
+ *  El costo NO afecta los cálculos. Solo se usa para mostrar ganancia neta ilustrativa.
  */
 export function calculateExternalCashbak(params: {
   precioVenta: number
-  costo: number
+  costo: number          // solo ilustrativo
   cuota: number
-  margenVendedorPct: number // ej: 0.20 = 20% del precio de venta
+  margenVendedorPct: number // % del precio de venta que se lleva el vendedor
 }): ExternalCashbakResult {
   const { precioVenta, costo, cuota, margenVendedorPct } = params
 
-  const gananciaBruta = precioVenta - costo  // informativo: ganancia neta del vendedor
   const margenVendedor = margenVendedorPct * precioVenta
-  const fondoBruto = Math.max(0, precioVenta - margenVendedor)  // basado en precio, no en costo
+  const fondoBruto = Math.max(0, precioVenta - margenVendedor)
 
-  // Comisión: 20% del fondoBruto, con mínimo del 1% del precio de venta
+  // Comisión: 20% del fondoBruto, mínimo 1% del precio de venta
   const comisionBase = COMISION_PLATAFORMA * fondoBruto
   const comisionMinima = 0.01 * precioVenta
   const comisionPlataforma = Math.max(comisionBase, comisionMinima)
 
   const montoApuesta = Math.max(0, fondoBruto - comisionPlataforma)
 
-  // Margen máximo para ofrecer cashback mínimo (10% a cuota 1.5), basado solo en precio
+  // Margen máximo para dar cashback mínimo (10% a cuota 1.5)
   const montoApuestaMinimo = (CASHBACK_MINIMO * precioVenta) / CUOTA_MINIMA
   const margenVendedorMaxMonto = precioVenta - montoApuestaMinimo / (1 - COMISION_PLATAFORMA)
   const margenVendedorMaxPct = margenVendedorMaxMonto / precioVenta
 
+  // Margen recomendado para dar cashback recomendado (25% a cuota 1.5)
   const montoApuestaRecomendado = (CASHBACK_RECOMENDADO * precioVenta) / CUOTA_MINIMA
   const margenRecomendadoMonto = precioVenta - montoApuestaRecomendado / (1 - COMISION_PLATAFORMA)
   const margenRecomendadoPct = margenRecomendadoMonto / precioVenta
 
-  // Siempre calcula cashback real (mínimo 0)
   const cashbackMonto = Math.round(montoApuesta * cuota)
   const cashbackPct = Math.min(100, Math.floor((cashbackMonto / precioVenta) * 100))
-  const viable = true  // sin restricción de cashback mínimo
+  const viable = true
 
   return {
     viable,
@@ -72,8 +71,7 @@ export function calculateExternalCashbak(params: {
     montoApuesta: Math.round(montoApuesta),
     comisionPlataforma: Math.round(comisionPlataforma),
     margenVendedor: Math.round(margenVendedor),
-    gananciaBruta: Math.round(margenVendedor),          // lo que recibe el vendedor por la venta
-    gananciaNeta: Math.round(margenVendedor - costo),   // ganancia real descontando el costo del producto
+    gananciaNeta: Math.round(margenVendedor - costo),  // ilustrativo
     margenVendedorMaxPct,
     margenVendedorMaxMonto: Math.round(margenVendedorMaxMonto),
     margenRecomendadoPct,
