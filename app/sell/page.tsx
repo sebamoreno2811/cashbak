@@ -115,6 +115,7 @@ export default function SellPage() {
                   onChange={(e) => handleCostoChange(e.target.value)}
                   placeholder="Ej: 10000"
                 />
+                <p className="text-xs text-gray-400">Solo informativo — el cashback se calcula sobre el precio de venta, no sobre el costo.</p>
                 {!inputsValidos && precioVenta !== "" && costo !== "" && (
                   <p className="text-sm text-red-600">El precio de venta debe ser mayor al costo.</p>
                 )}
@@ -192,7 +193,7 @@ export default function SellPage() {
                   <p>Ingresa un precio y costo válidos para ver la simulación.</p>
                 </CardContent>
               </Card>
-            ) : resultado?.viable ? (
+            ) : resultado && resultado.cashbackPct > 0 ? (
               <>
                 {/* Cashback highlight */}
                 <div className="bg-emerald-600 text-white rounded-xl p-6 text-center shadow">
@@ -208,14 +209,32 @@ export default function SellPage() {
                   <CardContent className="pt-6 space-y-4">
                     <h3 className="font-semibold text-gray-700">Desglose por venta</h3>
 
+                    {resultado.margenVendedorMaxPct <= 0 && (
+                      <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                        <span className="text-amber-600 text-sm font-semibold">⚠️ Margen bruto muy pequeño</span>
+                        <span className="text-amber-700 text-sm">— para ofrecer un cashback significativo necesitas bajar tu margen o aumentar el precio de venta.</span>
+                      </div>
+                    )}
+
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="text-gray-600">Tu ganancia garantizada</span>
-                      <span className="font-bold text-green-900">{formatCLP(resultado.margenVendedor)}</span>
+                      <div>
+                        <span className="text-gray-600">Ganancia bruta</span>
+                        <p className="text-xs text-gray-400">Precio venta − costo</p>
+                      </div>
+                      <span className="font-semibold text-gray-700">{formatCLP(Math.max(0, resultado.gananciaBruta))}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <div>
+                        <span className="text-gray-600">Tu ganancia neta</span>
+                        <p className="text-xs text-gray-400">Después de comisión y seguro CashBak</p>
+                      </div>
+                      <span className="font-bold text-green-900">{formatCLP(Math.max(0, resultado.gananciaNeta))}</span>
                     </div>
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600">Comisión CashBak</span>
-                      <span className="font-semibold text-gray-500">{formatCLP(resultado.comisionPlataforma)}</span>
+                      <span className="font-semibold text-gray-500">{formatCLP(Math.max(0, resultado.comisionPlataforma))}</span>
                     </div>
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -223,27 +242,31 @@ export default function SellPage() {
                         <span className="text-gray-600">Seguro CashBak</span>
                         <p className="text-xs text-gray-400">Prima que financia el cashback al cliente</p>
                       </div>
-                      <span className="font-semibold text-gray-500">{formatCLP(resultado.montoApuesta)}</span>
+                      <span className="font-semibold text-gray-500">{formatCLP(Math.max(0, resultado.montoApuesta))}</span>
                     </div>
 
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-gray-500">Margen máximo posible</span>
-                      <span className="text-sm font-semibold text-gray-700">{margenMax}%</span>
-                    </div>
+                    {Math.max(0, margenMax) > 0 && (
+                      <>
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-sm text-gray-500">Margen máximo para CashBak</span>
+                          <span className="text-sm font-semibold text-gray-700">{Math.max(0, margenMax)}%</span>
+                        </div>
 
-                    {/* Barra de uso del margen */}
-                    <div>
-                      <div className="flex justify-between text-xs text-gray-400 mb-1">
-                        <span>Tu margen ({margenCapped}%)</span>
-                        <span>Máx ({margenMax}%)</span>
-                      </div>
-                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-500 rounded-full transition-all"
-                          style={{ width: `${margenMax > 0 ? (margenCapped / margenMax) * 100 : 0}%` }}
-                        />
-                      </div>
-                    </div>
+                        {/* Barra de uso del margen */}
+                        <div>
+                          <div className="flex justify-between text-xs text-gray-400 mb-1">
+                            <span>Tu margen ({margenCapped}%)</span>
+                            <span>Máx ({Math.max(0, margenMax)}%)</span>
+                          </div>
+                          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-emerald-500 rounded-full transition-all"
+                              style={{ width: `${margenMax > 0 ? Math.min(100, (margenCapped / margenMax) * 100) : 0}%` }}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               </>

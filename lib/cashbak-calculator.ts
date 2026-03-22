@@ -12,8 +12,9 @@ export interface ExternalCashbakResult {
   cashbackMonto: number       // CLP que recibe el cliente si la apuesta gana
   montoApuesta: number        // CLP que se apuesta (costo fijo por venta)
   comisionPlataforma: number  // CLP garantizados para CashBak
-  margenVendedor: number      // CLP garantizados para el vendedor
-  gananciaNeta: number        // CLP neta por venta (igual en ambos escenarios)
+  margenVendedor: number      // CLP garantizados para el vendedor (= gananciaNeta)
+  gananciaBruta: number       // precioVenta - costo
+  gananciaNeta: number        // precioVenta - costo - comision - seguroCashBak (= margenVendedor)
   margenVendedorMaxPct: number    // % máximo para que exista cashback mínimo
   margenVendedorMaxMonto: number  // en CLP
   margenRecomendadoPct: number    // % recomendado para cashbacks atractivos
@@ -23,11 +24,13 @@ export interface ExternalCashbakResult {
 /**
  * Calcula el cashback que se puede ofrecer para un producto externo.
  *
- * Mecánica:
- *  fondoBruto    = gananciaBruta - margenVendedor   (el vendedor no toca esto)
- *  comisión      = 20% × fondoBruto                 (sale del fondo, no del vendedor)
- *  fondoNeto     = fondoBruto × 80%                 (financia el cashback)
- *  cashback      = fondoNeto × cuota
+ * Mecánica (basada solo en precio de venta, no en costo):
+ *  fondoBruto    = precioVenta - margenVendedor   (lo que no se queda el vendedor)
+ *  comisión      = 20% × fondoBruto               (sale del fondo)
+ *  montoApuesta  = fondoBruto - comisión          (financia el cashback)
+ *  cashback      = montoApuesta × cuota
+ *
+ *  El costo es solo informativo (para mostrar ganancia bruta al vendedor).
  */
 export function calculateExternalCashbak(params: {
   precioVenta: number
@@ -37,29 +40,30 @@ export function calculateExternalCashbak(params: {
 }): ExternalCashbakResult {
   const { precioVenta, costo, cuota, margenVendedorPct } = params
 
-  const gananciaBruta = precioVenta - costo
+  const gananciaBruta = precioVenta - costo            // solo informativo
   const margenVendedor = margenVendedorPct * precioVenta
-  const fondoBruto = Math.max(0, gananciaBruta - margenVendedor)
+  const fondoBruto = Math.max(0, precioVenta - margenVendedor)  // basado en precio, no en costo
 
-  // Comisión: 20% del fondoBruto, con mínimo del 2% del margen bruto
+  // Comisión: 20% del fondoBruto, con mínimo del 1% del precio de venta
   const comisionBase = COMISION_PLATAFORMA * fondoBruto
-  const comisionMinima = 0.02 * gananciaBruta
+  const comisionMinima = 0.01 * precioVenta
   const comisionPlataforma = Math.max(comisionBase, comisionMinima)
 
   const montoApuesta = Math.max(0, fondoBruto - comisionPlataforma)
 
+  // Margen máximo para ofrecer cashback mínimo (10% a cuota 1.5), basado solo en precio
   const montoApuestaMinimo = (CASHBACK_MINIMO * precioVenta) / CUOTA_MINIMA
-  const margenVendedorMaxMonto = gananciaBruta - montoApuestaMinimo / (1 - COMISION_PLATAFORMA)
+  const margenVendedorMaxMonto = precioVenta - montoApuestaMinimo / (1 - COMISION_PLATAFORMA)
   const margenVendedorMaxPct = margenVendedorMaxMonto / precioVenta
 
   const montoApuestaRecomendado = (CASHBACK_RECOMENDADO * precioVenta) / CUOTA_MINIMA
-  const margenRecomendadoMonto = gananciaBruta - montoApuestaRecomendado / (1 - COMISION_PLATAFORMA)
+  const margenRecomendadoMonto = precioVenta - montoApuestaRecomendado / (1 - COMISION_PLATAFORMA)
   const margenRecomendadoPct = margenRecomendadoMonto / precioVenta
 
   // Siempre calcula cashback real (mínimo 0)
   const cashbackMonto = Math.round(montoApuesta * cuota)
   const cashbackPct = Math.min(100, Math.floor((cashbackMonto / precioVenta) * 100))
-  const viable = montoApuesta >= montoApuestaMinimo
+  const viable = true  // sin restricción de cashback mínimo
 
   return {
     viable,
@@ -68,7 +72,8 @@ export function calculateExternalCashbak(params: {
     montoApuesta: Math.round(montoApuesta),
     comisionPlataforma: Math.round(comisionPlataforma),
     margenVendedor: Math.round(margenVendedor),
-    gananciaNeta: 0,
+    gananciaBruta: Math.round(gananciaBruta),
+    gananciaNeta: Math.round(margenVendedor),
     margenVendedorMaxPct,
     margenVendedorMaxMonto: Math.round(margenVendedorMaxMonto),
     margenRecomendadoPct,
