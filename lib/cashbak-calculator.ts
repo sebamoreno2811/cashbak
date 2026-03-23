@@ -48,7 +48,14 @@ export function calculateExternalCashbak(params: {
   const comisionMinima = 0.01 * precioVenta
   const comisionPlataforma = Math.max(comisionBase, comisionMinima)
 
-  const montoApuesta = Math.max(0, fondoBruto - comisionPlataforma)
+  const montoApuestaCalculado = Math.max(0, fondoBruto - comisionPlataforma)
+
+  // Si la cuota es tan alta que con menos monto ya se cubre el 100% de cashback,
+  // reducimos montoApuesta al máximo necesario y el exceso va a comisión.
+  const montoApuestaMaximo = cuota > 0 ? precioVenta / cuota : montoApuestaCalculado
+  const montoApuesta = Math.min(montoApuestaCalculado, montoApuestaMaximo)
+  const excesoComision = montoApuestaCalculado - montoApuesta
+  const comisionTotal = comisionPlataforma + excesoComision
 
   // Margen máximo para dar cashback mínimo (10% a cuota 1.5)
   const montoApuestaMinimo = (CASHBACK_MINIMO * precioVenta) / CUOTA_MINIMA
@@ -69,7 +76,7 @@ export function calculateExternalCashbak(params: {
     cashbackPct,
     cashbackMonto,
     montoApuesta: Math.round(montoApuesta),
-    comisionPlataforma: Math.round(comisionPlataforma),
+    comisionPlataforma: Math.round(comisionTotal),
     margenVendedor: Math.round(margenVendedor),
     gananciaNeta: Math.round(margenVendedor - costo),  // ilustrativo
     margenVendedorMaxPct,
