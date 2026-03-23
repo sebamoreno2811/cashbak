@@ -239,7 +239,7 @@ export default function SellPage() {
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600">Comisión CashBak</span>
-                      <span className="font-semibold text-gray-500">{formatCLP(resultado.comisionPlataforma)}</span>
+                      <span className="font-semibold text-gray-500">{formatCLP(resultado.comisionDisplay)}</span>
                     </div>
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -247,7 +247,7 @@ export default function SellPage() {
                         <span className="text-gray-600">Seguro CashBak</span>
                         <p className="text-xs text-gray-400">Prima que financia el cashback al cliente</p>
                       </div>
-                      <span className="font-semibold text-gray-500">{formatCLP(resultado.montoApuesta)}</span>
+                      <span className="font-semibold text-gray-500">{formatCLP(resultado.montoApuestaDisplay)}</span>
                     </div>
 
                     <div className={`flex justify-between items-center py-2 rounded-lg ${resultado.gananciaNeta < 0 ? "px-2 bg-red-50 border border-red-200" : ""}`}>

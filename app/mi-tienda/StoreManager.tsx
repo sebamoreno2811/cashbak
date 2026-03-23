@@ -726,7 +726,7 @@ function ProductFormModal({
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Comisión CashBak</span>
-                      <span className="text-gray-600">${FMT(sim.comisionPlataforma)}</span>
+                      <span className="text-gray-600">${FMT(sim.comisionDisplay)}</span>
                     </div>
                     <div className={`flex justify-between text-sm py-1.5 rounded ${sim.gananciaNeta < 0 ? "px-2 bg-red-50 border border-red-200" : ""}`}>
                       <div>

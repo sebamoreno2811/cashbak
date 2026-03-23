@@ -10,8 +10,11 @@ export interface ExternalCashbakResult {
   viable: boolean
   cashbackPct: number         // % que recibe el cliente si la apuesta gana
   cashbackMonto: number       // CLP que recibe el cliente si la apuesta gana
-  montoApuesta: number        // CLP que se apuesta (costo fijo por venta)
-  comisionPlataforma: number  // CLP garantizados para CashBak
+  montoApuesta: number        // CLP que se apuesta en DB (capado por cuota)
+  comisionPlataforma: number  // CLP comisión total en DB (fija + exceso por cuota alta)
+  // Valores para mostrar en UI (no varían con la cuota)
+  comisionDisplay: number     // Comisión fija: 20% fondoBruto (mín 1% precio)
+  montoApuestaDisplay: number // Seguro CashBak: fondoBruto - comisionFija
   margenVendedor: number      // CLP garantizados para el vendedor
   gananciaNeta: number        // CLP neta por venta (igual en ambos escenarios)
   margenVendedorMaxPct: number    // % máximo para que exista cashback mínimo
@@ -77,6 +80,8 @@ export function calculateExternalCashbak(params: {
     cashbackMonto,
     montoApuesta: Math.round(montoApuesta),
     comisionPlataforma: Math.round(comisionTotal),
+    comisionDisplay: Math.round(comisionPlataforma),
+    montoApuestaDisplay: Math.round(montoApuestaCalculado),
     margenVendedor: Math.round(margenVendedor),
     gananciaNeta: Math.round(margenVendedor - costo),  // ilustrativo
     margenVendedorMaxPct,
