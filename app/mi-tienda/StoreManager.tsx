@@ -8,6 +8,18 @@ import { addProduct, updateProduct, deleteProduct, updateStoreDeliveryOptions } 
 import { Pencil, Trash2, Plus, X, Truck, MapPin } from "lucide-react"
 import type { DeliveryOption } from "@/types/delivery"
 
+function selectVariedBets(bets: Bet[], maxCount = 4): Bet[] {
+  if (bets.length <= maxCount) return bets
+  const sorted = [...bets].sort((a, b) => a.odd - b.odd)
+  const seen = new Set<number>()
+  const result: Bet[] = []
+  for (let i = 0; i < maxCount; i++) {
+    const bet = sorted[Math.round(i * (sorted.length - 1) / (maxCount - 1))]
+    if (!seen.has(bet.id)) { seen.add(bet.id); result.push(bet) }
+  }
+  return result
+}
+
 interface Bet {
   id: number
   name: string
@@ -390,8 +402,9 @@ function ProductFormModal({
       .order("end_date", { ascending: true })
       .then(({ data }: { data: Bet[] | null }) => {
         if (data && data.length > 0) {
-          setBets(data)
-          setSelectedBetId(data[0].id)
+          const selected = selectVariedBets(data, 4)
+          setBets(selected)
+          setSelectedBetId(selected[0].id)
         }
       })
   }, [])

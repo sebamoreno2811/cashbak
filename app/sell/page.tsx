@@ -17,6 +17,18 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" })
 }
 
+function selectVariedBets(bets: Bet[], maxCount = 4): Bet[] {
+  if (bets.length <= maxCount) return bets
+  const sorted = [...bets].sort((a, b) => a.odd - b.odd)
+  const seen = new Set<number>()
+  const result: Bet[] = []
+  for (let i = 0; i < maxCount; i++) {
+    const bet = sorted[Math.round(i * (sorted.length - 1) / (maxCount - 1))]
+    if (!seen.has(bet.id)) { seen.add(bet.id); result.push(bet) }
+  }
+  return result
+}
+
 export default function SellPage() {
   const [precioVenta, setPrecioVenta] = useState<string>("20000")
   const [costo, setCosto] = useState<string>("10000")
@@ -46,8 +58,9 @@ export default function SellPage() {
     supabase.from("bets").select("*").eq("active", true).gt("end_date", cutoff).order("end_date", { ascending: true }).then(({ data }: { data: Bet[] | null }) => {
       if (!data) return
       const activeBets = data.filter((b: Bet) => getAllBettingOptions(data).includes(b.id))
-      setBets(activeBets)
-      if (activeBets.length > 0) setSelectedBetId(activeBets[0].id)
+      const selected = selectVariedBets(activeBets, 4)
+      setBets(selected)
+      if (selected.length > 0) setSelectedBetId(selected[0].id)
     })
   }, [])
 
@@ -181,7 +194,7 @@ export default function SellPage() {
                       >
                         <p className="font-semibold text-sm">{bet.name}</p>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          Cuota {bet.odd.toFixed(2)} · Vence {formatDate(bet.end_date)}
+                          Vence {formatDate(bet.end_date)}
                         </p>
                       </button>
                     ))}
