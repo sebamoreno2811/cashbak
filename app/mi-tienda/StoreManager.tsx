@@ -64,6 +64,7 @@ export default function StoreManager({
   const [editing, setEditing] = useState<StoreProduct | null>(null)
 
   // Delivery options state
+  const [savedDeliveryOptions, setSavedDeliveryOptions] = useState<DeliveryOption[]>(store.delivery_options ?? [])
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>(store.delivery_options ?? [])
   const [newOptName, setNewOptName] = useState("")
   const [newOptPrice, setNewOptPrice] = useState("0")
@@ -71,6 +72,8 @@ export default function StoreManager({
   const [savingDelivery, setSavingDelivery] = useState(false)
   const [deliveryError, setDeliveryError] = useState<string | null>(null)
   const [deliverySaved, setDeliverySaved] = useState(false)
+
+  const deliveryHasChanges = JSON.stringify(deliveryOptions) !== JSON.stringify(savedDeliveryOptions)
 
   function addDeliveryOption() {
     if (!newOptName.trim()) return
@@ -81,6 +84,7 @@ export default function StoreManager({
       type: newOptType,
     }
     setDeliveryOptions(prev => [...prev, opt])
+    setDeliverySaved(false)
     setNewOptName("")
     setNewOptPrice("0")
     setNewOptType("pickup")
@@ -88,6 +92,7 @@ export default function StoreManager({
 
   function removeDeliveryOption(id: string) {
     setDeliveryOptions(prev => prev.filter(o => o.id !== id))
+    setDeliverySaved(false)
   }
 
   async function saveDeliveryOptions() {
@@ -97,8 +102,9 @@ export default function StoreManager({
     if (res.error) {
       setDeliveryError(res.error)
     } else {
+      setSavedDeliveryOptions(deliveryOptions)
       setDeliverySaved(true)
-      setTimeout(() => setDeliverySaved(false), 2500)
+      setTimeout(() => setDeliverySaved(false), 3000)
     }
     setSavingDelivery(false)
   }
@@ -164,39 +170,24 @@ export default function StoreManager({
 
       {/* Body */}
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-800">
-            Mis productos <span className="text-gray-400 font-normal text-base">({products.length})</span>
-          </h2>
-          <button
-            onClick={openAdd}
-            className="flex items-center gap-2 bg-green-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-800 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Agregar producto
-          </button>
-        </div>
 
-        {products.length === 0 && !showForm && (
-          <div className="text-center py-20 text-gray-400">
-            <p className="text-4xl mb-4">📦</p>
-            <p>Aún no tienes productos. Agrega el primero.</p>
+        {/* Delivery options — arriba, antes de productos */}
+        <div className={`bg-white rounded-xl border p-5 space-y-4 ${deliveryHasChanges ? "border-amber-300 shadow-amber-100 shadow-md" : "border-gray-200"}`}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-gray-800">Opciones de entrega</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Estas son las formas en que tus clientes podrán recibir sus pedidos.</p>
+            </div>
+            {deliverySaved && !deliveryHasChanges && (
+              <span className="shrink-0 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">✓ Cambios guardados</span>
+            )}
           </div>
-        )}
 
-        {/* Product list */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {products.map((p) => (
-            <ProductRow key={p.id} product={p} onEdit={openEdit} onDelete={handleDelete} />
-          ))}
-        </div>
-
-        {/* Delivery options */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-          <h2 className="text-lg font-bold text-gray-800">Opciones de entrega</h2>
-
+          {/* Lista de opciones actuales */}
           {deliveryOptions.length === 0 ? (
-            <p className="text-sm text-gray-400">No tienes opciones de entrega configuradas.</p>
+            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              Aún no tienes opciones de entrega. Tus clientes no podrán completar la compra sin al menos una.
+            </p>
           ) : (
             <div className="space-y-2">
               {deliveryOptions.map(opt => (
@@ -224,7 +215,7 @@ export default function StoreManager({
             </div>
           )}
 
-          {/* Add form */}
+          {/* Formulario agregar */}
           <div className="border-t border-gray-100 pt-4 space-y-3">
             <p className="text-sm font-semibold text-gray-700">Agregar opción</p>
             <input
@@ -247,42 +238,70 @@ export default function StoreManager({
                 />
               </div>
               <div className="flex rounded-lg overflow-hidden border border-gray-200 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setNewOptType("pickup")}
-                  className={`flex-1 py-2 font-medium transition-colors ${newOptType === "pickup" ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
-                >
+                <button type="button" onClick={() => setNewOptType("pickup")}
+                  className={`flex-1 py-2 font-medium transition-colors ${newOptType === "pickup" ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
                   Retiro
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setNewOptType("delivery")}
-                  className={`flex-1 py-2 font-medium transition-colors ${newOptType === "delivery" ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
-                >
+                <button type="button" onClick={() => setNewOptType("delivery")}
+                  className={`flex-1 py-2 font-medium transition-colors ${newOptType === "delivery" ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
                   Envío
                 </button>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={addDeliveryOption}
-              disabled={!newOptName.trim()}
-              className="flex items-center gap-1.5 text-sm font-semibold text-green-800 hover:text-green-900 disabled:text-gray-400 disabled:cursor-not-allowed"
-            >
+            <button type="button" onClick={addDeliveryOption} disabled={!newOptName.trim()}
+              className="flex items-center gap-1.5 text-sm font-semibold text-green-800 hover:text-green-900 disabled:text-gray-400 disabled:cursor-not-allowed">
               <Plus className="w-4 h-4" /> Agregar opción
             </button>
           </div>
 
-          {deliveryError && (
-            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{deliveryError}</p>
+          {/* Banner de cambios sin guardar + botón guardar */}
+          {deliveryHasChanges && (
+            <div className="border-t border-amber-200 pt-4 space-y-3">
+              <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
+                <span className="text-amber-500 text-base shrink-0">⚠️</span>
+                <p className="text-xs text-amber-800 font-medium">
+                  Tienes cambios sin guardar. Asegúrate de guardar para que tus clientes vean las opciones actualizadas.
+                </p>
+              </div>
+              {deliveryError && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{deliveryError}</p>
+              )}
+              <button
+                onClick={saveDeliveryOptions}
+                disabled={savingDelivery}
+                className="w-full py-3 bg-green-900 text-white rounded-xl font-bold hover:bg-green-800 transition-colors disabled:opacity-50 text-sm"
+              >
+                {savingDelivery ? "Guardando..." : "Guardar opciones de entrega"}
+              </button>
+            </div>
           )}
+        </div>
+
+        {/* Productos */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-gray-800">
+            Mis productos <span className="text-gray-400 font-normal text-base">({products.length})</span>
+          </h2>
           <button
-            onClick={saveDeliveryOptions}
-            disabled={savingDelivery}
-            className="w-full py-2.5 bg-green-900 text-white rounded-xl font-semibold hover:bg-green-800 transition-colors disabled:opacity-50 text-sm"
+            onClick={openAdd}
+            className="flex items-center gap-2 bg-green-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-800 transition-colors"
           >
-            {savingDelivery ? "Guardando..." : deliverySaved ? "✓ Guardado" : "Guardar opciones de entrega"}
+            <Plus className="w-4 h-4" />
+            Agregar producto
           </button>
+        </div>
+
+        {products.length === 0 && !showForm && (
+          <div className="text-center py-20 text-gray-400">
+            <p className="text-4xl mb-4">📦</p>
+            <p>Aún no tienes productos. Agrega el primero.</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {products.map((p) => (
+            <ProductRow key={p.id} product={p} onEdit={openEdit} onDelete={handleDelete} />
+          ))}
         </div>
       </div>
 
