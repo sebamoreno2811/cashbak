@@ -5,7 +5,7 @@ import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
 import { addProduct, updateProduct, deleteProduct, updateStoreDeliveryOptions } from "./actions"
-import { Pencil, Trash2, Plus, X, Truck, MapPin } from "lucide-react"
+import { Pencil, Trash2, Plus, X, Truck, MapPin, Package } from "lucide-react"
 import type { DeliveryOption } from "@/types/delivery"
 
 function selectVariedBets(bets: Bet[], maxCount = 4): Bet[] {
@@ -62,21 +62,31 @@ export default function StoreManager({
   const [products, setProducts] = useState<StoreProduct[]>(initialProducts)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<StoreProduct | null>(null)
+  const [activeTab, setActiveTab] = useState<"productos" | "entregas">("productos")
 
   // Delivery options state
   const [savedDeliveryOptions, setSavedDeliveryOptions] = useState<DeliveryOption[]>(store.delivery_options ?? [])
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>(store.delivery_options ?? [])
+  const [showAddOpt, setShowAddOpt] = useState(false)
   const [newOptName, setNewOptName] = useState("")
-  const [newOptPrice, setNewOptPrice] = useState("0")
-  const [newOptType, setNewOptType] = useState<"delivery" | "pickup">("pickup")
+  const [newOptPrice, setNewOptPrice] = useState("")
+  const [newOptType, setNewOptType] = useState<"delivery" | "pickup" | null>(null)
   const [savingDelivery, setSavingDelivery] = useState(false)
   const [deliveryError, setDeliveryError] = useState<string | null>(null)
   const [deliverySaved, setDeliverySaved] = useState(false)
+  const newOptNameRef = useRef<HTMLInputElement>(null)
 
   const deliveryHasChanges = JSON.stringify(deliveryOptions) !== JSON.stringify(savedDeliveryOptions)
 
-  function addDeliveryOption() {
-    if (!newOptName.trim()) return
+  function openAddOpt() {
+    setNewOptType(null)
+    setNewOptName("")
+    setNewOptPrice("")
+    setShowAddOpt(true)
+  }
+
+  function confirmAddOpt() {
+    if (!newOptName.trim() || !newOptType) return
     const opt: DeliveryOption = {
       id: Math.random().toString(36).slice(2) + Date.now().toString(36),
       name: newOptName.trim(),
@@ -85,9 +95,7 @@ export default function StoreManager({
     }
     setDeliveryOptions(prev => [...prev, opt])
     setDeliverySaved(false)
-    setNewOptName("")
-    setNewOptPrice("0")
-    setNewOptType("pickup")
+    setShowAddOpt(false)
   }
 
   function removeDeliveryOption(id: string) {
@@ -151,8 +159,8 @@ export default function StoreManager({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-green-900 text-white px-4 py-8">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
+      <div className="bg-green-900 text-white px-4 pt-8 pb-0">
+        <div className="max-w-4xl mx-auto flex items-center gap-4 pb-6">
           <div className="w-14 h-14 rounded-full bg-white overflow-hidden flex items-center justify-center shrink-0">
             {store.logo_url ? (
               <Image src={store.logo_url} alt={store.name} width={56} height={56} className="object-cover w-full h-full" />
@@ -166,143 +174,196 @@ export default function StoreManager({
             {store.description && <p className="text-green-200 text-sm mt-0.5 line-clamp-1">{store.description}</p>}
           </div>
         </div>
+
+        {/* Tabs */}
+        <div className="max-w-4xl mx-auto flex gap-1">
+          <button
+            onClick={() => setActiveTab("productos")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
+              activeTab === "productos"
+                ? "bg-gray-50 text-green-900"
+                : "text-green-200 hover:text-white hover:bg-green-800"
+            }`}
+          >
+            <Package className="w-4 h-4" />
+            Productos
+            <span className={`text-xs px-1.5 py-0.5 rounded-full font-normal ${activeTab === "productos" ? "bg-green-100 text-green-800" : "bg-green-800 text-green-200"}`}>
+              {products.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab("entregas")}
+            className={`relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
+              activeTab === "entregas"
+                ? "bg-gray-50 text-green-900"
+                : "text-green-200 hover:text-white hover:bg-green-800"
+            }`}
+          >
+            <Truck className="w-4 h-4" />
+            Entregas
+            {deliveryHasChanges && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-400 rounded-full" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Body */}
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
 
-        {/* Delivery options — arriba, antes de productos */}
-        <div className={`bg-white rounded-xl border p-5 space-y-4 ${deliveryHasChanges ? "border-amber-300 shadow-amber-100 shadow-md" : "border-gray-200"}`}>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-gray-800">Opciones de entrega</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Estas son las formas en que tus clientes podrán recibir sus pedidos.</p>
-            </div>
-            {deliverySaved && !deliveryHasChanges && (
-              <span className="shrink-0 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">✓ Cambios guardados</span>
-            )}
-          </div>
-
-          {/* Lista de opciones actuales */}
-          {deliveryOptions.length === 0 ? (
-            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              Aún no tienes opciones de entrega. Tus clientes no podrán completar la compra sin al menos una.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {deliveryOptions.map(opt => (
-                <div key={opt.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2.5 border border-gray-100">
-                  <div className="flex items-center gap-2.5">
-                    {opt.type === "delivery"
-                      ? <Truck className="w-4 h-4 text-gray-400 shrink-0" />
-                      : <MapPin className="w-4 h-4 text-gray-400 shrink-0" />}
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{opt.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {opt.type === "delivery" ? "Envío a domicilio" : "Retiro presencial"} · {opt.price > 0 ? `$${FMT(opt.price)}` : "Gratis"}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeDeliveryOption(opt.id)}
-                    className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Formulario agregar */}
-          <div className="border-t border-gray-100 pt-4 space-y-3">
-            <p className="text-sm font-semibold text-gray-700">Agregar opción</p>
-            <input
-              value={newOptName}
-              onChange={e => setNewOptName(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addDeliveryOption())}
-              placeholder="Ej: Retiro en tienda, Despacho Starken..."
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
-            />
-            <div className="grid grid-cols-2 gap-3">
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={newOptPrice}
-                  onChange={e => setNewOptPrice(e.target.value)}
-                  placeholder="0"
-                  className="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
-                />
-              </div>
-              <div className="flex rounded-lg overflow-hidden border border-gray-200 text-xs">
-                <button type="button" onClick={() => setNewOptType("pickup")}
-                  className={`flex-1 py-2 font-medium transition-colors ${newOptType === "pickup" ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
-                  Retiro
-                </button>
-                <button type="button" onClick={() => setNewOptType("delivery")}
-                  className={`flex-1 py-2 font-medium transition-colors ${newOptType === "delivery" ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
-                  Envío
-                </button>
-              </div>
-            </div>
-            <button type="button" onClick={addDeliveryOption} disabled={!newOptName.trim()}
-              className="flex items-center gap-1.5 text-sm font-semibold text-green-800 hover:text-green-900 disabled:text-gray-400 disabled:cursor-not-allowed">
-              <Plus className="w-4 h-4" /> Agregar opción
-            </button>
-          </div>
-
-          {/* Banner de cambios sin guardar + botón guardar */}
-          {deliveryHasChanges && (
-            <div className="border-t border-amber-200 pt-4 space-y-3">
-              <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
-                <span className="text-amber-500 text-base shrink-0">⚠️</span>
-                <p className="text-xs text-amber-800 font-medium">
-                  Tienes cambios sin guardar. Asegúrate de guardar para que tus clientes vean las opciones actualizadas.
-                </p>
-              </div>
-              {deliveryError && (
-                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{deliveryError}</p>
-              )}
+        {/* Tab: Productos */}
+        {activeTab === "productos" && (
+          <>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-800">
+                Mis productos <span className="text-gray-400 font-normal text-base">({products.length})</span>
+              </h2>
               <button
-                onClick={saveDeliveryOptions}
-                disabled={savingDelivery}
-                className="w-full py-3 bg-green-900 text-white rounded-xl font-bold hover:bg-green-800 transition-colors disabled:opacity-50 text-sm"
+                onClick={openAdd}
+                className="flex items-center gap-2 bg-green-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-800 transition-colors"
               >
-                {savingDelivery ? "Guardando..." : "Guardar opciones de entrega"}
+                <Plus className="w-4 h-4" />
+                Agregar producto
               </button>
             </div>
-          )}
-        </div>
-
-        {/* Productos */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-800">
-            Mis productos <span className="text-gray-400 font-normal text-base">({products.length})</span>
-          </h2>
-          <button
-            onClick={openAdd}
-            className="flex items-center gap-2 bg-green-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-800 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Agregar producto
-          </button>
-        </div>
-
-        {products.length === 0 && !showForm && (
-          <div className="text-center py-20 text-gray-400">
-            <p className="text-4xl mb-4">📦</p>
-            <p>Aún no tienes productos. Agrega el primero.</p>
-          </div>
+            {products.length === 0 && !showForm && (
+              <div className="text-center py-20 text-gray-400">
+                <p className="text-4xl mb-4">📦</p>
+                <p>Aún no tienes productos. Agrega el primero.</p>
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {products.map((p) => (
+                <ProductRow key={p.id} product={p} onEdit={openEdit} onDelete={handleDelete} />
+              ))}
+            </div>
+          </>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {products.map((p) => (
-            <ProductRow key={p.id} product={p} onEdit={openEdit} onDelete={handleDelete} />
-          ))}
-        </div>
+        {/* Tab: Entregas */}
+        {activeTab === "entregas" && (
+          <div className={`bg-white rounded-xl border p-5 space-y-4 ${deliveryHasChanges ? "border-amber-300 shadow-amber-100 shadow-md" : "border-gray-200"}`}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">Opciones de entrega</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Estas son las formas en que tus clientes podrán recibir sus pedidos.</p>
+              </div>
+              {deliverySaved && !deliveryHasChanges && (
+                <span className="shrink-0 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">✓ Cambios guardados</span>
+              )}
+            </div>
+
+            {/* Lista de opciones */}
+            {deliveryOptions.length === 0 && !showAddOpt ? (
+              <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
+                Sin opciones de entrega tus clientes no podrán finalizar una compra.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {deliveryOptions.map(opt => (
+                  <div key={opt.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2.5 border border-gray-100">
+                    <div className="flex items-center gap-2.5">
+                      {opt.type === "delivery"
+                        ? <Truck className="w-4 h-4 text-gray-400 shrink-0" />
+                        : <MapPin className="w-4 h-4 text-gray-400 shrink-0" />}
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{opt.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {opt.type === "delivery" ? "Envío a domicilio" : "Retiro presencial"} · {opt.price > 0 ? `$${FMT(opt.price)}` : "Gratis"}
+                        </p>
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => removeDeliveryOption(opt.id)}
+                      className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Formulario nueva opción */}
+            {showAddOpt ? (
+              <div className="border border-green-200 rounded-xl bg-green-50 p-4 space-y-4">
+                {/* Paso 1: tipo */}
+                <p className="text-sm font-semibold text-gray-700">¿Qué tipo de entrega es?</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button type="button" onClick={() => { setNewOptType("pickup"); setTimeout(() => newOptNameRef.current?.focus(), 50) }}
+                    className={`flex flex-col items-center gap-2 py-4 rounded-xl border-2 font-medium text-sm transition-all ${newOptType === "pickup" ? "border-green-700 bg-white text-green-900 shadow-sm" : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"}`}>
+                    <MapPin className="w-6 h-6" />
+                    Retiro presencial
+                  </button>
+                  <button type="button" onClick={() => { setNewOptType("delivery"); setTimeout(() => newOptNameRef.current?.focus(), 50) }}
+                    className={`flex flex-col items-center gap-2 py-4 rounded-xl border-2 font-medium text-sm transition-all ${newOptType === "delivery" ? "border-green-700 bg-white text-green-900 shadow-sm" : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"}`}>
+                    <Truck className="w-6 h-6" />
+                    Envío a domicilio
+                  </button>
+                </div>
+
+                {/* Paso 2: nombre y precio (aparece al elegir tipo) */}
+                {newOptType && (
+                  <div className="space-y-3 pt-1">
+                    <input
+                      ref={newOptNameRef}
+                      value={newOptName}
+                      onChange={e => setNewOptName(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && confirmAddOpt()}
+                      placeholder={newOptType === "pickup" ? "Ej: Retiro en tienda, Metro Baquedano..." : "Ej: Despacho Starken, Chilexpress..."}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
+                    />
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                        <input type="number" min="0" value={newOptPrice}
+                          onChange={e => setNewOptPrice(e.target.value)}
+                          placeholder="0 = gratis"
+                          className="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
+                        />
+                      </div>
+                      <span className="text-xs text-gray-400 shrink-0">Costo para el cliente</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button type="button" onClick={confirmAddOpt}
+                    disabled={!newOptName.trim() || !newOptType}
+                    className="flex-1 py-2.5 bg-green-900 text-white rounded-lg font-semibold text-sm hover:bg-green-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    Confirmar
+                  </button>
+                  <button type="button" onClick={() => setShowAddOpt(false)}
+                    className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button type="button" onClick={openAddOpt}
+                className="flex items-center gap-2 text-sm font-semibold text-green-800 hover:text-green-900 border border-dashed border-green-300 hover:border-green-500 rounded-lg px-4 py-2.5 w-full justify-center transition-colors bg-white">
+                <Plus className="w-4 h-4" /> Nueva opción de entrega
+              </button>
+            )}
+
+            {/* Guardar */}
+            {deliveryHasChanges && !showAddOpt && (
+              <div className="border-t border-amber-200 pt-4 space-y-3">
+                <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
+                  <span className="text-amber-500 text-base shrink-0">⚠️</span>
+                  <p className="text-xs text-amber-800 font-medium">
+                    Tienes cambios sin guardar. Guarda para que tus clientes vean las opciones actualizadas.
+                  </p>
+                </div>
+                {deliveryError && (
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{deliveryError}</p>
+                )}
+                <button onClick={saveDeliveryOptions} disabled={savingDelivery}
+                  className="w-full py-3 bg-green-900 text-white rounded-xl font-bold hover:bg-green-800 transition-colors disabled:opacity-50 text-sm">
+                  {savingDelivery ? "Guardando..." : "Guardar opciones de entrega"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Modal */}
