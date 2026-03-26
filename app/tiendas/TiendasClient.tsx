@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Search, X, Store } from "lucide-react"
+import { Search, X, ShoppingBag } from "lucide-react"
 
 interface StoreItem {
   id: string
@@ -154,7 +154,7 @@ function StoreCard({ store }: { store: StoreItem }) {
             />
           ) : (
             <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
-              <Store className="w-8 h-8 text-green-700" />
+              <ShoppingBag className="w-8 h-8 text-green-700" />
             </div>
           )}
         </div>
