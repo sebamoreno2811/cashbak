@@ -60,6 +60,7 @@ interface StoreProduct {
   cost: number
   margin_pct: number | null
   category_name: string | null
+  category_names: string[] | null
   description: string | null
   image: string | null
   images?: string[] | null
@@ -159,7 +160,7 @@ export default function StoreManager({
       const supabase = createClient()
       const { data } = await supabase
         .from("products")
-        .select("id, name, price, cost, margin_pct, category_name, description, image")
+        .select("id, name, price, cost, margin_pct, category_name, category_names, description, image")
         .eq("store_id", store.id)
         .order("id", { ascending: false })
       if (data) setProducts(data)
@@ -485,7 +486,11 @@ function ProductFormModal({
   const [name, setName] = useState(initial?.name ?? "")
   const [price, setPrice] = useState(initial?.price.toString() ?? "")
   const [cost, setCost] = useState(initial?.cost.toString() ?? "")
-  const [categoryName, setCategoryName] = useState(initial?.category_name ?? "")
+  const [categoryNames, setCategoryNames] = useState<string[]>(() => {
+    if (initial?.category_names?.length) return initial.category_names
+    if (initial?.category_name) return [initial.category_name]
+    return []
+  })
   const [description, setDescription] = useState(initial?.description ?? "")
   const calcularRecomendado = (p: number) => Math.max(0, Math.round(p - (0.25 * p / 1.5) / 0.80))
   const [gananciaCLP, setGananciaCLP] = useState<number>(() =>
@@ -645,7 +650,8 @@ function ProductFormModal({
       cost: costNum,
       margin_pct: priceNum > 0 ? gananciaCLP / priceNum : 0,
       net_margin: sim?.margenVendedor ?? 0,
-      category_name: categoryName,
+      category_name: categoryNames[0] ?? "",
+      category_names: categoryNames,
       description,
       image_url: imageUrl,
       images: finalImages,
@@ -669,6 +675,7 @@ function ProductFormModal({
       cost: payload.cost,
       margin_pct: payload.margin_pct,
       category_name: payload.category_name,
+      category_names: payload.category_names,
       description: payload.description || null,
       image: imageUrl,
       images: finalImages,
@@ -738,22 +745,35 @@ function ProductFormModal({
 
           {/* Categoría */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
-            <select
-              required
-              value={categoryName}
-              onChange={(e) => setCategoryName(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 bg-white"
-            >
-              <option value="">Selecciona una categoría</option>
-              {PRODUCT_CATEGORIES.map(({ group, items }) => (
-                <optgroup key={group} label={group}>
-                  {items.map(item => (
-                    <option key={item} value={item}>{item}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Categorías * <span className="text-gray-400 font-normal">(máx. 3)</span>
+            </label>
+            {categoryNames.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {categoryNames.map(cat => (
+                  <span key={cat} className="flex items-center gap-1 bg-green-900 text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                    {cat}
+                    <button type="button" onClick={() => setCategoryNames(categoryNames.filter(c => c !== cat))} className="hover:text-green-300 leading-none">×</button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {categoryNames.length < 3 && (
+              <select
+                value=""
+                onChange={(e) => { if (e.target.value && !categoryNames.includes(e.target.value)) setCategoryNames([...categoryNames, e.target.value]) }}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 bg-white"
+              >
+                <option value="">Agregar categoría...</option>
+                {PRODUCT_CATEGORIES.map(({ group, items }) => (
+                  <optgroup key={group} label={group}>
+                    {items.filter(item => !categoryNames.includes(item)).map(item => (
+                      <option key={item} value={item}>{item}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* Precio y Costo */}
@@ -971,7 +991,7 @@ function ProductFormModal({
 
           <button
             type="submit"
-            disabled={saving || !valid || !name.trim() || !categoryName.trim()}
+            disabled={saving || !valid || !name.trim() || categoryNames.length === 0}
             className="w-full py-3 bg-green-900 text-white rounded-xl font-semibold hover:bg-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {uploading ? "Subiendo imagen..." : saving ? "Guardando..." : initial ? "Guardar cambios" : "Agregar producto"}

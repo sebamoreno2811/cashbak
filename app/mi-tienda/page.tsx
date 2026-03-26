@@ -45,7 +45,7 @@ export default async function MiTiendaPage() {
 
   const { data: products } = await supabase
     .from("products")
-    .select("id, name, price, cost, margin_pct, category_name, description, image, stock")
+    .select("id, name, price, cost, margin_pct, category_name, category_names, description, image, stock")
     .eq("store_id", store.id)
     .order("id", { ascending: false })
 

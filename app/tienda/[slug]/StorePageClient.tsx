@@ -28,15 +28,22 @@ export default function StorePageClient({ store, products }: { store: Store; pro
 
   const selectedBet = bets.find(b => b.id === Number(selectedOption))
 
-  const categories = useMemo(() =>
-    Array.from(new Set(products.map(p => p.category_name).filter(Boolean))).sort() as string[],
-    [products]
-  )
+  const categories = useMemo(() => {
+    const cats = new Set<string>()
+    for (const p of products) {
+      const pCats = p.category_names?.length ? p.category_names : p.category_name ? [p.category_name] : []
+      for (const c of pCats) cats.add(c)
+    }
+    return Array.from(cats).sort()
+  }, [products])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return products.filter(p => {
-      if (categoryFilter && p.category_name !== categoryFilter) return false
+      if (categoryFilter) {
+        const pCats = p.category_names?.length ? p.category_names : p.category_name ? [p.category_name] : []
+        if (!pCats.includes(categoryFilter)) return false
+      }
       if (q && !p.name.toLowerCase().includes(q) && !p.category_name?.toLowerCase().includes(q)) return false
       return true
     })

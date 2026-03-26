@@ -10,6 +10,7 @@ export type Product = {
   images?: string[] | null
   category: number
   category_name: string | null
+  category_names: string[] | null
   brand: string | null
   stock: Record<string, number>
   video_url: string | null

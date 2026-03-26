@@ -21,6 +21,7 @@ export async function addProduct(formData: {
   margin_pct: number
   net_margin: number
   category_name: string
+  category_names: string[]
   description?: string
   image_url?: string | null
   images?: string[]
@@ -40,6 +41,7 @@ export async function addProduct(formData: {
     margin_pct: formData.margin_pct,
     net_margin: formData.net_margin,
     category_name: formData.category_name,
+    category_names: formData.category_names,
     description: formData.description?.trim() || null,
     image: formData.image_url || null,
     images: formData.images ?? [],
@@ -60,6 +62,7 @@ export async function updateProduct(productId: number, formData: {
   margin_pct: number
   net_margin: number
   category_name: string
+  category_names: string[]
   description?: string
   image_url?: string | null
   images?: string[]
@@ -80,6 +83,7 @@ export async function updateProduct(productId: number, formData: {
       margin_pct: formData.margin_pct,
       net_margin: formData.net_margin,
       category_name: formData.category_name,
+      category_names: formData.category_names,
       description: formData.description?.trim() || null,
       image: formData.image_url || null,
       images: formData.images ?? [],
