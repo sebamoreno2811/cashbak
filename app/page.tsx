@@ -206,9 +206,16 @@ function ProductCard({
             sizes="(max-width: 640px) 176px, 208px"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          {(selectedCashbak > 0 || maxCashbak > 0) && (
-            <div className="absolute top-2 left-2 bg-green-900/80 text-white text-xs font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
-              {selectedCashbak > 0 ? `${selectedCashbak}% CashBak` : `hasta ${maxCashbak}% CB`}
+          {maxCashbak > 0 && (
+            <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
+              <div className="bg-green-900/80 text-white text-xs font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                hasta {maxCashbak}% CashBak
+              </div>
+              {selectedCashbak > 0 && (
+                <div className="bg-emerald-500/90 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                  {selectedCashbak}% con evento seleccionado
+                </div>
+              )}
             </div>
           )}
         </div>
