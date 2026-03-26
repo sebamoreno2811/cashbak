@@ -20,6 +20,7 @@ interface Store {
   slug: string | null
   logo_url: string | null
   category: string | null
+  categories: string[] | null
 }
 
 export default function Home() {
@@ -32,7 +33,7 @@ export default function Home() {
   useEffect(() => {
     createClient()
       .from("stores")
-      .select("id, name, slug, logo_url, category")
+      .select("id, name, slug, logo_url, category, categories")
       .eq("status", "approved")
       .order("created_at", { ascending: true })
       .then(({ data }: { data: Store[] | null }) => { if (data) setStores(data) })
@@ -84,17 +85,28 @@ export default function Home() {
     return result
   }, [sorted])
 
-  // Categories for filter
-  const categories = useMemo(() =>
-    Array.from(new Set(sorted.map((p: Product) => p.category_name).filter(Boolean))).sort() as string[],
-    [sorted]
-  )
+  // Categories for filter — based on store categories
+  const categories = useMemo(() => {
+    const cats = new Set<string>()
+    for (const p of sorted) {
+      const store = p.store_id ? storeMap[p.store_id] : undefined
+      if (!store) continue
+      const storeCats = store.categories?.length ? store.categories : store.category ? [store.category] : []
+      for (const cat of storeCats) cats.add(cat)
+    }
+    return Array.from(cats).sort()
+  }, [sorted, storeMap])
 
-  // Grid products filtered by category
-  const gridProducts = useMemo(() =>
-    categoryFilter ? sorted.filter((p: Product) => p.category_name === categoryFilter) : sorted,
-    [sorted, categoryFilter]
-  )
+  // Grid products filtered by store category
+  const gridProducts = useMemo(() => {
+    if (!categoryFilter) return sorted
+    return sorted.filter((p: Product) => {
+      const store = p.store_id ? storeMap[p.store_id] : undefined
+      if (!store) return false
+      const storeCats = store.categories?.length ? store.categories : store.category ? [store.category] : []
+      return storeCats.includes(categoryFilter)
+    })
+  }, [sorted, categoryFilter, storeMap])
 
   return (
     <main className="min-h-screen bg-gray-50">
