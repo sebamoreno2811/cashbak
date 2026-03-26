@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createSupabaseClientWithCookies as createClient } from "@/utils/supabase/server"
 import AdminStoreActions from "./actions"
+import { AdminDeleteStore, AdminStoreProducts } from "./AdminDeleteActions"
 
 interface Store {
   id: string
@@ -121,6 +122,12 @@ function StoreCard({ store, showActions = false }: { store: Store; showActions?:
       )}
 
       {showActions && <AdminStoreActions storeId={store.id} />}
+
+      <AdminStoreProducts storeId={store.id} />
+
+      <div className="flex justify-end pt-1">
+        <AdminDeleteStore storeId={store.id} storeName={store.name} />
+      </div>
     </div>
   )
 }

@@ -70,6 +70,7 @@ export default function StoreManager({
   const [showAddOpt, setShowAddOpt] = useState(false)
   const [newOptName, setNewOptName] = useState("")
   const [newOptPrice, setNewOptPrice] = useState("")
+  const [newOptPriceTBD, setNewOptPriceTBD] = useState(false)
   const [newOptType, setNewOptType] = useState<"delivery" | "pickup" | null>(null)
   const [savingDelivery, setSavingDelivery] = useState(false)
   const [deliveryError, setDeliveryError] = useState<string | null>(null)
@@ -82,6 +83,7 @@ export default function StoreManager({
     setNewOptType(null)
     setNewOptName("")
     setNewOptPrice("")
+    setNewOptPriceTBD(false)
     setShowAddOpt(true)
   }
 
@@ -90,7 +92,8 @@ export default function StoreManager({
     const opt: DeliveryOption = {
       id: Math.random().toString(36).slice(2) + Date.now().toString(36),
       name: newOptName.trim(),
-      price: Math.max(0, Number(newOptPrice) || 0),
+      price: newOptPriceTBD ? 0 : Math.max(0, Number(newOptPrice) || 0),
+      priceTBD: newOptPriceTBD || undefined,
       type: newOptType,
     }
     setDeliveryOptions(prev => [...prev, opt])
@@ -269,7 +272,7 @@ export default function StoreManager({
                       <div>
                         <p className="text-sm font-medium text-gray-800">{opt.name}</p>
                         <p className="text-xs text-gray-500">
-                          {opt.type === "delivery" ? "Envío a domicilio" : "Retiro presencial"} · {opt.price > 0 ? `$${FMT(opt.price)}` : "Gratis"}
+                          {opt.type === "delivery" ? "Envío a domicilio" : "Retiro presencial"} · {opt.priceTBD ? "Por pagar" : opt.price > 0 ? `$${FMT(opt.price)}` : "Gratis"}
                         </p>
                       </div>
                     </div>
@@ -311,16 +314,32 @@ export default function StoreManager({
                       placeholder={newOptType === "pickup" ? "Ej: Retiro en tienda, Metro Baquedano..." : "Ej: Despacho Starken, Chilexpress..."}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
                     />
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                        <input type="number" min="0" value={newOptPrice}
-                          onChange={e => setNewOptPrice(e.target.value)}
-                          placeholder="0 = gratis"
-                          className="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
-                        />
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-gray-600">Costo para el cliente</p>
+                      <div className="flex rounded-lg overflow-hidden border border-gray-200 text-xs">
+                        <button type="button" onClick={() => setNewOptPriceTBD(false)}
+                          className={`flex-1 py-2 font-medium transition-colors ${!newOptPriceTBD ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+                          Monto fijo
+                        </button>
+                        <button type="button" onClick={() => setNewOptPriceTBD(true)}
+                          className={`flex-1 py-2 font-medium transition-colors ${newOptPriceTBD ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+                          Por pagar
+                        </button>
                       </div>
-                      <span className="text-xs text-gray-400 shrink-0">Costo para el cliente</span>
+                      {!newOptPriceTBD ? (
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                          <input type="number" min="0" value={newOptPrice}
+                            onChange={e => setNewOptPrice(e.target.value)}
+                            placeholder="0 = gratis"
+                            className="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
+                          />
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+                          El costo se coordina directamente con el cliente, no se suma al total de la compra.
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}

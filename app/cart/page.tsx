@@ -398,7 +398,7 @@ export default function CartPage() {
                         <div>
                           <p className="text-sm font-medium">{opt.name}</p>
                           <p className="text-xs text-gray-500">
-                            {opt.price > 0 ? `$${opt.price.toLocaleString("es-CL")}` : "Gratis"}
+                            {opt.priceTBD ? "Por pagar" : opt.price > 0 ? `$${opt.price.toLocaleString("es-CL")}` : "Gratis"}
                             {opt.type === "delivery" ? " · Requiere dirección de envío" : ""}
                           </p>
                         </div>
@@ -416,7 +416,7 @@ export default function CartPage() {
 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Envío</span>
-                  <span>{shippingCost > 0 ? `$${shippingCost.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : "Gratis"}</span>
+                  <span>{deliveryOption?.priceTBD ? "Por pagar" : shippingCost > 0 ? `$${shippingCost.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : "Gratis"}</span>
                 </div>
 
                 <div className="flex justify-between text-emerald-600">

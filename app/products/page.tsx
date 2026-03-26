@@ -244,14 +244,18 @@ function ProductCard({
             </div>
           )}
           {store && (
-            <div className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1">
+            <Link
+              href={`/tienda/${store.slug}`}
+              onClick={e => e.stopPropagation()}
+              className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 hover:bg-white transition-colors"
+            >
               {store.logo_url ? (
                 <Image src={store.logo_url} alt={store.name} width={14} height={14} className="rounded-full object-cover w-3.5 h-3.5" />
               ) : (
                 <span className="text-[10px]">🏪</span>
               )}
               <span className="text-[10px] font-semibold text-gray-700 leading-none">{store.name}</span>
-            </div>
+            </Link>
           )}
         </div>
 

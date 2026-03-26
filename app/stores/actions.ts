@@ -132,6 +132,39 @@ export async function approveStore(storeId: string) {
   return { success: true }
 }
 
+// Admin: eliminar tienda completa (y sus productos)
+export async function adminDeleteStore(storeId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "No autorizado" }
+  const { data: customer } = await supabase.from("customers").select("role").eq("id", user.id).single()
+  if (customer?.role !== "admin") return { error: "No autorizado" }
+
+  const { error: prodError } = await supabase.from("products").delete().eq("store_id", storeId)
+  if (prodError) return { error: prodError.message }
+
+  const { error } = await supabase.from("stores").delete().eq("id", storeId)
+  if (error) return { error: error.message }
+
+  revalidatePath("/admin/tiendas")
+  return { success: true }
+}
+
+// Admin: eliminar un producto de cualquier tienda
+export async function adminDeleteProduct(productId: number) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "No autorizado" }
+  const { data: customer } = await supabase.from("customers").select("role").eq("id", user.id).single()
+  if (customer?.role !== "admin") return { error: "No autorizado" }
+
+  const { error } = await supabase.from("products").delete().eq("id", productId)
+  if (error) return { error: error.message }
+
+  revalidatePath("/admin/tiendas")
+  return { success: true }
+}
+
 // Llamada cuando el admin rechaza
 export async function rejectStore(storeId: string, reason: string) {
   const supabase = await createClient()
