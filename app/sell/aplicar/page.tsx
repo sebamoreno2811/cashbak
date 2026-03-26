@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
 import { Input } from "@/components/ui/input"
@@ -20,11 +20,23 @@ const CATEGORIES = [
   "Belleza y cuidado personal",
   "Alimentación",
   "Juguetes y juegos",
+  "Videojuegos",
+  "Cartas y coleccionables",
+  "Música",
+  "Arte",
+  "Manualidades y artesanías",
   "Otro",
 ]
 
 export default function AplicarPage() {
   const router = useRouter()
+  const [authChecked, setAuthChecked] = useState<"loading" | "ok" | "no-auth">("loading")
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      setAuthChecked(user ? "ok" : "no-auth")
+    })
+  }, [])
 
   const [name, setName] = useState("")
   const [category, setCategory] = useState("")
@@ -63,6 +75,20 @@ export default function AplicarPage() {
 
     if (!user) {
       router.push("/login?redirect=/sell/aplicar")
+      return
+    }
+
+    // Verificar que el usuario no tenga ya una tienda
+    const { data: existing } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("owner_id", user.id)
+      .limit(1)
+      .maybeSingle()
+
+    if (existing) {
+      setError("Ya tienes una tienda registrada. Cada cuenta puede tener solo una tienda.")
+      setLoading(false)
       return
     }
 
@@ -120,6 +146,34 @@ export default function AplicarPage() {
     setSubmitted(true)
     setLoading(false)
   }
+
+  if (authChecked === "loading") return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="w-8 h-8 border-4 border-green-700 rounded-full border-t-transparent animate-spin" />
+    </div>
+  )
+
+  if (authChecked === "no-auth") return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 max-w-md w-full text-center">
+        <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5">
+          <span className="text-2xl">🏪</span>
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Necesitas una cuenta</h2>
+        <p className="text-gray-500 text-sm mb-6">
+          Crea una cuenta o inicia sesión para solicitar la apertura de tu tienda en CashBak.
+        </p>
+        <div className="flex flex-col gap-3">
+          <Link href="/login" className="w-full py-2.5 bg-green-900 text-white rounded-xl font-semibold text-sm hover:bg-green-800 transition-colors">
+            Iniciar sesión
+          </Link>
+          <Link href="/signup" className="w-full py-2.5 border border-gray-200 text-gray-700 rounded-xl font-semibold text-sm hover:border-gray-400 transition-colors">
+            Crear cuenta
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
 
   if (submitted) {
     return (

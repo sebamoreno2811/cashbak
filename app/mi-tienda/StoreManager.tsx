@@ -169,7 +169,7 @@ export default function StoreManager({
             {store.logo_url ? (
               <Image src={store.logo_url} alt={store.name} width={56} height={56} className="object-cover w-full h-full" />
             ) : (
-              <span className="text-2xl">🏪</span>
+              <Image src="/img/logo.png" alt="CashBak" width={56} height={56} className="object-contain w-10 h-10" />
             )}
           </div>
           <div>

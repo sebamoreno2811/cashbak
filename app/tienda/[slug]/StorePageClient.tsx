@@ -50,7 +50,7 @@ export default function StorePageClient({ store, products }: { store: Store; pro
             {store.logo_url ? (
               <Image src={store.logo_url} alt={store.name} width={64} height={64} className="object-cover w-full h-full" />
             ) : (
-              <span className="text-3xl">🏪</span>
+              <Image src="/img/logo.png" alt="CashBak" width={64} height={64} className="object-contain w-12 h-12" />
             )}
           </div>
           <div>

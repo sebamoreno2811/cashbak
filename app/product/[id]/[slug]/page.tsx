@@ -17,6 +17,7 @@ import { useBets } from "@/context/bet-context"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
+import Link from "next/link"
 import { createClient } from "@/utils/supabase/client"
 import useSupabaseUser from "@/hooks/use-supabase-user"
 import { useComments } from "@/context/comment-context"
@@ -57,6 +58,7 @@ export default function ProductPage() {
   const defaultSize = isSingleSize ? "Única" : (["S","M","L","XL"].find(s => (product?.stock?.[s] ?? 0) > 0) ?? "L")
   const [size, setSize] = useState<string>(defaultSize)
   const { bets } = useBets()
+  const [store, setStore] = useState<{ id: string; name: string; slug: string | null; logo_url: string | null } | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [commentError, setCommentError] = useState<string | null>(null)
   const { comments, loading: commentsLoading, refreshComments } = useComments()
@@ -85,6 +87,14 @@ export default function ProductPage() {
         const keys = Object.keys(foundProduct.stock ?? {})
         const single = keys.length === 1 && keys[0] === "Única"
         setSize(single ? "Única" : (["S","M","L","XL"].find(s => (foundProduct.stock?.[s] ?? 0) > 0) ?? "L"))
+        if (foundProduct.store_id) {
+          createClient()
+            .from("stores")
+            .select("id, name, slug, logo_url")
+            .eq("id", foundProduct.store_id)
+            .single()
+            .then(({ data }) => { if (data) setStore(data) })
+        }
       }
     }
   }, [params.id, products, loading])
@@ -292,6 +302,18 @@ export default function ProductPage() {
         })()}
 
         <div className="p-6 bg-white rounded-lg shadow-lg">
+          {store && (
+            <Link
+              href={`/tienda/${store.slug ?? store.id}`}
+              className="inline-flex items-center gap-2 mb-3 text-sm font-semibold text-green-800 hover:text-green-600 transition-colors"
+            >
+              {store.logo_url && (
+                <Image src={store.logo_url} alt={store.name} width={20} height={20} className="rounded-full object-cover w-5 h-5" />
+              )}
+              {store.name}
+              <span className="text-gray-400">→</span>
+            </Link>
+          )}
           <h1 className="mb-4 text-3xl font-bold">{product.name}</h1>
           <p className="mb-6 text-xl font-semibold">
             ${ (product.price + (hasPrint ? 2990 : 0)).toLocaleString("es-CL", { maximumFractionDigits: 0 }) }

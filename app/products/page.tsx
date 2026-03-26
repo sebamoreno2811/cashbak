@@ -259,7 +259,7 @@ function ProductCard({
               {store.logo_url ? (
                 <Image src={store.logo_url} alt={store.name} width={14} height={14} className="rounded-full object-cover w-3.5 h-3.5" />
               ) : (
-                <span className="text-[10px]">🏪</span>
+                <Image src="/img/logo.png" alt="CashBak" width={14} height={14} className="rounded-full object-contain w-3.5 h-3.5" />
               )}
               <span className="text-[10px] font-semibold text-gray-700 leading-none">{store.name}</span>
             </Link>
