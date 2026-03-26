@@ -16,7 +16,7 @@ export default async function TiendasPage() {
     .select("store_id")
 
   const productCount: Record<string, number> = {}
-  for (const row of counts ?? []) {
+  for (const row of (counts ?? []) as { store_id: string | null }[]) {
     if (row.store_id) productCount[row.store_id] = (productCount[row.store_id] ?? 0) + 1
   }
 
