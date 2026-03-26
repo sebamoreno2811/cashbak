@@ -16,6 +16,7 @@ interface Store {
   slug: string
   description: string | null
   category: string | null
+  categories: string[] | null
   logo_url: string | null
 }
 
@@ -55,9 +56,9 @@ export default function StorePageClient({ store, products }: { store: Store; pro
           </div>
           <div>
             <h1 className="text-2xl font-bold">{store.name}</h1>
-            {store.category && (
-              <span className="inline-block text-xs bg-white/20 text-green-100 px-2.5 py-0.5 rounded-full mt-1">{store.category}</span>
-            )}
+            {(store.categories?.length ? store.categories : store.category ? [store.category] : []).map(cat => (
+              <span key={cat} className="inline-block text-xs bg-white/20 text-green-100 px-2.5 py-0.5 rounded-full mt-1 mr-1">{cat}</span>
+            ))}
             {store.description && (
               <p className="text-green-200 text-sm mt-1.5 max-w-xl">{store.description}</p>
             )}

@@ -9,6 +9,7 @@ interface Store {
   slug: string
   description: string | null
   category: string | null
+  categories: string[] | null
   logo_url: string | null
 }
 
@@ -19,7 +20,7 @@ export default async function TiendaPage({ params }: { params: Promise<{ slug: s
   // Buscar por slug primero, si no existe buscar por id (para tiendas sin slug)
   let { data: store } = await supabase
     .from("stores")
-    .select("id, name, slug, description, category, logo_url")
+    .select("id, name, slug, description, category, categories, logo_url")
     .eq("slug", slug)
     .eq("status", "approved")
     .maybeSingle()
@@ -27,7 +28,7 @@ export default async function TiendaPage({ params }: { params: Promise<{ slug: s
   if (!store) {
     const { data: byId } = await supabase
       .from("stores")
-      .select("id, name, slug, description, category, logo_url")
+      .select("id, name, slug, description, category, categories, logo_url")
       .eq("id", slug)
       .eq("status", "approved")
       .maybeSingle()

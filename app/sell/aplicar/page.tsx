@@ -39,7 +39,7 @@ export default function AplicarPage() {
   }, [])
 
   const [name, setName] = useState("")
-  const [category, setCategory] = useState("")
+  const [categories, setCategories] = useState<string[]>([])
   const [description, setDescription] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
@@ -114,7 +114,8 @@ export default function AplicarPage() {
     const { error: insertError } = await supabase.from("stores").insert({
       owner_id: user.id,
       name: name.trim(),
-      category: category || null,
+      category: categories[0] || null,
+      categories: categories.length > 0 ? categories : null,
       description: description.trim() || null,
       email: email.trim() || null,
       whatsapp: phone.trim() || null,
@@ -233,19 +234,37 @@ export default function AplicarPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Categoría *</Label>
-                <select
-                  id="category"
-                  required
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
-                >
-                  <option value="">Selecciona una categoría</option>
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                <Label>Categorías * <span className="text-gray-400 font-normal">(máx. 3)</span></Label>
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORIES.map((c) => {
+                    const selected = categories.includes(c)
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => {
+                          if (selected) {
+                            setCategories(categories.filter(x => x !== c))
+                          } else if (categories.length < 3) {
+                            setCategories([...categories, c])
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                          selected
+                            ? "bg-green-900 text-white border-green-900"
+                            : categories.length >= 3
+                            ? "border-gray-200 text-gray-300 bg-white cursor-not-allowed"
+                            : "border-gray-300 text-gray-600 bg-white hover:border-green-700 hover:text-green-800"
+                        }`}
+                      >
+                        {c}
+                      </button>
+                    )
+                  })}
+                </div>
+                {categories.length === 0 && (
+                  <p className="text-xs text-gray-400">Selecciona al menos una categoría</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -387,7 +406,7 @@ export default function AplicarPage() {
 
           <button
             type="submit"
-            disabled={loading || !name.trim() || !category || !email.trim() || !phone.trim()}
+            disabled={loading || !name.trim() || categories.length === 0 || !email.trim() || !phone.trim()}
             className="w-full py-3 bg-green-900 text-white rounded-md font-semibold hover:bg-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Enviando..." : "Enviar solicitud"}

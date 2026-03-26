@@ -32,9 +32,26 @@ interface Store {
   name: string
   description: string | null
   category: string | null
+  categories: string[] | null
   logo_url: string | null
   delivery_options: DeliveryOption[] | null
 }
+
+const PRODUCT_CATEGORIES: { group: string; items: string[] }[] = [
+  { group: "Ropa y accesorios", items: ["Poleras y camisas", "Pantalones y jeans", "Vestidos y faldas", "Chaquetas y abrigos", "Ropa interior y pijamas", "Bolsos y carteras", "Cinturones y billeteras", "Gorros y sombreros", "Bufandas y guantes"] },
+  { group: "Calzado", items: ["Zapatillas", "Zapatos", "Botas y botines", "Sandalias y ojotas"] },
+  { group: "Tecnología", items: ["Celulares y smartphones", "Computadores y laptops", "Tablets", "Audífonos y parlantes", "Accesorios tech", "Smartwatches"] },
+  { group: "Relojes y joyería", items: ["Relojes", "Anillos y pulseras", "Collares y cadenas", "Aretes y aros"] },
+  { group: "Deportes", items: ["Ropa deportiva", "Calzado deportivo", "Equipamiento deportivo", "Suplementos deportivos"] },
+  { group: "Hogar y decoración", items: ["Muebles", "Decoración", "Utensilios de cocina", "Iluminación", "Ropa de cama y baño"] },
+  { group: "Belleza y cuidado personal", items: ["Maquillaje", "Skincare", "Perfumes y colonias", "Cuidado del cabello", "Cuidado corporal"] },
+  { group: "Alimentación", items: ["Snacks y dulces", "Bebidas", "Alimentos saludables"] },
+  { group: "Juguetes y juegos", items: ["Juguetes para niños", "Juegos de mesa", "Puzzles"] },
+  { group: "Videojuegos", items: ["Consolas", "Juegos físicos", "Accesorios gaming", "Merchandising gaming"] },
+  { group: "Cartas y coleccionables", items: ["Cartas TCG", "Figuras y coleccionables", "Cómics y manga"] },
+  { group: "Música", items: ["Instrumentos", "Accesorios musicales", "Vinilos y CDs"] },
+  { group: "Arte y manualidades", items: ["Pinturas y lienzos", "Lápices y marcadores", "Acuarelas y gouache", "Materiales de modelado", "Artesanías", "Fotografía", "Papelería creativa"] },
+]
 
 interface StoreProduct {
   id: number
@@ -174,7 +191,13 @@ export default function StoreManager({
           </div>
           <div>
             <h1 className="text-2xl font-bold">{store.name}</h1>
-            {store.category && <p className="text-green-300 text-sm">{store.category}</p>}
+            {(store.categories?.length ? store.categories : store.category ? [store.category] : []).length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-0.5">
+                {(store.categories?.length ? store.categories : store.category ? [store.category] : []).map(cat => (
+                  <span key={cat} className="text-xs bg-white/20 text-green-100 px-2 py-0.5 rounded-full">{cat}</span>
+                ))}
+              </div>
+            )}
             {store.description && <p className="text-green-200 text-sm mt-0.5 line-clamp-1">{store.description}</p>}
           </div>
         </div>
@@ -716,13 +739,21 @@ function ProductFormModal({
           {/* Categoría */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
-            <input
+            <select
               required
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
-              placeholder="Ej: Camisetas, Calzado, Accesorios..."
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
-            />
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 bg-white"
+            >
+              <option value="">Selecciona una categoría</option>
+              {PRODUCT_CATEGORIES.map(({ group, items }) => (
+                <optgroup key={group} label={group}>
+                  {items.map(item => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
           </div>
 
           {/* Precio y Costo */}
