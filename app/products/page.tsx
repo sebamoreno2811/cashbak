@@ -238,9 +238,9 @@ function ProductCard({
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          {maxCashbak > 0 && (
+          {(selectedCashbak ?? maxCashbak) > 0 && (
             <div className="absolute top-2 right-2 bg-green-900/80 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-lg">
-              hasta {maxCashbak}% CB
+              {selectedCashbak != null ? `${selectedCashbak}% CashBak` : `hasta ${maxCashbak}% CB`}
             </div>
           )}
           {store && (
@@ -262,11 +262,8 @@ function ProductCard({
         <div className="p-3 flex flex-col flex-1">
           <p className="text-xs text-gray-400 mb-0.5">{product.category_name}</p>
           <h3 className="text-sm font-semibold text-gray-800 leading-snug line-clamp-2 flex-1">{product.name}</h3>
-          <div className="mt-2 flex items-end justify-between">
+          <div className="mt-2">
             <span className="font-bold text-gray-900">${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
-            {selectedCashbak !== null && selectedCashbak > 0 && (
-              <span className="text-xs font-semibold text-emerald-600">{selectedCashbak}% CB</span>
-            )}
           </div>
         </div>
       </div>

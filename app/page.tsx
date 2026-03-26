@@ -206,9 +206,9 @@ function ProductCard({
             sizes="(max-width: 640px) 176px, 208px"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          {maxCashbak > 0 && (
-            <div className="absolute top-2 left-2 bg-green-900/60 text-white/90 text-xs font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
-              hasta {maxCashbak}% CashBak
+          {(selectedCashbak > 0 || maxCashbak > 0) && (
+            <div className="absolute top-2 left-2 bg-green-900/80 text-white text-xs font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
+              {selectedCashbak > 0 ? `${selectedCashbak}% CashBak` : `hasta ${maxCashbak}% CB`}
             </div>
           )}
         </div>
@@ -217,12 +217,6 @@ function ProductCard({
           <p className="text-sm font-bold text-gray-900 mt-1.5">
             ${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}
           </p>
-          {selectedCashbak > 0 && (
-            <div className="mt-1.5 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-              <span className="text-xs font-semibold text-emerald-700">{selectedCashbak}% con evento seleccionado</span>
-            </div>
-          )}
         </div>
       </div>
     </Link>
