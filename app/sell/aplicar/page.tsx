@@ -33,8 +33,8 @@ export default function AplicarPage() {
   const [authChecked, setAuthChecked] = useState<"loading" | "ok" | "no-auth">("loading")
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data: { user } }) => {
-      setAuthChecked(user ? "ok" : "no-auth")
+    createClient().auth.getUser().then(({ data }: { data: { user: import("@supabase/supabase-js").User | null } }) => {
+      setAuthChecked(data.user ? "ok" : "no-auth")
     })
   }, [])
 
