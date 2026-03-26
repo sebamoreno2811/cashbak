@@ -23,6 +23,7 @@ export async function addProduct(formData: {
   category_name: string
   description?: string
   image_url?: string | null
+  images?: string[]
   stock: Record<string, number>
 }) {
   const supabase = await createClient()
@@ -41,6 +42,7 @@ export async function addProduct(formData: {
     category_name: formData.category_name,
     description: formData.description?.trim() || null,
     image: formData.image_url || null,
+    images: formData.images ?? [],
     store_id: store.id,
     category: 1,
     stock: formData.stock,
@@ -60,6 +62,7 @@ export async function updateProduct(productId: number, formData: {
   category_name: string
   description?: string
   image_url?: string | null
+  images?: string[]
   stock: Record<string, number>
 }) {
   const supabase = await createClient()
@@ -79,6 +82,7 @@ export async function updateProduct(productId: number, formData: {
       category_name: formData.category_name,
       description: formData.description?.trim() || null,
       image: formData.image_url || null,
+      images: formData.images ?? [],
       stock: formData.stock,
     })
     .eq("id", productId)

@@ -45,6 +45,7 @@ interface StoreProduct {
   category_name: string | null
   description: string | null
   image: string | null
+  images?: string[] | null
   stock: Record<string, number> | null
 }
 
@@ -482,8 +483,11 @@ function ProductFormModal({
   const [stockSingle, setStockSingle] = useState<number>(() =>
     initial?.stock?.["Única"] ?? 0
   )
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(initial?.image ?? null)
+  // Multi-image: lista de {url: string (existente o objectURL), file: File|null}
+  const [imageSlots, setImageSlots] = useState<{ url: string; file: File | null }[]>(() => {
+    const existing: string[] = initial?.images?.length ? initial.images : initial?.image ? [initial.image] : []
+    return existing.map(url => ({ url, file: null }))
+  })
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -559,15 +563,20 @@ function ProductFormModal({
   }, [priceNum, costNum, gananciaCLP, cuota, valid])
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > 5 * 1024 * 1024) {
-      setError("La imagen no puede superar los 5 MB.")
-      return
+    const files = Array.from(e.target.files ?? [])
+    if (!files.length) return
+    const remaining = 4 - imageSlots.length
+    const toAdd = files.slice(0, remaining)
+    for (const file of toAdd) {
+      if (file.size > 5 * 1024 * 1024) { setError("Cada imagen no puede superar los 5 MB."); return }
     }
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
+    setImageSlots(prev => [...prev, ...toAdd.map(f => ({ url: URL.createObjectURL(f), file: f }))])
     setError(null)
+    e.target.value = ""
+  }
+
+  function removeImageSlot(index: number) {
+    setImageSlots(prev => prev.filter((_, i) => i !== index))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -577,27 +586,25 @@ function ProductFormModal({
     setError(null)
 
     const supabase = createClient()
-    let imageUrl: string | null = initial?.image ?? null
 
-    if (imageFile) {
-      setUploading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      const ext = imageFile.name.split(".").pop()
-      const path = `${storeId}/${Date.now()}.${ext}`
-      const { error: upErr } = await supabase.storage
-        .from("product-images")
-        .upload(path, imageFile, { upsert: true })
+    // Subir imágenes nuevas (file !== null), conservar URLs existentes
+    setUploading(true)
+    const finalImages: string[] = []
+    for (const slot of imageSlots) {
+      if (!slot.file) { finalImages.push(slot.url); continue }
+      const ext = slot.file.name.split(".").pop()
+      const path = `${storeId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error: upErr } = await supabase.storage.from("product-images").upload(path, slot.file, { upsert: true })
       if (upErr) {
-        console.error("Storage error:", upErr)
-        setError(`Error al subir la imagen: ${upErr.message}`)
+        setError(`Error al subir imagen: ${upErr.message}`)
         setUploading(false)
         setSaving(false)
         return
       }
-      const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path)
-      imageUrl = urlData.publicUrl
-      setUploading(false)
+      finalImages.push(supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl)
     }
+    setUploading(false)
+    const imageUrl = finalImages[0] ?? null
 
     const stockPayload: Record<string, number> = stockMode === "sizes"
       ? { S: stockSizes.S, M: stockSizes.M, L: stockSizes.L, XL: stockSizes.XL }
@@ -618,6 +625,7 @@ function ProductFormModal({
       category_name: categoryName,
       description,
       image_url: imageUrl,
+      images: finalImages,
       stock: stockPayload,
     }
 
@@ -640,6 +648,7 @@ function ProductFormModal({
       category_name: payload.category_name,
       description: payload.description || null,
       image: imageUrl,
+      images: finalImages,
       stock: stockPayload,
     })
     setSaving(false)
@@ -657,26 +666,38 @@ function ProductFormModal({
         </div>
 
         <form onSubmit={handleSubmit} className="px-5 py-5 space-y-5">
-          {/* Imagen */}
+          {/* Imágenes (máx 4) */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Foto del producto</label>
-            <div
-              onClick={() => fileRef.current?.click()}
-              className="cursor-pointer border-2 border-dashed border-gray-200 rounded-xl p-4 flex items-center gap-4 hover:border-green-600 transition-colors"
-            >
-              <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
-                {imagePreview ? (
-                  <Image src={imagePreview} alt="" width={64} height={64} className="object-cover w-full h-full" />
-                ) : (
-                  <span className="text-2xl">📷</span>
-                )}
-              </div>
-              <p className="text-sm text-gray-500">
-                {imagePreview ? "Haz clic para cambiar" : "Subir foto"}<br />
-                <span className="text-xs text-gray-400">PNG, JPG · Máx 5 MB</span>
-              </p>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Fotos del producto <span className="text-gray-400 font-normal">({imageSlots.length}/4)</span>
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {imageSlots.map((slot, i) => (
+                <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+                  <Image src={slot.url} alt="" fill className="object-cover" sizes="96px" />
+                  <button
+                    type="button"
+                    onClick={() => removeImageSlot(i)}
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                  {i === 0 && <span className="absolute bottom-1 left-1 text-[9px] font-bold bg-green-800 text-white px-1.5 py-0.5 rounded">Principal</span>}
+                </div>
+              ))}
+              {imageSlots.length < 4 && (
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="aspect-square rounded-xl border-2 border-dashed border-gray-200 hover:border-green-600 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-green-700 transition-colors"
+                >
+                  <span className="text-xl">📷</span>
+                  <span className="text-[10px] font-medium">Agregar</span>
+                </button>
+              )}
             </div>
-            <input ref={fileRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+            <p className="text-xs text-gray-400 mt-1.5">PNG, JPG · Máx 5 MB por foto · La primera foto es la principal</p>
+            <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
           </div>
 
           {/* Nombre */}

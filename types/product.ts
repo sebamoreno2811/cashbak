@@ -7,6 +7,7 @@ export type Product = {
   cost: number
   description: string | null
   image: string | null
+  images?: string[] | null
   category: number
   category_name: string | null
   brand: string | null

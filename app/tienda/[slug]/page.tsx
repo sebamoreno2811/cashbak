@@ -16,12 +16,23 @@ export default async function TiendaPage({ params }: { params: Promise<{ slug: s
   const { slug } = await params
   const supabase = await createClient()
 
-  const { data: store } = await supabase
+  // Buscar por slug primero, si no existe buscar por id (para tiendas sin slug)
+  let { data: store } = await supabase
     .from("stores")
     .select("id, name, slug, description, category, logo_url")
     .eq("slug", slug)
     .eq("status", "approved")
-    .single()
+    .maybeSingle()
+
+  if (!store) {
+    const { data: byId } = await supabase
+      .from("stores")
+      .select("id, name, slug, description, category, logo_url")
+      .eq("id", slug)
+      .eq("status", "approved")
+      .maybeSingle()
+    store = byId
+  }
 
   if (!store) notFound()
 

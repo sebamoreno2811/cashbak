@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { calculateProductCashbak } from "@/lib/cashbak-calculator"
 import { useBetOption } from "@/hooks/use-bet-option"
 import { useCart } from "@/hooks/use-cart"
-import { ArrowLeft, ShoppingCart, Check } from "lucide-react"
+import { ArrowLeft, ShoppingCart, Check, ChevronLeft, ChevronRight } from "lucide-react"
 import BetSelector from "@/components/bet-selector"
 import { toast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -49,6 +49,7 @@ export default function ProductPage() {
   const [cashbak, setcashbak] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
+  const [imgIndex, setImgIndex] = useState(0)
   const [hasPrint, setHasPrint] = useState(false)
   const stockKeys = product ? Object.keys(product.stock ?? {}) : []
   const isSingleSize = stockKeys.length === 1 && stockKeys[0] === "Única"
@@ -255,16 +256,40 @@ export default function ProductPage() {
       </Button>
 
       <div className="grid gap-8 md:grid-cols-2">
-        <div className="relative overflow-hidden bg-white rounded-lg shadow-lg aspect-square">
-          <Image
-            src={product.image || "/placeholder.svg"}
-            alt={product.name}
-            fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover"
-            priority
-          />
-        </div>
+        {/* Galería con slider */}
+        {(() => {
+          const imgs = product.images?.length ? product.images : product.image ? [product.image] : ["/placeholder.svg"]
+          const current = imgs[imgIndex] ?? "/placeholder.svg"
+          return (
+            <div className="space-y-2">
+              <div className="relative overflow-hidden bg-white rounded-lg shadow-lg aspect-square">
+                <Image src={current} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" priority />
+                {imgs.length > 1 && (
+                  <>
+                    <button onClick={() => setImgIndex(i => (i - 1 + imgs.length) % imgs.length)}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors">
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button onClick={() => setImgIndex(i => (i + 1) % imgs.length)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors">
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+              </div>
+              {imgs.length > 1 && (
+                <div className="flex gap-2">
+                  {imgs.map((img, i) => (
+                    <button key={i} onClick={() => setImgIndex(i)}
+                      className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors shrink-0 ${i === imgIndex ? "border-green-700" : "border-transparent"}`}>
+                      <Image src={img} alt="" fill className="object-cover" sizes="64px" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         <div className="p-6 bg-white rounded-lg shadow-lg">
           <h1 className="mb-4 text-3xl font-bold">{product.name}</h1>

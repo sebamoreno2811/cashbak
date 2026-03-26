@@ -245,7 +245,7 @@ function ProductCard({
           )}
           {store && (
             <Link
-              href={`/tienda/${store.slug}`}
+              href={`/tienda/${store.slug ?? store.id}`}
               onClick={e => e.stopPropagation()}
               className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 hover:bg-white transition-colors"
             >

@@ -121,7 +121,8 @@ function StoreSection({
   selectedOption: string
 }) {
   const isCashbak = store.slug === "cashbak"
-  const href = isCashbak ? "/products" : `/tienda/${store.slug}`
+  const storeIdentifier = store.slug ?? store.id
+  const href = isCashbak ? "/products" : `/tienda/${storeIdentifier}`
 
   return (
     <section>
