@@ -93,7 +93,7 @@ export default function ProductPage() {
             .select("id, name, slug, logo_url")
             .eq("id", foundProduct.store_id)
             .single()
-            .then(({ data }) => { if (data) setStore(data) })
+            .then(({ data }: { data: { id: string; name: string; slug: string | null; logo_url: string | null } | null }) => { if (data) setStore(data) })
         }
       }
     }
