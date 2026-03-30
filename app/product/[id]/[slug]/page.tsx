@@ -107,7 +107,11 @@ export default function ProductPage() {
   }, [product, selectedOption, products])
 
   const availableStock = product?.stock?.[size] ?? 0
-  const maxQuantity = Math.min(10, availableStock)
+  const currentQuantityInCart = items
+    .filter(item => item.productId === product?.id && item.size === size)
+    .reduce((sum, item) => sum + item.quantity, 0)
+  const remainingToAdd = Math.max(availableStock - currentQuantityInCart, 0)
+  const maxQuantity = Math.min(10, remainingToAdd)
   const quantityOptions = Array.from({ length: maxQuantity }, (_, i) => i + 1)
   const outOfStock = availableStock <= 0
 
@@ -115,7 +119,7 @@ export default function ProductPage() {
     if (quantity > maxQuantity) {
       setQuantity(maxQuantity > 0 ? maxQuantity : 1)
     }
-  }, [size, availableStock, maxQuantity])
+  }, [size, availableStock, currentQuantityInCart, maxQuantity])
 
   const handleOptionChange = (value: string) => {
     setSelectedOption(value)
@@ -128,10 +132,12 @@ export default function ProductPage() {
   const handleAddToCart = () => {
     if (!product) return
 
-    if (quantity > availableStock) {
+    if (quantity > remainingToAdd) {
       toast({
         title: "Stock insuficiente",
-        description: `Solo hay ${availableStock} unidad(es) disponibles en talla ${size}.`,
+        description: remainingToAdd === 0
+          ? `Ya tienes todo el stock disponible de esta talla en tu carrito.`
+          : `Solo puedes agregar ${remainingToAdd} unidad(es) más en talla ${size}.`,
         variant: "destructive",
       })
       return
