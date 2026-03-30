@@ -13,8 +13,6 @@ const DEFAULT_DELIVERY_OPTIONS: DeliveryOption[] = [
   { id: "metro-tobalaba", name: "Retiro Metro Tobalaba", price: 0, type: "pickup" },
   { id: "metro-fcastillo", name: "Retiro Metro Fernando Castillo Velasco", price: 0, type: "pickup" },
 ]
-import { useBankAccount } from "@/hooks/use-bank-accounts"
-import BankAccountForm from "@/components/bank-form"
 import { createClient } from "@/utils/supabase/client"
 
 interface StoreInfo { id: string; name: string; logo_url: string | null; delivery_options: DeliveryOption[] | null }
@@ -58,14 +56,11 @@ export default function CartPage() {
   const { user, loading: loadingUser } = useSupabaseUser()
   const { bets, loading: loadingBets } = useBets()
   
-  const { hasBankAccount, loading: loadingBank } = useBankAccount()
   const [storeInfoMap, setStoreInfoMap] = useState<Record<string, StoreInfo>>({})
   const [loadingStores, setLoadingStores] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [requiresAddress, setRequiresAddress] = useState(false)
-  const [requiresBankAccount, setRequiresBankAccount] = useState(false)
   const [invalidBets, setInvalidBets] = useState<string[]>([])
-  const [isBankModalOpen, setIsBankModalOpen] = useState(false)
 
 
   const { hasShippingDetails } = useShipping()
@@ -133,12 +128,6 @@ export default function CartPage() {
       return
     }
 
-    if (!hasBankAccount) {
-      setRequiresBankAccount(true)
-      setIsBankModalOpen(true)
-      return
-    }
-
     if (deliveryOption?.type === "delivery" && !hasShippingDetails) {
       setRequiresAddress(true)
       return
@@ -158,10 +147,6 @@ export default function CartPage() {
     window.location.reload()
   }
 
-  const handleBankSuccess = () => {
-    setRequiresBankAccount(false)
-    window.location.reload()
-  }
 
   if (loadingBets) {
     return (
@@ -473,31 +458,6 @@ export default function CartPage() {
                 Cancelar
               </Button>
             </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Modal cuenta bancaria como popup modal */}
-      {requiresBankAccount && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-          onClick={() => setRequiresBankAccount(false)} // cerrar modal al clickear fuera del contenido
-        >
-          <div
-            className="relative w-full max-w-md p-6 bg-white rounded-lg"
-            onClick={(e) => e.stopPropagation()} // evitar cerrar al clickear dentro del modal
-          >
-            <h3 className="mb-4 text-lg font-semibold text-gray-700">Agrega tus datos bancarios</h3>
-            <BankAccountForm
-              onSuccess={handleBankSuccess}
-            />
-            <button
-              onClick={() => setRequiresBankAccount(false)}
-              className="absolute text-gray-500 top-3 right-3 hover:text-gray-700"
-              aria-label="Cerrar modal"
-            >
-              ✕
-            </button>
           </div>
         </div>
       )}

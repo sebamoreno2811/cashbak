@@ -163,7 +163,7 @@ export default function CheckoutPage() {
 
 
   const handlePayment = async () => {
-    if (!user || !userProfile || !bankAccount) {
+    if (!user || !userProfile) {
       setIsAuthModalOpen(true)
       return
     }
@@ -181,10 +181,10 @@ export default function CheckoutPage() {
         fullName: userProfile.full_name || "",
         email: userProfile.email || "",
         phone: userProfile.phone || "",
-        bankName: bankAccount.bank_name || "",
-        accountType: bankAccount.account_type || "",
-        accountNumber: String(bankAccount.account_number || ""),
-        rut: bankAccount.rut || "",
+        bankName: bankAccount?.bank_name || "",
+        accountType: bankAccount?.account_type || "",
+        accountNumber: String(bankAccount?.account_number || ""),
+        rut: bankAccount?.rut || "",
       }
 
       localStorage.setItem("checkout_form_data", JSON.stringify(formData))
@@ -279,7 +279,7 @@ export default function CheckoutPage() {
     return <div className="p-8 text-center">Redirigiendo al carrito...</div>
   }
 
-  const checkoutStep = paymentSuccess ? 4 : paymentProcessing ? 3 : user && userProfile && bankAccount ? 2 : 1
+  const checkoutStep = paymentSuccess ? 4 : paymentProcessing ? 3 : user && userProfile ? 2 : 1
 
   const steps = [
     { label: "Carrito", step: 0 },
