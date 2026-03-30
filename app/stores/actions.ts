@@ -22,7 +22,8 @@ export async function notifyStoreSubmitted(storeId: string) {
   if (!store) return
 
   // Email al admin
-  await resend.emails.send({
+  console.log("[notifyStoreSubmitted] Enviando email al admin:", ADMIN_EMAIL, "desde:", EMAIL_FROM)
+  const adminEmailResult = await resend.emails.send({
     from: EMAIL_FROM,
     to: ADMIN_EMAIL,
     subject: `Nueva solicitud de tienda: ${store.name}`,
@@ -53,7 +54,8 @@ export async function notifyStoreSubmitted(storeId: string) {
         </a>
       </div>
     `,
-  }).catch(() => {}) // no bloquea si falla
+  })
+  console.log("[notifyStoreSubmitted] Resultado email admin:", adminEmailResult)
 
   // Email de confirmación al vendedor
   if (store.email) {

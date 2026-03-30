@@ -5,7 +5,8 @@ import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
 import { addProduct, updateProduct, deleteProduct, updateStoreDeliveryOptions } from "./actions"
-import { Pencil, Trash2, Plus, X, Truck, MapPin, Package } from "lucide-react"
+import { Pencil, Trash2, Plus, X, Truck, MapPin, Package, ShoppingBag } from "lucide-react"
+import Link from "next/link"
 import type { DeliveryOption } from "@/types/delivery"
 
 function selectVariedBets(bets: Bet[], maxCount = 4): Bet[] {
@@ -233,6 +234,13 @@ export default function StoreManager({
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-400 rounded-full" />
             )}
           </button>
+          <Link
+            href="/mi-tienda/pedidos"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors text-green-200 hover:text-white hover:bg-green-800"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            Pedidos
+          </Link>
         </div>
       </div>
 

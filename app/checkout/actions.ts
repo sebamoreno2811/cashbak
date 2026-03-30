@@ -118,32 +118,114 @@ export async function saveCheckoutData(
       return { success: false, error: "Error al guardar los items de la orden" }
     }
 
-    // 7. Enviar email de confirmacion (fallo no bloquea el flujo)
+    // 7. Obtener info de la(s) tienda(s) para emails
+    const storeIds = [...new Set(cartItems.map((i: any) => i.product?.store_id).filter(Boolean))]
+    const storeEmailMap: Record<string, { name: string; email: string | null }> = {}
+    if (storeIds.length > 0) {
+      const { data: storeRows } = await supabase
+        .from("stores")
+        .select("id, name, email")
+        .in("id", storeIds)
+      for (const s of storeRows ?? []) {
+        storeEmailMap[s.id] = { name: s.name, email: s.email }
+      }
+    }
+
+    const itemsHtml = cartItems.map((item: any) =>
+      `<tr>
+        <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">${item.product?.name ?? "Producto"}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:center;">${item.quantity}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:right;">$${(item.product?.price * item.quantity).toLocaleString("es-CL")}</td>
+      </tr>`
+    ).join("")
+
+    // 8. Email de confirmación al comprador
     try {
       await resend.emails.send({
         from: EMAIL_FROM,
         to: user.email!,
         subject: `¡Gracias por tu compra! Pedido #${orderId}`,
         html: `
-          <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 40px; text-align: center;">
-            <img src="${APP_URL}/img/logo.png" alt="CashBak Logo" style="max-width: 150px; margin-bottom: 30px;" />
-            <div style="background-color: white; padding: 30px; border-radius: 10px; display: inline-block; max-width: 600px; text-align: left;">
-              <h2 style="color: #333;">¡Gracias por tu compra!</h2>
-              <p style="color: #555;">Hemos recibido tu pedido exitosamente.</p>
-              <p style="font-size: 18px; margin: 20px 0;">
+          <div style="font-family:Arial,sans-serif;background:#f9fafb;padding:40px;text-align:center;">
+            <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
+            <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:560px;text-align:left;">
+              <h2 style="color:#14532d;margin-top:0;">¡Compra exitosa!</h2>
+              <p style="color:#555;">Tu pedido fue registrado correctamente.</p>
+              <p style="font-size:15px;margin:16px 0;">
                 <strong>Número de pedido:</strong>
-                <span style="color: #1c7ed6;">${orderId}</span>
+                <span style="color:#1c7ed6;">${orderId}</span>
               </p>
-              <p>Te avisaremos cuando tu pedido esté en camino.</p>
-              <br/>
-              <p style="font-size: 14px; color: #888;">Equipo CashBak</p>
+              <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">
+                <thead>
+                  <tr style="background:#f9fafb;">
+                    <th style="padding:8px 12px;text-align:left;color:#6b7280;">Producto</th>
+                    <th style="padding:8px 12px;text-align:center;color:#6b7280;">Cant.</th>
+                    <th style="padding:8px 12px;text-align:right;color:#6b7280;">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>${itemsHtml}</tbody>
+              </table>
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:20px 0;">
+                <p style="color:#166534;margin:0;font-size:14px;">
+                  La tienda te contactará confirmando el envío o disponibilidad para retiro según hayas elegido.<br/><br/>
+                  <strong>¡Éxito con tu CashBak!</strong> 🎉
+                </p>
+              </div>
+              <p style="color:#9ca3af;font-size:12px;margin-top:24px;">CashBak · cashbak.cl</p>
             </div>
           </div>
         `,
       })
     } catch (emailError) {
-      console.error("Error enviando email de confirmación (no crítico):", emailError)
-      // No retornamos error — la orden se creó correctamente
+      console.error("Error enviando email al comprador:", emailError)
+    }
+
+    // 9. Email a la(s) tienda(s)
+    for (const storeId of storeIds) {
+      const store = storeEmailMap[storeId]
+      if (!store?.email) continue
+      const storeItems = cartItems.filter((i: any) => i.product?.store_id === storeId)
+      const storeItemsHtml = storeItems.map((item: any) =>
+        `<tr>
+          <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">${item.product?.name ?? "Producto"} ${item.size ? `(${item.size})` : ""}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:center;">${item.quantity}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:right;">$${(item.product?.price * item.quantity).toLocaleString("es-CL")}</td>
+        </tr>`
+      ).join("")
+      try {
+        await resend.emails.send({
+          from: EMAIL_FROM,
+          to: store.email,
+          subject: `Nueva venta en CashBak — Pedido #${orderId}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;background:#f9fafb;padding:40px;text-align:center;">
+              <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
+              <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:560px;text-align:left;">
+                <h2 style="color:#14532d;margin-top:0;">¡Tienes una nueva venta!</h2>
+                <p style="color:#555;">Se realizó un pedido en tu tienda <strong>${store.name}</strong>.</p>
+                <p style="font-size:15px;margin:16px 0;">
+                  <strong>Número de pedido:</strong>
+                  <span style="color:#1c7ed6;">${orderId}</span>
+                </p>
+                <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">
+                  <thead>
+                    <tr style="background:#f9fafb;">
+                      <th style="padding:8px 12px;text-align:left;color:#6b7280;">Producto</th>
+                      <th style="padding:8px 12px;text-align:center;color:#6b7280;">Cant.</th>
+                      <th style="padding:8px 12px;text-align:right;color:#6b7280;">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>${storeItemsHtml}</tbody>
+                </table>
+                <p style="color:#374151;font-size:14px;">Contacta al cliente para coordinar el envío o retiro según el método que eligió.</p>
+                <p style="color:#9ca3af;font-size:12px;margin-top:24px;">CashBak · cashbak.cl</p>
+              </div>
+            </div>
+          `,
+        })
+      } catch (emailError) {
+        console.error(`Error enviando email a tienda ${storeId}:`, emailError)
+      }
     }
 
     return { success: true, orderId }

@@ -9,6 +9,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import Image from "next/image"
 import { notifyStoreSubmitted } from "@/app/stores/actions"
+import type { DeliveryOption } from "@/types/delivery"
+import { Trash2, Plus } from "lucide-react"
 
 const CATEGORIES = [
   "Ropa y accesorios",
@@ -48,6 +50,11 @@ export default function AplicarPage() {
   const [tiktok, setTiktok] = useState("")
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([])
+  const [newDeliveryName, setNewDeliveryName] = useState("")
+  const [newDeliveryType, setNewDeliveryType] = useState<"delivery" | "pickup">("delivery")
+  const [newDeliveryPrice, setNewDeliveryPrice] = useState("")
+  const [newDeliveryPriceTBD, setNewDeliveryPriceTBD] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
@@ -65,10 +72,32 @@ export default function AplicarPage() {
     setError(null)
   }
 
+  function addDeliveryOption() {
+    if (!newDeliveryName.trim()) return
+    const opt: DeliveryOption = {
+      id: crypto.randomUUID(),
+      name: newDeliveryName.trim(),
+      type: newDeliveryType,
+      price: newDeliveryPriceTBD ? 0 : (parseInt(newDeliveryPrice) || 0),
+      priceTBD: newDeliveryPriceTBD || undefined,
+    }
+    setDeliveryOptions(prev => [...prev, opt])
+    setNewDeliveryName("")
+    setNewDeliveryPrice("")
+    setNewDeliveryPriceTBD(false)
+    setNewDeliveryType("delivery")
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
+
+    if (deliveryOptions.length === 0) {
+      setError("Debes agregar al menos un método de entrega.")
+      setLoading(false)
+      return
+    }
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -123,6 +152,7 @@ export default function AplicarPage() {
       facebook: facebook.trim() || null,
       tiktok: tiktok.trim() || null,
       logo_url: logoUrl,
+      delivery_options: deliveryOptions,
     })
 
     if (insertError) {
@@ -343,6 +373,84 @@ export default function AplicarPage() {
             </CardContent>
           </Card>
 
+          {/* Métodos de entrega */}
+          <Card>
+            <CardContent className="pt-6 space-y-5">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">Métodos de entrega *</h2>
+                <p className="text-sm text-gray-400">Agrega al menos uno. Podrás modificarlos después desde tu panel.</p>
+              </div>
+
+              {/* Opciones agregadas */}
+              {deliveryOptions.length > 0 && (
+                <div className="space-y-2">
+                  {deliveryOptions.map(opt => (
+                    <div key={opt.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm">
+                      <div>
+                        <span className="font-medium">{opt.name}</span>
+                        <span className="ml-2 text-gray-400">{opt.type === "delivery" ? "Envío" : "Retiro"}</span>
+                        <span className="ml-2 text-gray-500">
+                          {opt.priceTBD ? "Por pagar" : opt.price === 0 ? "Gratis" : `$${opt.price.toLocaleString("es-CL")}`}
+                        </span>
+                      </div>
+                      <button type="button" onClick={() => setDeliveryOptions(prev => prev.filter(o => o.id !== opt.id))}>
+                        <Trash2 className="w-4 h-4 text-red-400 hover:text-red-600" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Agregar nueva opción */}
+              <div className="space-y-3 border border-gray-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-gray-600">Agregar método</p>
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Nombre (ej: Envío a domicilio, Retiro en tienda)"
+                    value={newDeliveryName}
+                    onChange={e => setNewDeliveryName(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <select
+                      value={newDeliveryType}
+                      onChange={e => setNewDeliveryType(e.target.value as "delivery" | "pickup")}
+                      className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+                    >
+                      <option value="delivery">Envío a domicilio</option>
+                      <option value="pickup">Retiro</option>
+                    </select>
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="Precio ($)"
+                      value={newDeliveryPrice}
+                      onChange={e => setNewDeliveryPrice(e.target.value)}
+                      disabled={newDeliveryPriceTBD}
+                      className="flex-1"
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newDeliveryPriceTBD}
+                      onChange={e => setNewDeliveryPriceTBD(e.target.checked)}
+                      className="rounded"
+                    />
+                    El precio se coordina con el cliente
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  onClick={addDeliveryOption}
+                  disabled={!newDeliveryName.trim()}
+                  className="flex items-center gap-1 text-sm text-green-700 font-semibold hover:text-green-900 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Plus className="w-4 h-4" /> Agregar
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Redes sociales */}
           <Card>
             <CardContent className="pt-6 space-y-5">
@@ -406,7 +514,7 @@ export default function AplicarPage() {
 
           <button
             type="submit"
-            disabled={loading || !name.trim() || categories.length === 0 || !email.trim() || !phone.trim()}
+            disabled={loading || !name.trim() || categories.length === 0 || !email.trim() || !phone.trim() || deliveryOptions.length === 0}
             className="w-full py-3 bg-green-900 text-white rounded-md font-semibold hover:bg-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Enviando..." : "Enviar solicitud"}
