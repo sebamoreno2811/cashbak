@@ -128,6 +128,15 @@ export default function ProductPage() {
   const handleAddToCart = () => {
     if (!product) return
 
+    if (quantity > availableStock) {
+      toast({
+        title: "Stock insuficiente",
+        description: `Solo hay ${availableStock} unidad(es) disponibles en talla ${size}.`,
+        variant: "destructive",
+      })
+      return
+    }
+
     addItem(product.id, quantity, selectedOption, size, hasPrint)
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 1500)

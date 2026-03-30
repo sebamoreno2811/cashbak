@@ -212,6 +212,34 @@ export async function signInUser(email: string, password: string) {
   }
 }
 
+export async function verifyCartStock(cartItems: { productId: number; quantity: number; size: string; productName?: string }[]) {
+  try {
+    const supabase = await createSupabaseClientWithCookies()
+    const productIds = cartItems.map(i => i.productId)
+    const { data: products, error } = await supabase
+      .from("products")
+      .select("id, name, stock")
+      .in("id", productIds)
+
+    if (error || !products) return { success: false, error: "No se pudo verificar el stock" }
+
+    const outOfStock: string[] = []
+    for (const item of cartItems) {
+      const product = products.find((p: { id: number; name: string; stock: Record<string, number> }) => p.id === item.productId)
+      const available = product?.stock?.[item.size] ?? 0
+      if (item.quantity > available) {
+        const label = item.productName || product?.name || `Producto ${item.productId}`
+        outOfStock.push(available === 0 ? `${label} (talla ${item.size}) está agotado` : `${label} (talla ${item.size}): solo quedan ${available} unidades`)
+      }
+    }
+
+    if (outOfStock.length > 0) return { success: false, outOfStock }
+    return { success: true }
+  } catch (e: any) {
+    return { success: false, error: e.message || "Error al verificar stock" }
+  }
+}
+
 export async function updateProductStock(cartItems: any[]) {
   try {
     const supabase = await createSupabaseClientWithCookies()

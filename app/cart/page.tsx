@@ -14,6 +14,7 @@ const DEFAULT_DELIVERY_OPTIONS: DeliveryOption[] = [
   { id: "metro-fcastillo", name: "Retiro Metro Fernando Castillo Velasco", price: 0, type: "pickup" },
 ]
 import { createClient } from "@/utils/supabase/client"
+import { verifyCartStock } from "@/app/checkout/actions"
 
 interface StoreInfo { id: string; name: string; logo_url: string | null; delivery_options: DeliveryOption[] | null }
 
@@ -61,6 +62,7 @@ export default function CartPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [requiresAddress, setRequiresAddress] = useState(false)
   const [invalidBets, setInvalidBets] = useState<string[]>([])
+  const [stockErrors, setStockErrors] = useState<string[]>([])
 
 
   const { hasShippingDetails } = useShipping()
@@ -122,7 +124,7 @@ export default function CartPage() {
     return invalid.length === 0
   }
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!user) {
       setIsAuthModalOpen(true)
       return
@@ -138,6 +140,20 @@ export default function CartPage() {
     }
 
     setIsProcessing(true)
+    const stockCheck = await verifyCartStock(
+      items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        size: item.size,
+        productName: getItemDetails(item).product?.name,
+      }))
+    )
+    if (!stockCheck.success && stockCheck.outOfStock) {
+      setStockErrors(stockCheck.outOfStock)
+      setIsProcessing(false)
+      return
+    }
+
     router.push("/checkout")
   }
 
@@ -478,6 +494,26 @@ export default function CartPage() {
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => setInvalidBets([])}>
                 Cambiar evento
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal stock insuficiente */}
+      {stockErrors.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+            <h2 className="mb-4 text-lg font-bold text-red-600">Stock insuficiente</h2>
+            <p className="mb-4 text-sm text-gray-700">
+              Los siguientes productos no tienen suficiente stock disponible:
+            </p>
+            <ul className="mb-4 text-sm text-gray-800 list-disc list-inside space-y-1">
+              {stockErrors.map((msg, i) => <li key={i}>{msg}</li>)}
+            </ul>
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setStockErrors([])}>
+                Volver al carrito
               </Button>
             </div>
           </div>
