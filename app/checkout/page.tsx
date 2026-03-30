@@ -128,14 +128,12 @@ export default function CheckoutPage() {
 
       const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbakTotal, deliveryType)
 
-      // Actualizar stock de los productos
-      const stockResult = await updateProductStock(cartItems)
-      if (!stockResult.success) {
-        return { success: false, error: stockResult.error }
-      }
-
       if (result.success) {
-        const supabase = createClient()
+        // Solo descontar stock una vez confirmada la compra exitosa
+        const stockResult = await updateProductStock(cartItems)
+        if (!stockResult.success) {
+          console.error("Error al actualizar stock (orden ya creada):", stockResult.error)
+        }
 
         localStorage.setItem("processed_order_id", orderIdParam || "")
         setPaymentSuccess(true)
