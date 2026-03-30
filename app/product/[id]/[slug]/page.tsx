@@ -113,7 +113,7 @@ export default function ProductPage() {
   const remainingToAdd = Math.max(availableStock - currentQuantityInCart, 0)
   const maxQuantity = Math.min(10, remainingToAdd)
   const quantityOptions = Array.from({ length: maxQuantity }, (_, i) => i + 1)
-  const outOfStock = availableStock <= 0
+  const outOfStock = remainingToAdd <= 0
 
   useEffect(() => {
     if (quantity > maxQuantity) {
@@ -447,9 +447,9 @@ export default function ProductPage() {
           </Button>
         </div>
 
-          {availableStock <= 2 && availableStock >= 0 && (
+          {remainingToAdd <= 2 && remainingToAdd >= 0 && !outOfStock && (
             <p className="mt-2 text-sm font-semibold text-red-600">
-              Stock limitado: queda(n) {availableStock} unidad(es) disponible(s) en talla {size}
+              Stock limitado: queda(n) {remainingToAdd} unidad(es) disponible(s) en talla {size}
             </p>
           )}
 
