@@ -5,7 +5,12 @@
       "Bash(npm audit:*)",
       "Bash(npm install:*)",
       "Bash(npx remotion:*)",
-      "Bash(file ~/Desktop/cashbak-video/public/screen-*.png)"
+      "Bash(file ~/Desktop/cashbak-video/public/screen-*.png)",
+      "Bash(find /Users/sebastianmoreno/Desktop/cashbak -type d -name *supabase* -o -name *migrations*)",
+      "Bash(find /Users/sebastianmoreno/Desktop/cashbak -maxdepth 3 -type f \\\\\\(-name *.sql -o -name schema* \\\\\\))",
+      "Bash(grep -r \"trigger\\\\|function\\\\|cron\" /Users/sebastianmoreno/Desktop/cashbak/app/api --include=*.ts)",
+      "Bash(find /Users/sebastianmoreno/Desktop/cashbak/app/api -type f -name *.ts)",
+      "Bash(xargs ls:*)"
     ],
     "additionalDirectories": [
       "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]",
