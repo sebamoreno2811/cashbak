@@ -3,10 +3,13 @@
     "allow": [
       "Bash(npx tsc:*)",
       "Bash(npm audit:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx remotion:*)",
+      "Bash(file ~/Desktop/cashbak-video/public/screen-*.png)"
     ],
     "additionalDirectories": [
-      "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]"
+      "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]",
+      "/Users/sebastianmoreno/Desktop/cashbak-video/public"
     ]
   }
 }

@@ -32,7 +32,7 @@ function selectVariedBets(bets: Bet[], maxCount = 4): Bet[] {
 export default function SellPage() {
   const [precioVenta, setPrecioVenta] = useState<string>("20000")
   const [costo, setCosto] = useState<string>("10000")
-  const calcularRecomendado = (p: number) => Math.max(0, Math.round(p - (0.25 * p / 1.5) / 0.80))
+  const calcularRecomendado = (p: number) => Math.max(0, Math.round(p - (0.15 * p / 1.5) / 0.80))
   const [gananciaCLP, setGananciaCLP] = useState<number>(() => calcularRecomendado(20000))
   const [bets, setBets] = useState<Bet[]>([])
   const [selectedBetId, setSelectedBetId] = useState<number | null>(null)

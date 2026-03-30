@@ -492,7 +492,7 @@ function ProductFormModal({
     return []
   })
   const [description, setDescription] = useState(initial?.description ?? "")
-  const calcularRecomendado = (p: number) => Math.max(0, Math.round(p - (0.25 * p / 1.5) / 0.80))
+  const calcularRecomendado = (p: number) => Math.max(0, Math.round(p - (0.15 * p / 1.5) / 0.80))
   const [gananciaCLP, setGananciaCLP] = useState<number>(() =>
     initial?.margin_pct != null && initial.price > 0
       ? Math.round(initial.margin_pct * initial.price)

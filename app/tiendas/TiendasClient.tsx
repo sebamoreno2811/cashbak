@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Search, X, ShoppingBag } from "lucide-react"
+import { Search, X } from "lucide-react"
 
 interface StoreItem {
   id: string
@@ -48,7 +48,7 @@ export default function TiendasClient({ stores }: { stores: StoreItem[] }) {
         <div className="container mx-auto max-w-5xl text-center">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">Tiendas</h1>
           <p className="text-green-200 text-sm sm:text-base max-w-md mx-auto">
-            Descubre todas las tiendas disponibles en CashBak y gana cashback en cada compra.
+            Compra en cualquiera de estas tiendas, elige tu evento y si se cumple, recuperas tu cashback.
           </p>
         </div>
       </div>
@@ -144,19 +144,13 @@ function StoreCard({ store }: { store: StoreItem }) {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col h-full">
         {/* Logo */}
         <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden p-4">
-          {store.logo_url ? (
-            <Image
-              src={store.logo_url}
-              alt={store.name}
-              width={120}
-              height={120}
-              className="object-contain w-full h-full transition-transform duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
-              <ShoppingBag className="w-8 h-8 text-green-700" />
-            </div>
-          )}
+          <Image
+            src={store.logo_url ?? "/img/logo.png"}
+            alt={store.name}
+            width={120}
+            height={120}
+            className="object-contain w-full h-full transition-transform duration-300 group-hover:scale-105"
+          />
         </div>
 
         {/* Info */}

@@ -60,6 +60,7 @@ export default function CartPage() {
   
   const { hasBankAccount, loading: loadingBank } = useBankAccount()
   const [storeInfoMap, setStoreInfoMap] = useState<Record<string, StoreInfo>>({})
+  const [loadingStores, setLoadingStores] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [requiresAddress, setRequiresAddress] = useState(false)
   const [requiresBankAccount, setRequiresBankAccount] = useState(false)
@@ -75,12 +76,14 @@ export default function CartPage() {
       items.map(item => getItemDetails(item).product?.store_id).filter(Boolean) as string[]
     )]
     if (storeIds.length === 0) return
+    setLoadingStores(true)
     const supabase = createClient()
     supabase.from("stores").select("id, name, logo_url, delivery_options").in("id", storeIds).then(({ data }: { data: StoreInfo[] | null }) => {
-      if (!data) return
+      if (!data) { setLoadingStores(false); return }
       const map: Record<string, StoreInfo> = {}
       data.forEach((s: StoreInfo) => { map[s.id] = s })
       setStoreInfoMap(map)
+      setLoadingStores(false)
     })
   }, [items.length])
 
@@ -375,6 +378,8 @@ export default function CartPage() {
                 <h3 className="mb-2 text-sm font-medium text-gray-700">Método de entrega</h3>
                 {hasMultipleStores ? (
                   <p className="text-xs text-amber-700">Disponible al tener productos de una sola tienda.</p>
+                ) : loadingStores ? (
+                  <p className="text-xs text-gray-400">Cargando opciones de entrega…</p>
                 ) : cartDeliveryOptions.length === 0 && uniqueStoreIds.length > 0 ? (
                   <p className="text-xs text-gray-400">Esta tienda no ha configurado opciones de entrega.</p>
                 ) : (
