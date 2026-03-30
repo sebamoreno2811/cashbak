@@ -432,9 +432,9 @@ export default function ProductPage() {
           </Button>
         </div>
 
-          {remainingStock <= 2 && remainingStock >= 0 && (
+          {availableStock <= 2 && availableStock >= 0 && (
             <p className="mt-2 text-sm font-semibold text-red-600">
-              Stock limitado: queda(n) {remainingStock} unidad(es) disponible(s) en talla {size}
+              Stock limitado: queda(n) {availableStock} unidad(es) disponible(s) en talla {size}
             </p>
           )}
 
