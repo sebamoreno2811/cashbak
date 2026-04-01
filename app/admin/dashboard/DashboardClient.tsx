@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { TrendingUp, ShoppingBag, Banknote, AlertCircle, Store, Calendar, X } from "lucide-react"
+import { TrendingUp, ShoppingBag, Banknote, AlertCircle, Building2, X } from "lucide-react"
 import Link from "next/link"
 
 interface Order {
@@ -174,7 +174,7 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Store className="w-4 h-4 text-gray-400" />
+              <Building2 className="w-4 h-4 text-gray-400" />
               <h2 className="font-semibold text-gray-800">Vendedores a pagar</h2>
             </div>
             <span className="text-xs bg-orange-100 text-orange-700 font-semibold px-2 py-0.5 rounded-full">
