@@ -913,19 +913,19 @@ function ProductFormModal({
                     </div>
                     <div className="flex justify-between text-sm pt-1 border-t border-gray-100">
                       <span className="text-gray-500">Comisión CashBak</span>
-                      <span className="text-gray-600">- ${FMT(sim.comisionDisplay)}</span>
+                      <span className="text-gray-600">${FMT(sim.comisionDisplay)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <div>
+                    <div className="flex justify-between text-sm gap-3">
+                      <div className="min-w-0">
                         <span className="text-gray-500">CashBak al cliente</span>
-                        <p className="text-xs text-gray-400">Simulación con el evento seleccionado. Varía según el evento que elija el cliente, pero nunca afecta tu ingreso neto.</p>
+                        <p className="text-xs text-gray-400 mt-0.5">Simulación con el evento seleccionado.<br/>Varía según el evento que elija el cliente,<br/>pero nunca afecta tu ingreso neto.</p>
                       </div>
-                      <span className="font-semibold text-gray-800">{sim.cashbackPct}% · ${FMT(sim.cashbackMonto)}</span>
+                      <span className="font-semibold text-gray-800 shrink-0">{sim.cashbackPct}% · ${FMT(sim.cashbackMonto)}</span>
                     </div>
                     <div className={`flex justify-between text-sm py-1.5 rounded ${sim.gananciaNeta < 0 ? "px-2 bg-red-50 border border-red-200" : ""}`}>
                       <div>
                         <span className={sim.gananciaNeta < 0 ? "text-red-600 font-semibold" : "text-gray-500"}>Ganancia neta estimada</span>
-                        <p className="text-xs text-gray-400">Descontando tu costo declarado</p>
+                        <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo declarado</p>
                         {sim.gananciaNeta < 0 && <p className="text-xs text-red-500">⚠️ Estarías vendiendo a pérdida</p>}
                       </div>
                       <span className={`font-semibold ${sim.gananciaNeta < 0 ? "text-red-600" : "text-gray-600"}`}>
