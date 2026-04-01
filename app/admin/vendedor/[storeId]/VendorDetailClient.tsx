@@ -19,7 +19,15 @@ interface VendorOrder {
   customer_name: string | null
   customer_email: string | null
   shipping_method: string | null
+  shipping_status: string | null
   items: OrderItem[]
+}
+
+const SHIPPING_COLORS: Record<string, string> = {
+  "Preparando pedido": "bg-yellow-100 text-yellow-800",
+  "Listo para entrega": "bg-blue-100 text-blue-800",
+  "Enviado": "bg-purple-100 text-purple-800",
+  "Entregado": "bg-green-100 text-green-800",
 }
 
 function OrderRow({ order, storeId }: { order: VendorOrder; storeId: string }) {
@@ -92,9 +100,18 @@ function OrderRow({ order, storeId }: { order: VendorOrder; storeId: string }) {
             </div>
           </div>
 
-          {order.shipping_method && (
-            <p className="text-xs text-gray-500">Método: <span className="font-medium">{order.shipping_method}</span></p>
-          )}
+          <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+            {order.shipping_method && (
+              <p>Método: <span className="font-medium">{order.shipping_method}</span></p>
+            )}
+            <p>Estado envío: {order.shipping_status ? (
+              <span className={`inline-block px-2 py-0.5 rounded-full font-semibold ${SHIPPING_COLORS[order.shipping_status] ?? "bg-gray-100 text-gray-600"}`}>
+                {order.shipping_status}
+              </span>
+            ) : (
+              <span className="inline-block px-2 py-0.5 rounded-full font-semibold bg-gray-100 text-gray-500">Sin actualizar</span>
+            )}</p>
+          </div>
 
           <div className="flex justify-end">
             <button

@@ -49,7 +49,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
   // Órdenes sin pagar al vendedor
   const { data: orders } = await supabase
     .from("orders")
-    .select("id, order_total, created_at, customer_id, shipping_method")
+    .select("id, order_total, created_at, customer_id, shipping_method, shipping_status")
     .in("id", orderIds.length > 0 ? orderIds : ["none"])
     .eq("vendor_paid", false)
     .order("created_at", { ascending: true })
@@ -78,6 +78,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
       order_total: o.order_total as number,
       created_at: o.created_at as string,
       shipping_method: o.shipping_method as string | null,
+      shipping_status: o.shipping_status as string | null,
       customer_name: c?.full_name ?? null,
       customer_email: c?.email ?? null,
       items: (itemsByOrder[o.id as string] ?? []).map((i: Record<string, unknown>) => ({
