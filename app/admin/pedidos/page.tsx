@@ -25,7 +25,7 @@ export default async function AdminPedidosPage() {
       id, customer_id, order_total, cashback_amount,
       order_status, payment_status, shipping_method,
       shipping_status, cashback_status, cashback_transfer_note,
-      created_at, is_fake_order,
+      vendor_paid, created_at, is_fake_order,
       order_items (
         id, product_name, quantity, price, size,
         bet_name, cashback_percentage

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { createClient } from "@/utils/supabase/client"
-import { User, LogOut, ShoppingBag, Shield, Building2 } from "lucide-react"
+import { User, LogOut, ShoppingBag, Shield, Building2, LayoutDashboard } from "lucide-react"
 import { useRouter } from "next/navigation"
 import BankAccountReminderModal from "@/components/bank-account-reminder-modal"
 
@@ -154,6 +154,10 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
         {isAdmin && (
           <>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push("/admin/dashboard")}>
+              <LayoutDashboard className="w-4 h-4 mr-2" />
+              <span>Dashboard</span>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push("/admin/tiendas")}>
               <Shield className="w-4 h-4 mr-2" />
               <span>Tiendas</span>

@@ -27,6 +27,7 @@ interface Order {
   shipping_status: string | null
   cashback_status: string
   cashback_transfer_note: string | null
+  vendor_paid: boolean
   created_at: string
   items: OrderItem[]
 }
@@ -67,6 +68,7 @@ function OrderRow({ order }: { order: Order }) {
     shipping_status: order.shipping_status ?? "",
     cashback_status: order.cashback_status,
     cashback_transfer_note: order.cashback_transfer_note ?? "",
+    vendor_paid: order.vendor_paid,
   })
   const [saved, setSaved] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -112,6 +114,11 @@ function OrderRow({ order }: { order: Order }) {
           </div>
           <div className="flex flex-wrap gap-1">
             <Badge value={form.cashback_status} map={CASHBACK_STATUSES} />
+            {form.vendor_paid ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Vendedor pagado</span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Pago pendiente</span>
+            )}
           </div>
         </div>
         {open ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
@@ -199,6 +206,25 @@ function OrderRow({ order }: { order: Order }) {
                 onChange={e => setForm(f => ({ ...f, cashback_transfer_note: e.target.value }))}
               />
             </div>
+          </div>
+
+          {/* Pago al vendedor */}
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Pago al vendedor</p>
+            <button
+              type="button"
+              onClick={() => setForm(f => ({ ...f, vendor_paid: !f.vendor_paid }))}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                form.vendor_paid
+                  ? "bg-green-50 border-green-300 text-green-800"
+                  : "bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300"
+              }`}
+            >
+              <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${form.vendor_paid ? "border-green-600 bg-green-600" : "border-gray-400"}`}>
+                {form.vendor_paid && <CheckCircle2 className="w-3 h-3 text-white" />}
+              </span>
+              {form.vendor_paid ? "Pagado al vendedor" : "Pago pendiente al vendedor"}
+            </button>
           </div>
 
           {/* Guardar */}

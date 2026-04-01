@@ -17,6 +17,7 @@ export async function updateOrderStatuses(orderId: string, fields: {
   shipping_status?: string
   cashback_status?: string
   cashback_transfer_note?: string
+  vendor_paid?: boolean
 }) {
   const supabase = await requireAdmin()
   const { error } = await supabase

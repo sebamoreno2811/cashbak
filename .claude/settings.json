@@ -10,7 +10,9 @@
       "Bash(find /Users/sebastianmoreno/Desktop/cashbak -maxdepth 3 -type f \\\\\\(-name *.sql -o -name schema* \\\\\\))",
       "Bash(grep -r \"trigger\\\\|function\\\\|cron\" /Users/sebastianmoreno/Desktop/cashbak/app/api --include=*.ts)",
       "Bash(find /Users/sebastianmoreno/Desktop/cashbak/app/api -type f -name *.ts)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "Bash(find /Users/sebastianmoreno/Desktop/cashbak -path */supabase/* -type f)"
     ],
     "additionalDirectories": [
       "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]",

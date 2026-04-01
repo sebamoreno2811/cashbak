@@ -1,0 +1,248 @@
+"use client"
+
+import { useState, useMemo } from "react"
+import { TrendingUp, ShoppingBag, Banknote, AlertCircle, Store, Calendar, X } from "lucide-react"
+import Link from "next/link"
+
+interface Order {
+  id: string
+  order_total: number
+  cashback_amount: number
+  cashback_status: string
+  cashback_transfer_note: string | null
+  vendor_paid: boolean
+  shipping_status: string | null
+  created_at: string
+  store_id: string | null
+  store_name: string
+  customer_name: string | null
+  customer_email: string | null
+}
+
+interface Store {
+  id: string
+  name: string
+}
+
+function MetricCard({ label, value, sub, icon, color }: {
+  label: string
+  value: string
+  sub?: string
+  icon: React.ReactNode
+  color: string
+}) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-start gap-4">
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{label}</p>
+        <p className="text-2xl font-bold text-gray-900 mt-0.5">{value}</p>
+        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      </div>
+    </div>
+  )
+}
+
+export default function DashboardClient({ orders, stores }: { orders: Order[]; stores: Store[] }) {
+  const [storeFilter, setStoreFilter] = useState("todos")
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
+
+  const filtered = useMemo(() => {
+    return orders.filter(o => {
+      if (storeFilter !== "todos" && o.store_id !== storeFilter) return false
+      if (dateFrom && new Date(o.created_at) < new Date(dateFrom)) return false
+      if (dateTo && new Date(o.created_at) > new Date(dateTo + "T23:59:59")) return false
+      return true
+    })
+  }, [orders, storeFilter, dateFrom, dateTo])
+
+  const metrics = useMemo(() => {
+    const totalVentas = filtered.reduce((s, o) => s + o.order_total, 0)
+    const totalPedidos = filtered.length
+    const cashbackPendiente = filtered
+      .filter(o => o.cashback_status === "transferencia_pendiente")
+      .reduce((s, o) => s + o.cashback_amount, 0)
+    const cashbackEntregado = filtered
+      .filter(o => o.cashback_status === "transferido")
+      .reduce((s, o) => s + o.cashback_amount, 0)
+    return { totalVentas, totalPedidos, cashbackPendiente, cashbackEntregado }
+  }, [filtered])
+
+  // Vendedores pendientes de pago agrupados por tienda
+  const vendoresPendientes = useMemo(() => {
+    const unpaid = filtered.filter(o => !o.vendor_paid)
+    const byStore: Record<string, { store_name: string; store_id: string | null; count: number; total: number }> = {}
+    for (const o of unpaid) {
+      const key = o.store_id ?? "__cashbak__"
+      if (!byStore[key]) byStore[key] = { store_name: o.store_name, store_id: o.store_id, count: 0, total: 0 }
+      byStore[key].count++
+      byStore[key].total += o.order_total
+    }
+    return Object.values(byStore).sort((a, b) => b.total - a.total)
+  }, [filtered])
+
+  // Clientes con cashback pendiente
+  const cashbackPendienteList = useMemo(() => {
+    return filtered
+      .filter(o => o.cashback_status === "transferencia_pendiente")
+      .sort((a, b) => b.cashback_amount - a.cashback_amount)
+  }, [filtered])
+
+  const hasFilters = storeFilter !== "todos" || dateFrom || dateTo
+
+  return (
+    <div className="space-y-8">
+
+      {/* Filtros */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-wrap items-end gap-4">
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block font-medium">Tienda</label>
+          <select
+            value={storeFilter}
+            onChange={e => setStoreFilter(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+          >
+            <option value="todos">Todas las tiendas</option>
+            {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block font-medium">Desde</label>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={e => setDateFrom(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block font-medium">Hasta</label>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={e => setDateTo(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+          />
+        </div>
+        {hasFilters && (
+          <button
+            onClick={() => { setStoreFilter("todos"); setDateFrom(""); setDateTo("") }}
+            className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 px-3 py-2"
+          >
+            <X className="w-4 h-4" /> Limpiar
+          </button>
+        )}
+        <p className="text-xs text-gray-400 ml-auto self-center">{filtered.length} pedidos</p>
+      </div>
+
+      {/* Métricas */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard
+          label="Ventas totales"
+          value={`$${metrics.totalVentas.toLocaleString("es-CL")}`}
+          sub={`${metrics.totalPedidos} pedidos`}
+          icon={<TrendingUp className="w-5 h-5 text-green-700" />}
+          color="bg-green-50"
+        />
+        <MetricCard
+          label="Pedidos"
+          value={String(metrics.totalPedidos)}
+          icon={<ShoppingBag className="w-5 h-5 text-blue-700" />}
+          color="bg-blue-50"
+        />
+        <MetricCard
+          label="CashBak pendiente"
+          value={`$${metrics.cashbackPendiente.toLocaleString("es-CL")}`}
+          sub={`${cashbackPendienteList.length} clientes`}
+          icon={<AlertCircle className="w-5 h-5 text-orange-600" />}
+          color="bg-orange-50"
+        />
+        <MetricCard
+          label="CashBak entregado"
+          value={`$${metrics.cashbackEntregado.toLocaleString("es-CL")}`}
+          icon={<Banknote className="w-5 h-5 text-emerald-700" />}
+          color="bg-emerald-50"
+        />
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+
+        {/* Vendedores pendientes de pago */}
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Store className="w-4 h-4 text-gray-400" />
+              <h2 className="font-semibold text-gray-800">Vendedores a pagar</h2>
+            </div>
+            <span className="text-xs bg-orange-100 text-orange-700 font-semibold px-2 py-0.5 rounded-full">
+              {vendoresPendientes.length} tiendas
+            </span>
+          </div>
+          {vendoresPendientes.length === 0 ? (
+            <p className="text-center py-10 text-sm text-gray-400">Todo al día ✓</p>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {vendoresPendientes.map(v => (
+                <div key={v.store_id ?? "__cashbak__"} className="px-5 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">{v.store_name}</p>
+                    <p className="text-xs text-gray-400">{v.count} pedido{v.count !== 1 ? "s" : ""} sin pagar</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-gray-900">${v.total.toLocaleString("es-CL")}</p>
+                    <Link
+                      href="/admin/pedidos"
+                      className="text-xs text-green-700 hover:underline font-medium"
+                    >
+                      Ver pedidos →
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Clientes con cashback pendiente */}
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Banknote className="w-4 h-4 text-gray-400" />
+              <h2 className="font-semibold text-gray-800">CashBak pendiente de transferir</h2>
+            </div>
+            <span className="text-xs bg-orange-100 text-orange-700 font-semibold px-2 py-0.5 rounded-full">
+              {cashbackPendienteList.length} clientes
+            </span>
+          </div>
+          {cashbackPendienteList.length === 0 ? (
+            <p className="text-center py-10 text-sm text-gray-400">Sin cashbacks pendientes ✓</p>
+          ) : (
+            <div className="divide-y divide-gray-50 max-h-96 overflow-y-auto">
+              {cashbackPendienteList.map(o => (
+                <div key={o.id} className="px-5 py-3 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">{o.customer_name ?? "—"}</p>
+                    <p className="text-xs text-gray-400 truncate">{o.customer_email}</p>
+                    {o.cashback_transfer_note && (
+                      <p className="text-xs text-orange-600 mt-0.5 truncate">{o.cashback_transfer_note}</p>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-bold text-emerald-700">${o.cashback_amount.toLocaleString("es-CL")}</p>
+                    <p className="text-xs text-gray-400">
+                      {new Date(o.created_at).toLocaleDateString("es-CL", { day: "2-digit", month: "short" })}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  )
+}
