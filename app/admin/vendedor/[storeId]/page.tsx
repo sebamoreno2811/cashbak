@@ -16,11 +16,12 @@ export default async function VendorDetailPage({ params }: { params: { storeId: 
   const { storeId } = params
 
   // Info de la tienda
-  const { data: store } = await supabase
+  const { data: store, error: storeError } = await supabase
     .from("stores")
     .select("id, name, email, owner_id")
     .eq("id", storeId)
-    .single()
+    .maybeSingle()
+  console.log("[vendedor] storeId:", storeId, "store:", store, "error:", storeError)
   if (!store) notFound()
 
   // Datos bancarios del dueño
