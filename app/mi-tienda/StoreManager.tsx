@@ -908,11 +908,17 @@ function ProductFormModal({
                       <span className="text-gray-600">${FMT(sim.comisionDisplay)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Tarifa procesamiento (2%)</span>
-                      <span className="text-red-500">-${FMT(sim.tarifaProcesamiento)}</span>
+                      <div>
+                        <span className="text-gray-500">Costo procesamiento Transbank</span>
+                        <p className="text-xs text-gray-400">Cubre todos los medios de pago</p>
+                      </div>
+                      <span className="text-gray-600">${FMT(sim.tarifaProcesamiento)}</span>
                     </div>
-                    <div className="flex justify-between text-sm font-medium border-t border-gray-100 pt-1.5">
-                      <span className="text-gray-700">Tu ingreso neto</span>
+                    <div className="flex justify-between text-sm font-semibold border-t border-gray-100 pt-1.5">
+                      <div>
+                        <span className="text-gray-800">Tu ingreso neto por venta</span>
+                        <p className="text-xs text-gray-400 font-normal">Monto exacto que recibirás, sin variaciones</p>
+                      </div>
                       <span className="text-emerald-700">${FMT(sim.margenVendedorNeto)}</span>
                     </div>
                     <div className={`flex justify-between text-sm py-1.5 rounded ${sim.gananciaNeta < 0 ? "px-2 bg-red-50 border border-red-200" : ""}`}>
