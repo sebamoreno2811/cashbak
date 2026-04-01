@@ -17,6 +17,7 @@ interface Order {
   customer_name: string | null
   customer_email: string | null
   order_total: number
+  vendor_net_amount: number
   shipping_method: string | null
   shipping_status: string | null
   created_at: string
@@ -82,8 +83,8 @@ function OrderRow({ order }: { order: Order }) {
             <p className="text-xs text-gray-400 truncate">{order.customer_email}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400">Total</p>
-            <p className="text-sm font-semibold text-gray-800">${order.order_total.toLocaleString("es-CL")}</p>
+            <p className="text-xs text-gray-400">A recibir</p>
+            <p className="text-sm font-semibold text-emerald-700">${order.vendor_net_amount.toLocaleString("es-CL")}</p>
           </div>
           <div>
             {shippingStatus ? (

@@ -45,7 +45,7 @@ export default async function SellerPedidosPage() {
   // Obtener order_items de esta tienda
   const { data: orderItems } = await supabase
     .from("order_items")
-    .select("order_id, product_id, product_name, quantity, price, size, id")
+    .select("order_id, product_id, product_name, quantity, price, size, id, vendor_net_amount")
     .in("product_id", productIds)
 
   const orderIds = [...new Set((orderItems ?? []).map((i: { order_id: string }) => i.order_id))]
@@ -89,16 +89,21 @@ export default async function SellerPedidosPage() {
     itemsByOrder[item.order_id]!.push(item)
   }
 
-  const merged = (orders ?? []).map((o: Record<string, unknown>) => ({
-    id: o.id as string,
-    order_total: o.order_total as number,
-    shipping_method: o.shipping_method as string | null,
-    shipping_status: o.shipping_status as string | null,
-    created_at: o.created_at as string,
-    customer_name: (customerMap[o.customer_id as string] as { full_name: string | null } | undefined)?.full_name ?? null,
-    customer_email: (customerMap[o.customer_id as string] as { email: string } | undefined)?.email ?? null,
-    items: itemsByOrder[o.id as string] ?? [],
-  }))
+  const merged = (orders ?? []).map((o: Record<string, unknown>) => {
+    const items = itemsByOrder[o.id as string] ?? []
+    const vendor_net_amount = items.reduce((sum: number, item: any) => sum + (item.vendor_net_amount ?? 0), 0)
+    return {
+      id: o.id as string,
+      order_total: o.order_total as number,
+      vendor_net_amount,
+      shipping_method: o.shipping_method as string | null,
+      shipping_status: o.shipping_status as string | null,
+      created_at: o.created_at as string,
+      customer_name: (customerMap[o.customer_id as string] as { full_name: string | null } | undefined)?.full_name ?? null,
+      customer_email: (customerMap[o.customer_id as string] as { email: string } | undefined)?.email ?? null,
+      items,
+    }
+  })
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
