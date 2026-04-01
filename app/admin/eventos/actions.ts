@@ -70,6 +70,21 @@ export async function markBetLost(betId: number) {
     .update({ is_winner: false, active: false })
     .eq("id", betId)
   if (error) return { error: error.message }
+
+  // Actualizar cashback_status de todos los pedidos con este evento
+  const { data: orderItems } = await supabase
+    .from("order_items")
+    .select("order_id")
+    .eq("bet_option_id", betId)
+
+  if (orderItems && orderItems.length > 0) {
+    const orderIds = [...new Set(orderItems.map((i: { order_id: string }) => i.order_id))]
+    await supabase
+      .from("orders")
+      .update({ cashback_status: "evento_perdido", updated_at: new Date().toISOString() })
+      .in("id", orderIds)
+  }
+
   revalidatePath("/admin/eventos")
   revalidatePath("/admin/pedidos")
   return { success: true }

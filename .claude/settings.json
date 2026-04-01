@@ -12,7 +12,8 @@
       "Bash(find /Users/sebastianmoreno/Desktop/cashbak/app/api -type f -name *.ts)",
       "Bash(xargs ls:*)",
       "mcp__claude_ai_Supabase__list_projects",
-      "Bash(find /Users/sebastianmoreno/Desktop/cashbak -path */supabase/* -type f)"
+      "Bash(find /Users/sebastianmoreno/Desktop/cashbak -path */supabase/* -type f)",
+      "Bash(ls /Users/sebastianmoreno/Desktop/cashbak/app/admin/vendedor/[storeId]/)"
     ],
     "additionalDirectories": [
       "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]",

@@ -907,6 +907,14 @@ function ProductFormModal({
                       <span className="text-gray-500">Comisión CashBak</span>
                       <span className="text-gray-600">${FMT(sim.comisionDisplay)}</span>
                     </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Tarifa procesamiento (2%)</span>
+                      <span className="text-red-500">-${FMT(sim.tarifaProcesamiento)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-medium border-t border-gray-100 pt-1.5">
+                      <span className="text-gray-700">Tu ingreso neto</span>
+                      <span className="text-emerald-700">${FMT(sim.margenVendedorNeto)}</span>
+                    </div>
                     <div className={`flex justify-between text-sm py-1.5 rounded ${sim.gananciaNeta < 0 ? "px-2 bg-red-50 border border-red-200" : ""}`}>
                       <div>
                         <span className={sim.gananciaNeta < 0 ? "text-red-600 font-semibold" : "text-gray-500"}>Ganancia neta estimada</span>

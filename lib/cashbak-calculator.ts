@@ -6,6 +6,7 @@ const COMISION_MAXIMA_PCT = 0.035     // máximo 3.5% del precio de venta
 const CASHBACK_MINIMO = 0.10          // 10% mínimo de cashback ofrecido
 const CASHBACK_RECOMENDADO = 0.15     // 15% cashback recomendado
 const CUOTA_MINIMA = 1.5              // cuota mínima considerada
+const TARIFA_PROCESAMIENTO = 0.02     // 2% tarifa de procesamiento de pago (Transbank)
 
 export interface ExternalCashbakResult {
   viable: boolean
@@ -16,7 +17,9 @@ export interface ExternalCashbakResult {
   // Valores para mostrar en UI (no varían con la cuota)
   comisionDisplay: number     // Comisión fija: 20% fondoBruto (mín 1% precio)
   montoApuestaDisplay: number // Seguro CashBak: fondoBruto - comisionFija
-  margenVendedor: number      // CLP garantizados para el vendedor
+  margenVendedor: number      // CLP garantizados para el vendedor (bruto)
+  tarifaProcesamiento: number // CLP tarifa de procesamiento de pago (2%)
+  margenVendedorNeto: number  // CLP neto para el vendedor (margen - tarifa procesamiento)
   gananciaNeta: number        // CLP neta por venta (igual en ambos escenarios)
   margenVendedorMaxPct: number    // % máximo para que exista cashback mínimo
   margenVendedorMaxMonto: number  // en CLP
@@ -88,6 +91,7 @@ export function calculateExternalCashbak(params: {
   const cashbackMonto = Math.round(montoApuesta * cuota)
   const cashbackPct = Math.min(100, Math.floor((cashbackMonto / precioVenta) * 100))
   const viable = true
+  const tarifaProcesamiento = Math.round(TARIFA_PROCESAMIENTO * precioVenta)
 
   return {
     viable,
@@ -98,6 +102,8 @@ export function calculateExternalCashbak(params: {
     comisionDisplay: Math.round(comisionPlataforma),
     montoApuestaDisplay: Math.round(montoApuestaCalculado),
     margenVendedor: Math.round(margenVendedor),
+    tarifaProcesamiento,
+    margenVendedorNeto: Math.round(margenVendedor) - tarifaProcesamiento,
     gananciaNeta: Math.round(margenVendedor - costo),  // ilustrativo
     margenVendedorMaxPct,
     margenVendedorMaxMonto: Math.round(margenVendedorMaxMonto),

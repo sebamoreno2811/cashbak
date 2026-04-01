@@ -232,9 +232,25 @@ export default function SellPage() {
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <div>
                         <span className="text-gray-600">Tu ingreso por venta</span>
-                        <p className="text-xs text-gray-400">Lo que ganas por cada venta — garantizado, sin importar el resultado del evento</p>
+                        <p className="text-xs text-gray-400">Bruto, antes de tarifa de procesamiento de pago</p>
                       </div>
                       <span className="font-bold text-green-900">{formatCLP(resultado.margenVendedor)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <div>
+                        <span className="text-gray-600">Tarifa procesamiento de pago</span>
+                        <p className="text-xs text-gray-400">2% sobre el precio de venta — cubre Transbank</p>
+                      </div>
+                      <span className="font-semibold text-red-500">-{formatCLP(resultado.tarifaProcesamiento)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <div>
+                        <span className="text-gray-700 font-medium">Tu ingreso neto por venta</span>
+                        <p className="text-xs text-gray-400">Lo que recibes después del procesamiento — garantizado</p>
+                      </div>
+                      <span className="font-bold text-emerald-700">{formatCLP(resultado.margenVendedorNeto)}</span>
                     </div>
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
