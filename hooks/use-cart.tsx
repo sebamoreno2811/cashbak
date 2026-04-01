@@ -20,6 +20,9 @@ export type CartItem = {
   betOptionId: string
   cashbakPercentage: number
   bet_amount: number
+  comision_cashbak: number
+  tarifa_procesamiento: number
+  vendor_net_amount: number
   size: string
   hasPrint: boolean
 }
@@ -105,8 +108,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const price = hasPrint ? product.price + 2990 : product.price
     const cost = hasPrint ? product.cost + 2500 : product.cost
     const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.25 })
-    const cashbakPercentage = sim.cashbackPct
-    const bet_amount = sim.montoApuesta
 
     const existingItemIndex = items.findIndex(
       (item) =>
@@ -127,8 +128,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
           productId,
           quantity,
           betOptionId,
-          cashbakPercentage,
-          bet_amount,
+          cashbakPercentage: sim.cashbackPct,
+          bet_amount: sim.montoApuesta,
+          comision_cashbak: sim.comisionPlataforma,
+          tarifa_procesamiento: sim.tarifaProcesamiento,
+          vendor_net_amount: sim.margenVendedorNeto,
           size,
           hasPrint
         },
@@ -150,6 +154,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.25 })
       item.cashbakPercentage = sim.cashbackPct
       item.bet_amount = sim.montoApuesta
+      item.comision_cashbak = sim.comisionPlataforma
+      item.tarifa_procesamiento = sim.tarifaProcesamiento
+      item.vendor_net_amount = sim.margenVendedorNeto
     }
 
     setItems(updatedItems)
@@ -188,6 +195,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.25 })
       item.cashbakPercentage = sim.cashbackPct
       item.bet_amount = sim.montoApuesta
+      item.comision_cashbak = sim.comisionPlataforma
+      item.tarifa_procesamiento = sim.tarifaProcesamiento
+      item.vendor_net_amount = sim.margenVendedorNeto
     }
 
     setItems(updatedItems)
