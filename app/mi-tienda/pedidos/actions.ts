@@ -1,6 +1,6 @@
 "use server"
 
-import { createSupabaseClientWithCookies as createClient } from "@/utils/supabase/server"
+import { createSupabaseClientWithCookies as createClient, createSupabaseClientWithoutCookies } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
 import { Resend } from "resend"
 
@@ -67,8 +67,9 @@ export async function updateShippingStatus(orderId: string, shipping_status: str
       const isPickup = chosenOption?.type === "pickup"
       const pickupAddress = chosenOption?.address ?? ""
 
-      // Generar token de confirmación
-      const { data: tokenRow } = await supabase
+      // Generar token de confirmación (requiere service role para saltarse RLS)
+      const supabaseAdmin = createSupabaseClientWithoutCookies()
+      const { data: tokenRow } = await supabaseAdmin
         .from("order_tokens")
         .insert({ order_id: orderId, action: "confirm_received" })
         .select("token")
