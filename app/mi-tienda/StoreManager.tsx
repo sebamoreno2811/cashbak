@@ -586,7 +586,9 @@ function ProductFormModal({
 
   const sliderMax = Math.round(priceNum * 0.98)
   const sliderStep = Math.max(1, 10 ** Math.max(0, Math.floor(Math.log10(Math.max(1, sliderMax))) - 2))
-  const gananciaBajoElCosto = costNum > 0 && gananciaCLP < costNum
+  const tarifaProcesamientoEstimada = Math.round(0.02 * priceNum)
+  const ingresoNetoEstimado = gananciaCLP - tarifaProcesamientoEstimada
+  const gananciaBajoElCosto = costNum > 0 && ingresoNetoEstimado < costNum
 
   const sim = useMemo(() => {
     if (!valid) return null
@@ -922,13 +924,13 @@ function ProductFormModal({
                       </div>
                       <span className="font-semibold text-gray-800 shrink-0">{sim.cashbackPct}% · ${FMT(sim.cashbackMonto)}</span>
                     </div>
-                    <div className={`flex justify-between text-sm py-1.5 rounded ${sim.gananciaNeta < 0 ? "px-2 bg-red-50 border border-red-200" : ""}`}>
+                    <div className={`flex justify-between text-sm py-1.5 rounded ${sim.margenVendedorNeto < costNum ? "px-2 bg-red-50 border border-red-200" : ""}`}>
                       <div>
-                        <span className={sim.gananciaNeta < 0 ? "text-red-600 font-semibold" : "text-gray-500"}>Ganancia neta estimada</span>
+                        <span className={sim.margenVendedorNeto < costNum ? "text-red-600 font-semibold" : "text-gray-500"}>Ganancia neta estimada</span>
                         <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo declarado</p>
-                        {sim.gananciaNeta < 0 && <p className="text-xs text-red-500">⚠️ Estarías vendiendo a pérdida</p>}
+                        {sim.margenVendedorNeto < costNum && <p className="text-xs text-red-500">⚠️ Tu ingreso neto es menor que tu costo declarado. Estarías vendiendo a pérdida.</p>}
                       </div>
-                      <span className={`font-semibold ${sim.gananciaNeta < 0 ? "text-red-600" : "text-gray-600"}`}>
+                      <span className={`font-semibold ${sim.margenVendedorNeto < costNum ? "text-red-600" : "text-gray-600"}`}>
                         {sim.gananciaNeta < 0 ? `-$${FMT(Math.abs(sim.gananciaNeta))}` : `$${FMT(sim.gananciaNeta)}`}
                       </span>
                     </div>

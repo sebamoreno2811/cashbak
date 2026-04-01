@@ -44,7 +44,9 @@ export default function SellPage() {
   const sliderMax = Math.round(precio * 0.98)
   const sliderStep = Math.max(1, 10 ** Math.max(0, Math.floor(Math.log10(Math.max(1, sliderMax))) - 2))
   const margenVendedorPct = precio > 0 ? gananciaCLP / precio : 0
-  const gananciaBajoElCosto = costoNum > 0 && gananciaCLP < costoNum
+  const tarifaProcesamiento = Math.round(0.02 * precio)
+  const ingresoNeto = gananciaCLP - tarifaProcesamiento
+  const gananciaBajoElCosto = costoNum > 0 && ingresoNeto < costoNum
 
   useEffect(() => {
     // Cuando cambia el precio, mantener el mismo % aproximado
@@ -274,13 +276,13 @@ export default function SellPage() {
                       <span className="font-semibold text-gray-500 shrink-0">{resultado.cashbackPct}%</span>
                     </div>
 
-                    <div className={`flex justify-between items-center py-2 rounded-lg ${resultado.gananciaNeta < 0 ? "px-2 bg-red-50 border border-red-200" : ""}`}>
-                      <div>
-                        <span className={`text-sm ${resultado.gananciaNeta < 0 ? "text-red-600 font-semibold" : "text-gray-500"}`}>Tu ganancia neta estimada</span>
+                    <div className={`flex justify-between items-start gap-3 py-2 rounded-lg ${resultado.margenVendedorNeto < costoNum ? "px-2 bg-red-50 border border-red-200" : ""}`}>
+                      <div className="min-w-0">
+                        <span className={`text-sm ${resultado.margenVendedorNeto < costoNum ? "text-red-600 font-semibold" : "text-gray-500"}`}>Tu ganancia neta estimada</span>
                         <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo declarado ({formatCLP(costoNum)})</p>
-                        {resultado.gananciaNeta < 0 && <p className="text-xs text-red-500 mt-0.5">⚠️ Estarías vendiendo a pérdida</p>}
+                        {resultado.margenVendedorNeto < costoNum && <p className="text-xs text-red-500 mt-0.5">⚠️ Tu ingreso neto es menor que tu costo declarado. Estarías vendiendo a pérdida.</p>}
                       </div>
-                      <span className={`font-semibold ${resultado.gananciaNeta < 0 ? "text-red-600" : "text-gray-700"}`}>{formatCLP(resultado.gananciaNeta)}</span>
+                      <span className={`font-semibold shrink-0 ${resultado.margenVendedorNeto < costoNum ? "text-red-600" : "text-gray-700"}`}>{formatCLP(resultado.gananciaNeta)}</span>
                     </div>
                   </CardContent>
                 </Card>
