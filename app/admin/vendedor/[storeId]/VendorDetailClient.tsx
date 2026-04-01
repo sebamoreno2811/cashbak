@@ -20,6 +20,7 @@ interface VendorOrder {
   customer_email: string | null
   shipping_method: string | null
   shipping_status: string | null
+  customer_confirmed: boolean
   items: OrderItem[]
 }
 
@@ -110,6 +111,11 @@ function OrderRow({ order, storeId }: { order: VendorOrder; storeId: string }) {
               </span>
             ) : (
               <span className="inline-block px-2 py-0.5 rounded-full font-semibold bg-gray-100 text-gray-500">Sin actualizar</span>
+            )}</p>
+            <p>Confirmación cliente: {order.customer_confirmed ? (
+              <span className="inline-block px-2 py-0.5 rounded-full font-semibold bg-green-100 text-green-700">Recibido ✓</span>
+            ) : (
+              <span className="inline-block px-2 py-0.5 rounded-full font-semibold bg-gray-100 text-gray-500">Pendiente</span>
             )}</p>
           </div>
 

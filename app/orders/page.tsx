@@ -7,6 +7,41 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
 import { toSlug } from "@/lib/slug"
+import { useState, useTransition } from "react"
+import { confirmOrderReceived } from "./actions"
+import { CheckCircle2, Loader2 } from "lucide-react"
+
+function ConfirmButton({ orderId }: { orderId: string }) {
+  const [confirmed, setConfirmed] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  const handleConfirm = () => {
+    startTransition(async () => {
+      const res = await confirmOrderReceived(orderId)
+      if (!res.error) setConfirmed(true)
+    })
+  }
+
+  if (confirmed) {
+    return (
+      <div className="flex items-center gap-1.5 text-green-700 text-sm font-medium">
+        <CheckCircle2 className="w-4 h-4" />
+        Recepción confirmada
+      </div>
+    )
+  }
+
+  return (
+    <button
+      onClick={handleConfirm}
+      disabled={isPending}
+      className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg border border-green-700 text-green-700 hover:bg-green-50 transition-colors disabled:opacity-60"
+    >
+      {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+      Confirmar recepción
+    </button>
+  )
+}
 
 export default function OrdersPage() {
   const { orders, loading: ordersLoading } = useOrders()
@@ -63,6 +98,17 @@ export default function OrdersPage() {
                 })()}
 
             </div>
+            {order.shipping_status === "Entregado" && !order.customer_confirmed && (
+              <div className="pt-2">
+                <ConfirmButton orderId={order.id} />
+              </div>
+            )}
+            {order.customer_confirmed && (
+              <div className="flex items-center gap-1.5 text-green-700 text-sm font-medium pt-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Recepción confirmada
+              </div>
+            )}
             <div className="mt-2 space-y-1">
               {order.order_items.map((item, index) => {
                 const bet = bets.find((b) => b.id === Number(item.bet_option_id))

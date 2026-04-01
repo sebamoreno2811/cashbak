@@ -26,6 +26,7 @@ interface Order {
   order_status: string
   shipping_status: string
   payment_status: string
+  customer_confirmed: boolean
   created_at: string
   order_items: OrderItem[]
 }
