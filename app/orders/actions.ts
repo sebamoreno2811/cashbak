@@ -20,7 +20,7 @@ export async function confirmOrderReceived(orderId: string) {
 
   const { error } = await supabase
     .from("orders")
-    .update({ customer_confirmed: true, updated_at: new Date().toISOString() })
+    .update({ customer_confirmed: true, shipping_status: "Entregado", updated_at: new Date().toISOString() })
     .eq("id", orderId)
 
   if (error) return { error: error.message }
