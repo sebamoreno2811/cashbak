@@ -218,6 +218,9 @@ export async function saveCheckoutData(
                   <tbody>${storeItemsHtml}</tbody>
                 </table>
                 <p style="color:#374151;font-size:14px;">Contacta al cliente para coordinar el envío o retiro según el método que eligió.</p>
+                <a href="${APP_URL}/mi-tienda/pedidos" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">
+                  Ver mis pedidos →
+                </a>
                 <p style="color:#9ca3af;font-size:12px;margin-top:24px;">CashBak · cashbak.cl</p>
               </div>
             </div>
