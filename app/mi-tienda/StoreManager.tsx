@@ -888,38 +888,39 @@ function ProductFormModal({
 
               {sim && (
                 <>
-                  {/* Resultado principal: ganancia vendedor */}
-                  <div className="rounded-lg px-4 py-3 bg-emerald-50 border border-emerald-200">
-                    <p className="text-xs text-emerald-600 font-medium mb-1">Tu ganancia garantizada por venta</p>
-                    <p className="text-2xl font-bold text-emerald-700">${FMT(sim.margenVendedor)}</p>
-                    <p className="text-xs text-emerald-500 mt-0.5">
-                      Este monto es tuyo sin importar el resultado del evento.
-                    </p>
-                  </div>
-
                   {/* Desglose */}
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">CashBak al cliente</span>
-                      <span className="font-semibold text-gray-800">{sim.cashbackPct}% · ${FMT(sim.cashbackMonto)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Comisión CashBak</span>
-                      <span className="text-gray-600">${FMT(sim.comisionDisplay)}</span>
+                      <div>
+                        <span className="text-gray-500">Tu ingreso por venta</span>
+                        <p className="text-xs text-gray-400">Bruto, antes del costo de procesamiento</p>
+                      </div>
+                      <span className="font-semibold text-gray-800">${FMT(sim.margenVendedor)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <div>
                         <span className="text-gray-500">Costo procesamiento Transbank</span>
                         <p className="text-xs text-gray-400">Cubre todos los medios de pago</p>
                       </div>
-                      <span className="text-gray-600">${FMT(sim.tarifaProcesamiento)}</span>
+                      <span className="text-gray-600">- ${FMT(sim.tarifaProcesamiento)}</span>
                     </div>
-                    <div className="flex justify-between text-sm font-semibold border-t border-gray-100 pt-1.5">
+                    <div className="flex justify-between text-sm font-semibold border-t border-gray-200 pt-1.5">
                       <div>
                         <span className="text-gray-800">Tu ingreso neto por venta</span>
                         <p className="text-xs text-gray-400 font-normal">Monto exacto que recibirás, sin variaciones</p>
                       </div>
                       <span className="text-emerald-700">${FMT(sim.margenVendedorNeto)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm pt-1 border-t border-gray-100">
+                      <span className="text-gray-500">Comisión CashBak</span>
+                      <span className="text-gray-600">- ${FMT(sim.comisionDisplay)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <div>
+                        <span className="text-gray-500">CashBak al cliente</span>
+                        <p className="text-xs text-gray-400">Simulación con el evento seleccionado. Varía según el evento que elija el cliente, pero nunca afecta tu ingreso neto.</p>
+                      </div>
+                      <span className="font-semibold text-gray-800">{sim.cashbackPct}% · ${FMT(sim.cashbackMonto)}</span>
                     </div>
                     <div className={`flex justify-between text-sm py-1.5 rounded ${sim.gananciaNeta < 0 ? "px-2 bg-red-50 border border-red-200" : ""}`}>
                       <div>

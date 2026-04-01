@@ -242,7 +242,7 @@ export default function SellPage() {
                         <span className="text-gray-600">Costo procesamiento de pago Transbank</span>
                         <p className="text-xs text-gray-400">Cubre todos los medios de pago: débito, prepago y crédito</p>
                       </div>
-                      <span className="font-semibold text-gray-500">{formatCLP(resultado.tarifaProcesamiento)}</span>
+                      <span className="font-semibold text-gray-500">- {formatCLP(resultado.tarifaProcesamiento)}</span>
                     </div>
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -255,7 +255,7 @@ export default function SellPage() {
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600">Comisión CashBak</span>
-                      <span className="font-semibold text-gray-500">{formatCLP(resultado.comisionDisplay)}</span>
+                      <span className="font-semibold text-gray-500">- {formatCLP(resultado.comisionDisplay)}</span>
                     </div>
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -263,7 +263,15 @@ export default function SellPage() {
                         <span className="text-gray-600">Seguro CashBak</span>
                         <p className="text-xs text-gray-400">Prima que financia el cashback al cliente</p>
                       </div>
-                      <span className="font-semibold text-gray-500">{formatCLP(resultado.montoApuestaDisplay)}</span>
+                      <span className="font-semibold text-gray-500">- {formatCLP(resultado.montoApuestaDisplay)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <div>
+                        <span className="text-gray-600">CashBak al cliente</span>
+                        <p className="text-xs text-gray-400">Simulación con los eventos disponibles. Varía según el evento que elija el cliente, pero nunca afecta tu ingreso neto.</p>
+                      </div>
+                      <span className="font-semibold text-gray-500">{resultado.cashbackPct}%</span>
                     </div>
 
                     <div className={`flex justify-between items-center py-2 rounded-lg ${resultado.gananciaNeta < 0 ? "px-2 bg-red-50 border border-red-200" : ""}`}>
