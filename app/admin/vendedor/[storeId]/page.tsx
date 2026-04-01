@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowLeft, Building2, CreditCard } from "lucide-react"
 import VendorDetailClient from "./VendorDetailClient"
 
-export default async function VendorDetailPage({ params }: { params: { storeId: string } }) {
+export default async function VendorDetailPage({ params }: { params: Promise<{ storeId: string }> }) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -13,7 +13,7 @@ export default async function VendorDetailPage({ params }: { params: { storeId: 
   const { data: me } = await supabase.from("customers").select("role").eq("id", user.id).single()
   if (me?.role !== "admin") redirect("/")
 
-  const { storeId } = params
+  const { storeId } = await params
 
   // Info de la tienda
   const { data: store, error: storeError } = await supabase
