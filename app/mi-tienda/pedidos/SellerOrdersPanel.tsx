@@ -83,8 +83,10 @@ function OrderRow({ order }: { order: Order }) {
             <p className="text-xs text-gray-400 truncate">{order.customer_email}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400">A recibir</p>
-            <p className="text-sm font-semibold text-emerald-700">${order.vendor_net_amount.toLocaleString("es-CL")}</p>
+            <p className="text-xs text-gray-400">{order.vendor_net_amount > 0 ? "A recibir" : "Total"}</p>
+            <p className="text-sm font-semibold text-emerald-700">
+              ${(order.vendor_net_amount > 0 ? order.vendor_net_amount : order.order_total).toLocaleString("es-CL")}
+            </p>
           </div>
           <div>
             {shippingStatus ? (
