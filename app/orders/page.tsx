@@ -98,12 +98,11 @@ export default function OrdersPage() {
                 })()}
 
             </div>
-            {order.shipping_status === "Entregado" && !order.customer_confirmed && (
+            {!order.customer_confirmed ? (
               <div className="pt-2">
                 <ConfirmButton orderId={order.id} />
               </div>
-            )}
-            {order.customer_confirmed && (
+            ) : (
               <div className="flex items-center gap-1.5 text-green-700 text-sm font-medium pt-2">
                 <CheckCircle2 className="w-4 h-4" />
                 Recepción confirmada
