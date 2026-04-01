@@ -142,22 +142,7 @@ export async function saveCheckoutData(
       </tr>`
     ).join("")
 
-    // 8. Generar token para confirmar recepción (cliente) — se usará en el email de compra
-    let confirmReceiptUrl: string | null = null
-    try {
-      const { data: clientToken } = await supabase
-        .from("order_tokens")
-        .insert({ order_id: orderId, action: "confirm_received" })
-        .select("token")
-        .single()
-      if (clientToken?.token) {
-        confirmReceiptUrl = `${APP_URL}/api/order-action/${clientToken.token}`
-      }
-    } catch (e) {
-      console.error("Error generando token cliente:", e)
-    }
-
-    // 9. Email de confirmación al comprador
+    // 8. Email de confirmación al comprador
     try {
       await resend.emails.send({
         from: EMAIL_FROM,
@@ -189,14 +174,6 @@ export async function saveCheckoutData(
                   <strong>¡Éxito con tu CashBak!</strong> 🎉
                 </p>
               </div>
-              ${confirmReceiptUrl ? `
-              <div style="text-align:center;margin:24px 0;">
-                <p style="color:#374151;font-size:14px;margin-bottom:12px;">Cuando recibas tu pedido, confírmalo con un click:</p>
-                <a href="${confirmReceiptUrl}" style="display:inline-block;padding:12px 28px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">
-                  ✅ Confirmar recepción
-                </a>
-              </div>
-              ` : ""}
               <p style="color:#9ca3af;font-size:12px;margin-top:24px;">CashBak · cashbak.cl</p>
             </div>
           </div>

@@ -92,6 +92,7 @@ export default function StoreManager({
   const [newOptPrice, setNewOptPrice] = useState("")
   const [newOptPriceTBD, setNewOptPriceTBD] = useState(false)
   const [newOptType, setNewOptType] = useState<"delivery" | "pickup" | null>(null)
+  const [newOptAddress, setNewOptAddress] = useState("")
   const [savingDelivery, setSavingDelivery] = useState(false)
   const [deliveryError, setDeliveryError] = useState<string | null>(null)
   const [deliverySaved, setDeliverySaved] = useState(false)
@@ -104,17 +105,20 @@ export default function StoreManager({
     setNewOptName("")
     setNewOptPrice("")
     setNewOptPriceTBD(false)
+    setNewOptAddress("")
     setShowAddOpt(true)
   }
 
   function confirmAddOpt() {
     if (!newOptName.trim() || !newOptType) return
+    if (newOptType === "pickup" && !newOptAddress.trim()) return
     const opt: DeliveryOption = {
       id: Math.random().toString(36).slice(2) + Date.now().toString(36),
       name: newOptName.trim(),
       price: newOptPriceTBD ? 0 : Math.max(0, Number(newOptPrice) || 0),
       priceTBD: newOptPriceTBD || undefined,
       type: newOptType,
+      address: newOptType === "pickup" ? newOptAddress.trim() : undefined,
     }
     setDeliveryOptions(prev => [...prev, opt])
     setDeliverySaved(false)
@@ -347,6 +351,14 @@ export default function StoreManager({
                       placeholder={newOptType === "pickup" ? "Ej: Retiro en tienda, Metro Baquedano..." : "Ej: Despacho Starken, Chilexpress..."}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
                     />
+                    {newOptType === "pickup" && (
+                      <input
+                        value={newOptAddress}
+                        onChange={e => setNewOptAddress(e.target.value)}
+                        placeholder="Dirección de retiro (obligatorio)"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
+                      />
+                    )}
                     <div className="space-y-2">
                       <p className="text-xs font-medium text-gray-600">Costo para el cliente</p>
                       <div className="flex rounded-lg overflow-hidden border border-gray-200 text-xs">
@@ -379,7 +391,7 @@ export default function StoreManager({
 
                 <div className="flex gap-2 pt-1">
                   <button type="button" onClick={confirmAddOpt}
-                    disabled={!newOptName.trim() || !newOptType}
+                    disabled={!newOptName.trim() || !newOptType || (newOptType === "pickup" && !newOptAddress.trim())}
                     className="flex-1 py-2.5 bg-green-900 text-white rounded-lg font-semibold text-sm hover:bg-green-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                     Confirmar
                   </button>

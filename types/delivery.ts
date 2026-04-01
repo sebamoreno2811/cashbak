@@ -4,4 +4,5 @@ export type DeliveryOption = {
   price: number
   priceTBD?: boolean   // true = "por pagar" (costo se coordina por separado)
   type: "delivery" | "pickup"
+  address?: string     // requerido cuando type === "pickup"
 }

@@ -55,6 +55,7 @@ export default function AplicarPage() {
   const [newDeliveryType, setNewDeliveryType] = useState<"delivery" | "pickup">("delivery")
   const [newDeliveryPrice, setNewDeliveryPrice] = useState("")
   const [newDeliveryPriceTBD, setNewDeliveryPriceTBD] = useState(false)
+  const [newDeliveryAddress, setNewDeliveryAddress] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
@@ -74,18 +75,21 @@ export default function AplicarPage() {
 
   function addDeliveryOption() {
     if (!newDeliveryName.trim()) return
+    if (newDeliveryType === "pickup" && !newDeliveryAddress.trim()) return
     const opt: DeliveryOption = {
       id: crypto.randomUUID(),
       name: newDeliveryName.trim(),
       type: newDeliveryType,
       price: newDeliveryPriceTBD ? 0 : (parseInt(newDeliveryPrice) || 0),
       priceTBD: newDeliveryPriceTBD || undefined,
+      address: newDeliveryType === "pickup" ? newDeliveryAddress.trim() : undefined,
     }
     setDeliveryOptions(prev => [...prev, opt])
     setNewDeliveryName("")
     setNewDeliveryPrice("")
     setNewDeliveryPriceTBD(false)
     setNewDeliveryType("delivery")
+    setNewDeliveryAddress("")
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -429,6 +433,13 @@ export default function AplicarPage() {
                       className="flex-1"
                     />
                   </div>
+                  {newDeliveryType === "pickup" && (
+                    <Input
+                      placeholder="Dirección de retiro (obligatorio)"
+                      value={newDeliveryAddress}
+                      onChange={e => setNewDeliveryAddress(e.target.value)}
+                    />
+                  )}
                   <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
                     <input
                       type="checkbox"
@@ -442,7 +453,7 @@ export default function AplicarPage() {
                 <button
                   type="button"
                   onClick={addDeliveryOption}
-                  disabled={!newDeliveryName.trim()}
+                  disabled={!newDeliveryName.trim() || (newDeliveryType === "pickup" && !newDeliveryAddress.trim())}
                   className="flex items-center gap-1 text-sm text-green-700 font-semibold hover:text-green-900 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Plus className="w-4 h-4" /> Agregar
