@@ -17,6 +17,27 @@ interface Order {
   store_name: string
   customer_name: string | null
   customer_email: string | null
+  bet_end_date: string | null
+}
+
+function daysSince(dateStr: string) {
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000)
+}
+
+function ageRowClass(days: number) {
+  if (days >= 14) return "bg-red-50 border-l-4 border-l-red-400"
+  if (days >= 7)  return "bg-orange-50 border-l-4 border-l-orange-400"
+  if (days >= 3)  return "bg-yellow-50 border-l-4 border-l-yellow-400"
+  return "border-l-4 border-l-green-300"
+}
+
+function AgeBadge({ days }: { days: number }) {
+  const label = days === 0 ? "Hoy" : days === 1 ? "1 día" : `${days} días`
+  const color = days >= 14 ? "bg-red-100 text-red-700"
+    : days >= 7  ? "bg-orange-100 text-orange-700"
+    : days >= 3  ? "bg-yellow-100 text-yellow-700"
+    : "bg-green-100 text-green-700"
+  return <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${color}`}>{label}</span>
 }
 
 interface Store {
@@ -71,24 +92,33 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
     return { totalVentas, totalPedidos, cashbackPendiente, cashbackEntregado }
   }, [filtered])
 
-  // Vendedores pendientes de pago agrupados por tienda
+  // Vendedores pendientes de pago agrupados por tienda, ordenados por compra más antigua
   const vendoresPendientes = useMemo(() => {
     const unpaid = filtered.filter(o => !o.vendor_paid)
-    const byStore: Record<string, { store_name: string; store_id: string | null; count: number; total: number }> = {}
+    const byStore: Record<string, { store_name: string; store_id: string | null; count: number; total: number; oldestDate: string }> = {}
     for (const o of unpaid) {
       const key = o.store_id ?? "__cashbak__"
-      if (!byStore[key]) byStore[key] = { store_name: o.store_name, store_id: o.store_id, count: 0, total: 0 }
+      if (!byStore[key]) byStore[key] = { store_name: o.store_name, store_id: o.store_id, count: 0, total: 0, oldestDate: o.created_at }
       byStore[key].count++
       byStore[key].total += o.order_total
+      if (new Date(o.created_at) < new Date(byStore[key].oldestDate)) {
+        byStore[key].oldestDate = o.created_at
+      }
     }
-    return Object.values(byStore).sort((a, b) => b.total - a.total)
+    return Object.values(byStore).sort((a, b) =>
+      new Date(a.oldestDate).getTime() - new Date(b.oldestDate).getTime()
+    )
   }, [filtered])
 
-  // Clientes con cashback pendiente
+  // Clientes con cashback pendiente, ordenados por end_date más antiguo
   const cashbackPendienteList = useMemo(() => {
     return filtered
       .filter(o => o.cashback_status === "transferencia_pendiente")
-      .sort((a, b) => b.cashback_amount - a.cashback_amount)
+      .sort((a, b) => {
+        const aDate = a.bet_end_date ? new Date(a.bet_end_date).getTime() : new Date(a.created_at).getTime()
+        const bDate = b.bet_end_date ? new Date(b.bet_end_date).getTime() : new Date(b.created_at).getTime()
+        return aDate - bDate
+      })
   }, [filtered])
 
   const hasFilters = storeFilter !== "todos" || dateFrom || dateTo
@@ -185,23 +215,28 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
             <p className="text-center py-10 text-sm text-gray-400">Todo al día ✓</p>
           ) : (
             <div className="divide-y divide-gray-50">
-              {vendoresPendientes.map(v => (
-                <div key={v.store_id ?? "__cashbak__"} className="px-5 py-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">{v.store_name}</p>
-                    <p className="text-xs text-gray-400">{v.count} pedido{v.count !== 1 ? "s" : ""} sin pagar</p>
+              {vendoresPendientes.map(v => {
+                const days = daysSince(v.oldestDate)
+                return (
+                  <div key={v.store_id ?? "__cashbak__"} className={`px-5 py-3 flex items-center justify-between ${ageRowClass(days)}`}>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-gray-800">{v.store_name}</p>
+                        <AgeBadge days={days} />
+                      </div>
+                      <p className="text-xs text-gray-400">{v.count} pedido{v.count !== 1 ? "s" : ""} sin pagar · pedido más antiguo hace {days === 0 ? "hoy" : `${days} días`}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-gray-900">${v.total.toLocaleString("es-CL")}</p>
+                      {v.store_id && (
+                        <Link href={`/admin/vendedor/${v.store_id}`} className="text-xs text-green-700 hover:underline font-medium">
+                          Ver y pagar →
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-gray-900">${v.total.toLocaleString("es-CL")}</p>
-                    <Link
-                      href="/admin/pedidos"
-                      className="text-xs text-green-700 hover:underline font-medium"
-                    >
-                      Ver pedidos →
-                    </Link>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -221,23 +256,32 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
             <p className="text-center py-10 text-sm text-gray-400">Sin cashbacks pendientes ✓</p>
           ) : (
             <div className="divide-y divide-gray-50 max-h-96 overflow-y-auto">
-              {cashbackPendienteList.map(o => (
-                <div key={o.id} className="px-5 py-3 flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{o.customer_name ?? "—"}</p>
-                    <p className="text-xs text-gray-400 truncate">{o.customer_email}</p>
-                    {o.cashback_transfer_note && (
-                      <p className="text-xs text-orange-600 mt-0.5 truncate">{o.cashback_transfer_note}</p>
-                    )}
+              {cashbackPendienteList.map(o => {
+                const refDate = o.bet_end_date ?? o.created_at
+                const days = daysSince(refDate)
+                return (
+                  <div key={o.id} className={`px-5 py-3 flex items-center justify-between gap-4 ${ageRowClass(days)}`}>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-gray-800 truncate">{o.customer_name ?? "—"}</p>
+                        <AgeBadge days={days} />
+                      </div>
+                      <p className="text-xs text-gray-400 truncate">{o.customer_email}</p>
+                      {o.cashback_transfer_note && (
+                        <p className="text-xs text-orange-600 mt-0.5 truncate">{o.cashback_transfer_note}</p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-bold text-emerald-700">${o.cashback_amount.toLocaleString("es-CL")}</p>
+                      <p className="text-xs text-gray-400">
+                        {o.bet_end_date
+                          ? `Evento: ${new Date(o.bet_end_date).toLocaleDateString("es-CL", { day: "2-digit", month: "short" })}`
+                          : new Date(o.created_at).toLocaleDateString("es-CL", { day: "2-digit", month: "short" })}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-bold text-emerald-700">${o.cashback_amount.toLocaleString("es-CL")}</p>
-                    <p className="text-xs text-gray-400">
-                      {new Date(o.created_at).toLocaleDateString("es-CL", { day: "2-digit", month: "short" })}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

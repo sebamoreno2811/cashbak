@@ -23,11 +23,11 @@ export default async function AdminDashboardPage() {
     .select("id, customer_id, order_total, cashback_amount, cashback_status, cashback_transfer_note, vendor_paid, shipping_status, created_at")
     .order("created_at", { ascending: false })
 
-  // Order items (para mapear tienda → orden)
+  // Order items (para mapear tienda → orden y obtener bet_option_id)
   const orderIds = (orders ?? []).map((o: { id: string }) => o.id)
   const { data: orderItems } = await supabase
     .from("order_items")
-    .select("order_id, product_id")
+    .select("order_id, product_id, bet_option_id")
     .in("order_id", orderIds.length > 0 ? orderIds : ["none"])
 
   // Productos para obtener store_id
@@ -36,6 +36,28 @@ export default async function AdminDashboardPage() {
     .from("products")
     .select("id, store_id")
     .in("id", productIds.length > 0 ? productIds : ["none"])
+
+  // Bets para obtener end_date
+  const betIds = [...new Set((orderItems ?? []).map((i: { bet_option_id: string }) => i.bet_option_id).filter(Boolean))]
+  const { data: bets } = await supabase
+    .from("bets")
+    .select("id, end_date")
+    .in("id", betIds.length > 0 ? betIds : [-1])
+  const betEndDateMap = Object.fromEntries(
+    (bets ?? []).map((b: { id: number; end_date: string }) => [String(b.id), b.end_date])
+  )
+
+  // Bet más antiguo por orden (para cashback)
+  const orderBetEndDateMap: Record<string, string> = {}
+  for (const item of orderItems ?? []) {
+    if (!item.bet_option_id) continue
+    const endDate = betEndDateMap[String(item.bet_option_id)]
+    if (!endDate) continue
+    const existing = orderBetEndDateMap[item.order_id]
+    if (!existing || new Date(endDate) < new Date(existing)) {
+      orderBetEndDateMap[item.order_id] = endDate
+    }
+  }
 
   // Tiendas aprobadas
   const { data: stores } = await supabase
@@ -87,6 +109,7 @@ export default async function AdminDashboardPage() {
       store_name: storeId ? (storeNameMap[storeId] ?? "Tienda desconocida") : "CashBak Store",
       customer_name: c?.full_name ?? null,
       customer_email: c?.email ?? null,
+      bet_end_date: orderBetEndDateMap[o.id as string] ?? null,
     }
   })
 

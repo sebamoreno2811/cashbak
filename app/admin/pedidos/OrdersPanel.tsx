@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { updateOrderStatuses } from "./actions"
-import { ChevronDown, ChevronUp, Loader2, Save, Package, Truck, Banknote, CheckCircle2 } from "lucide-react"
+import { updateOrderStatuses, bulkUpdateOrders } from "./actions"
+import { ChevronDown, ChevronUp, Loader2, Save, Package, Truck, Banknote, CheckCircle2, Square, CheckSquare } from "lucide-react"
 
 interface OrderItem {
   id: string
@@ -61,7 +61,7 @@ function Badge({ value, map }: { value: string, map: { value: string, label: str
   )
 }
 
-function OrderRow({ order }: { order: Order }) {
+function OrderRow({ order, selected, onSelect }: { order: Order; selected: boolean; onSelect: (id: string) => void }) {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({
     order_status: order.order_status,
@@ -92,10 +92,15 @@ function OrderRow({ order }: { order: Order }) {
   return (
     <div className={`border rounded-xl overflow-hidden transition-all ${isComplete ? "border-gray-200 bg-gray-50/50" : "border-gray-200 bg-white shadow-sm"}`}>
       {/* Header row */}
-      <button
-        className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors"
-        onClick={() => setOpen(v => !v)}
-      >
+      <div className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+        <button
+          type="button"
+          onClick={e => { e.stopPropagation(); onSelect(order.id) }}
+          className="shrink-0 text-gray-400 hover:text-green-700"
+        >
+          {selected ? <CheckSquare className="w-4 h-4 text-green-700" /> : <Square className="w-4 h-4" />}
+        </button>
+        <button className="flex-1 flex items-center gap-3 text-left" onClick={() => setOpen(v => !v)}>
         <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2 items-center">
           <div>
             <p className="text-xs text-gray-400">Pedido</p>
@@ -121,8 +126,9 @@ function OrderRow({ order }: { order: Order }) {
             )}
           </div>
         </div>
-        {open ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
-      </button>
+          {open ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
+        </button>
+      </div>
 
       {/* Expanded */}
       {open && (
@@ -260,6 +266,12 @@ const CASHBACK_FILTER = [
   { value: "evento_perdido", label: "Evento perdido" },
 ]
 
+const VENDOR_PAID_FILTER = [
+  { value: "todos", label: "Todos" },
+  { value: "pendiente", label: "Pago pendiente" },
+  { value: "pagado", label: "Pagado" },
+]
+
 function FilterRow({
   label, icon, options, value, onChange, counts,
 }: {
@@ -303,23 +315,66 @@ function FilterRow({
   )
 }
 
+const BULK_ACTIONS = [
+  { label: "Vendedor pagado", fields: { vendor_paid: true } },
+  { label: "Enviado", fields: { shipping_status: "Enviado" } },
+  { label: "Entregado", fields: { shipping_status: "Entregado" } },
+  { label: "CashBak transferido", fields: { cashback_status: "transferido" } },
+  { label: "Evento perdido", fields: { cashback_status: "evento_perdido" } },
+]
+
 export default function OrdersPanel({ orders }: { orders: Order[] }) {
   const [shippingFilter, setShippingFilter] = useState("todos")
   const [cashbackFilter, setCashbackFilter] = useState("todos")
+  const [vendorPaidFilter, setVendorPaidFilter] = useState("todos")
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [isBulkPending, startBulkTransition] = useTransition()
+  const [bulkDone, setBulkDone] = useState(false)
 
   const filtered = orders.filter(o => {
     const shipOk = shippingFilter === "todos" || o.shipping_status === shippingFilter
     const cbOk = cashbackFilter === "todos" || o.cashback_status === cashbackFilter
-    return shipOk && cbOk
+    const vpOk = vendorPaidFilter === "todos" || (vendorPaidFilter === "pagado" ? o.vendor_paid : !o.vendor_paid)
+    return shipOk && cbOk && vpOk
   })
 
-  // Conteos para badges
   const shippingCounts = Object.fromEntries(
     SHIPPING_FILTER.filter(f => f.value !== "todos").map(f => [f.value, orders.filter(o => o.shipping_status === f.value).length])
   )
   const cashbackCounts = Object.fromEntries(
     CASHBACK_FILTER.filter(f => f.value !== "todos").map(f => [f.value, orders.filter(o => o.cashback_status === f.value).length])
   )
+  const vendorPaidCounts = {
+    pendiente: orders.filter(o => !o.vendor_paid).length,
+    pagado: orders.filter(o => o.vendor_paid).length,
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const toggleAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(filtered.map(o => o.id)))
+    }
+  }
+
+  const handleBulkAction = (fields: Record<string, unknown>) => {
+    startBulkTransition(async () => {
+      await bulkUpdateOrders([...selected], fields as Parameters<typeof bulkUpdateOrders>[1])
+      setSelected(new Set())
+      setBulkDone(true)
+      setTimeout(() => setBulkDone(false), 2000)
+    })
+  }
+
+  const allSelected = filtered.length > 0 && selected.size === filtered.length
 
   return (
     <div>
@@ -342,16 +397,66 @@ export default function OrdersPanel({ orders }: { orders: Order[] }) {
           onChange={setCashbackFilter}
           counts={cashbackCounts}
         />
+        <div className="border-t border-gray-100" />
+        <FilterRow
+          label="Vendedor"
+          icon={<CheckCircle2 className="w-3.5 h-3.5" />}
+          options={VENDOR_PAID_FILTER}
+          value={vendorPaidFilter}
+          onChange={setVendorPaidFilter}
+          counts={vendorPaidCounts}
+        />
       </div>
 
-      {/* Resultado */}
-      <p className="text-xs text-gray-400 mb-3">{filtered.length} pedidos</p>
+      {/* Barra de selección / bulk actions */}
+      <div className="flex items-center gap-3 mb-3 min-h-[36px]">
+        <button
+          onClick={toggleAll}
+          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-green-700 font-medium"
+        >
+          {allSelected ? <CheckSquare className="w-4 h-4 text-green-700" /> : <Square className="w-4 h-4" />}
+          {allSelected ? "Deseleccionar todo" : "Seleccionar todo"}
+        </button>
+
+        {selected.size > 0 && (
+          <>
+            <span className="text-xs text-gray-400">{selected.size} seleccionados</span>
+            <div className="flex flex-wrap gap-2 ml-2">
+              {BULK_ACTIONS.map(action => (
+                <button
+                  key={action.label}
+                  onClick={() => handleBulkAction(action.fields)}
+                  disabled={isBulkPending}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-900 text-white hover:bg-green-800 disabled:opacity-50 transition-colors"
+                >
+                  {isBulkPending ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                  {action.label}
+                </button>
+              ))}
+            </div>
+            {bulkDone && (
+              <span className="flex items-center gap-1 text-xs text-green-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Actualizado
+              </span>
+            )}
+          </>
+        )}
+
+        <p className="text-xs text-gray-400 ml-auto">{filtered.length} pedidos</p>
+      </div>
 
       <div className="space-y-3">
         {filtered.length === 0 && (
           <p className="text-center py-10 text-gray-400">No hay pedidos con estos filtros</p>
         )}
-        {filtered.map(order => <OrderRow key={order.id} order={order} />)}
+        {filtered.map(order => (
+          <OrderRow
+            key={order.id}
+            order={order}
+            selected={selected.has(order.id)}
+            onSelect={toggleSelect}
+          />
+        ))}
       </div>
     </div>
   )

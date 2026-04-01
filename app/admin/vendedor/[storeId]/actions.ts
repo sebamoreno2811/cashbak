@@ -12,35 +12,26 @@ async function requireAdmin() {
   return supabase
 }
 
-export async function bulkUpdateOrders(orderIds: string[], fields: {
-  order_status?: string
-  shipping_status?: string
-  cashback_status?: string
-  vendor_paid?: boolean
-}) {
+export async function markOrderVendorPaid(orderId: string, storeId: string) {
   const supabase = await requireAdmin()
   const { error } = await supabase
     .from("orders")
-    .update({ ...fields, updated_at: new Date().toISOString() })
-    .in("id", orderIds)
+    .update({ vendor_paid: true, updated_at: new Date().toISOString() })
+    .eq("id", orderId)
   if (error) return { error: error.message }
-  revalidatePath("/admin/pedidos")
+  revalidatePath(`/admin/vendedor/${storeId}`)
+  revalidatePath("/admin/dashboard")
   return { success: true }
 }
 
-export async function updateOrderStatuses(orderId: string, fields: {
-  order_status?: string
-  shipping_status?: string
-  cashback_status?: string
-  cashback_transfer_note?: string
-  vendor_paid?: boolean
-}) {
+export async function markAllVendorPaid(orderIds: string[], storeId: string) {
   const supabase = await requireAdmin()
   const { error } = await supabase
     .from("orders")
-    .update({ ...fields, updated_at: new Date().toISOString() })
-    .eq("id", orderId)
+    .update({ vendor_paid: true, updated_at: new Date().toISOString() })
+    .in("id", orderIds)
   if (error) return { error: error.message }
-  revalidatePath("/admin/pedidos")
+  revalidatePath(`/admin/vendedor/${storeId}`)
+  revalidatePath("/admin/dashboard")
   return { success: true }
 }
