@@ -142,7 +142,22 @@ export async function saveCheckoutData(
       </tr>`
     ).join("")
 
-    // 8. Email de confirmación al comprador
+    // 8. Generar token para confirmar recepción (cliente) — se usará en el email de compra
+    let confirmReceiptUrl: string | null = null
+    try {
+      const { data: clientToken } = await supabase
+        .from("order_tokens")
+        .insert({ order_id: orderId, action: "confirm_received" })
+        .select("token")
+        .single()
+      if (clientToken?.token) {
+        confirmReceiptUrl = `${APP_URL}/api/order-action/${clientToken.token}`
+      }
+    } catch (e) {
+      console.error("Error generando token cliente:", e)
+    }
+
+    // 9. Email de confirmación al comprador
     try {
       await resend.emails.send({
         from: EMAIL_FROM,
@@ -174,6 +189,14 @@ export async function saveCheckoutData(
                   <strong>¡Éxito con tu CashBak!</strong> 🎉
                 </p>
               </div>
+              ${confirmReceiptUrl ? `
+              <div style="text-align:center;margin:24px 0;">
+                <p style="color:#374151;font-size:14px;margin-bottom:12px;">Cuando recibas tu pedido, confírmalo con un click:</p>
+                <a href="${confirmReceiptUrl}" style="display:inline-block;padding:12px 28px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">
+                  ✅ Confirmar recepción
+                </a>
+              </div>
+              ` : ""}
               <p style="color:#9ca3af;font-size:12px;margin-top:24px;">CashBak · cashbak.cl</p>
             </div>
           </div>
@@ -183,7 +206,7 @@ export async function saveCheckoutData(
       console.error("Error enviando email al comprador:", emailError)
     }
 
-    // 9. Email a la(s) tienda(s)
+    // 10. Email a la(s) tienda(s) con botón magic link para marcar como enviado
     for (const storeId of storeIds) {
       const store = storeEmailMap[storeId]
       if (!store?.email) continue
@@ -195,6 +218,22 @@ export async function saveCheckoutData(
           <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:right;">$${(item.product?.price * item.quantity).toLocaleString("es-CL")}</td>
         </tr>`
       ).join("")
+
+      // Generar token para marcar como enviado
+      let markShippedUrl: string | null = null
+      try {
+        const { data: vendorToken } = await supabase
+          .from("order_tokens")
+          .insert({ order_id: orderId, action: "mark_shipped" })
+          .select("token")
+          .single()
+        if (vendorToken?.token) {
+          markShippedUrl = `${APP_URL}/api/order-action/${vendorToken.token}`
+        }
+      } catch (e) {
+        console.error("Error generando token vendedor:", e)
+      }
+
       try {
         await resend.emails.send({
           from: EMAIL_FROM,
@@ -220,9 +259,17 @@ export async function saveCheckoutData(
                   </thead>
                   <tbody>${storeItemsHtml}</tbody>
                 </table>
-                <p style="color:#374151;font-size:14px;">Contacta al cliente para coordinar el envío o retiro según el método que eligió.</p>
-                <a href="${APP_URL}/mi-tienda/pedidos" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">
-                  Ver mis pedidos →
+                <p style="color:#374151;font-size:14px;">Coordina el envío o retiro con el cliente según el método elegido.</p>
+                ${markShippedUrl ? `
+                <div style="text-align:center;margin:24px 0;">
+                  <p style="color:#374151;font-size:14px;margin-bottom:12px;">Cuando lo envíes, notifica al cliente con un click:</p>
+                  <a href="${markShippedUrl}" style="display:inline-block;padding:12px 28px;background:#1d4ed8;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">
+                    📦 Marcar como enviado
+                  </a>
+                </div>
+                ` : ""}
+                <a href="${APP_URL}/mi-tienda/pedidos" style="display:inline-block;margin-top:8px;padding:10px 20px;border:1px solid #d1d5db;color:#374151;text-decoration:none;border-radius:8px;font-size:13px;">
+                  Ver todos mis pedidos →
                 </a>
                 <p style="color:#9ca3af;font-size:12px;margin-top:24px;">CashBak · cashbak.cl</p>
               </div>
