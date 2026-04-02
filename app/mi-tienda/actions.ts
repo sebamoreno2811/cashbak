@@ -114,6 +114,27 @@ export async function updateStoreDeliveryOptions(options: DeliveryOption[]) {
   return { success: true }
 }
 
+export async function updateStoreBankAccount(data: {
+  bank_name: string
+  account_type: string
+  account_number: string
+  account_holder: string
+  rut: string
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "No autorizado" }
+
+  const { error } = await supabase
+    .from("stores")
+    .update(data)
+    .eq("owner_id", user.id)
+
+  if (error) return { error: error.message }
+  revalidatePath("/mi-tienda")
+  return { success: true }
+}
+
 export async function deleteProduct(productId: number) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

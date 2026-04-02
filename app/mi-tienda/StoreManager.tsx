@@ -4,8 +4,8 @@ import { useState, useMemo, useRef, useEffect } from "react"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
-import { addProduct, updateProduct, deleteProduct, updateStoreDeliveryOptions } from "./actions"
-import { Pencil, Trash2, Plus, X, Truck, MapPin, Package, ShoppingBag } from "lucide-react"
+import { addProduct, updateProduct, deleteProduct, updateStoreDeliveryOptions, updateStoreBankAccount } from "./actions"
+import { Pencil, Trash2, Plus, X, Truck, MapPin, Package, ShoppingBag, Banknote, CheckCircle2, Loader2 } from "lucide-react"
 import Link from "next/link"
 import type { DeliveryOption } from "@/types/delivery"
 
@@ -36,6 +36,11 @@ interface Store {
   categories: string[] | null
   logo_url: string | null
   delivery_options: DeliveryOption[] | null
+  bank_name: string | null
+  account_type: string | null
+  account_number: string | null
+  account_holder: string | null
+  rut: string | null
 }
 
 const PRODUCT_CATEGORIES: { group: string; items: string[] }[] = [
@@ -82,7 +87,20 @@ export default function StoreManager({
   const [products, setProducts] = useState<StoreProduct[]>(initialProducts)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<StoreProduct | null>(null)
-  const [activeTab, setActiveTab] = useState<"productos" | "entregas">("productos")
+  const [activeTab, setActiveTab] = useState<"productos" | "entregas" | "pago">("productos")
+
+  // Bank account state
+  const [bank, setBank] = useState({
+    bank_name: store.bank_name ?? "",
+    account_type: store.account_type ?? "",
+    account_number: store.account_number ?? "",
+    account_holder: store.account_holder ?? "",
+    rut: store.rut ?? "",
+  })
+  const [savingBank, setSavingBank] = useState(false)
+  const [bankSaved, setBankSaved] = useState(false)
+  const [bankError, setBankError] = useState<string | null>(null)
+  const bankComplete = !!(store.bank_name && store.account_number && store.rut)
 
   // Delivery options state
   const [savedDeliveryOptions, setSavedDeliveryOptions] = useState<DeliveryOption[]>(store.delivery_options ?? [])
@@ -238,6 +256,20 @@ export default function StoreManager({
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-400 rounded-full" />
             )}
           </button>
+          <button
+            onClick={() => setActiveTab("pago")}
+            className={`relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
+              activeTab === "pago"
+                ? "bg-gray-50 text-green-900"
+                : "text-green-200 hover:text-white hover:bg-green-800"
+            }`}
+          >
+            <Banknote className="w-4 h-4" />
+            Datos de pago
+            {!bankComplete && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-400 rounded-full" />
+            )}
+          </button>
           <Link
             href="/mi-tienda/pedidos"
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors text-green-200 hover:text-white hover:bg-green-800"
@@ -278,6 +310,112 @@ export default function StoreManager({
               ))}
             </div>
           </>
+        )}
+
+        {/* Tab: Datos de pago */}
+        {activeTab === "pago" && (
+          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-5 max-w-lg">
+            <div>
+              <h2 className="text-lg font-bold text-gray-800">Datos bancarios</h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Aquí recibirás el pago de tus ventas una vez que el pedido sea confirmado por el cliente.
+              </p>
+            </div>
+
+            {!bankComplete && (
+              <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
+                <span className="text-red-500 shrink-0">⚠️</span>
+                <p className="text-xs text-red-700 font-medium">
+                  Sin datos bancarios no podremos transferirte el pago de tus ventas.
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">Nombre del titular</label>
+                <input
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+                  placeholder="Como aparece en tu cuenta bancaria"
+                  value={bank.account_holder}
+                  onChange={e => setBank(b => ({ ...b, account_holder: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">RUT</label>
+                <input
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+                  placeholder="12345678-9"
+                  value={bank.rut}
+                  onChange={e => setBank(b => ({ ...b, rut: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">Banco</label>
+                <select
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 bg-white"
+                  value={bank.bank_name}
+                  onChange={e => setBank(b => ({ ...b, bank_name: e.target.value }))}
+                >
+                  <option value="">Selecciona tu banco</option>
+                  {["Banco de Chile", "Banco Estado", "Banco Santander", "Mercado Pago", "Banco BCI", "Banco Itaú", "Banco Falabella", "Scotiabank", "Banco Security", "Otro"].map(b => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">Tipo de cuenta</label>
+                <select
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 bg-white"
+                  value={bank.account_type}
+                  onChange={e => setBank(b => ({ ...b, account_type: e.target.value }))}
+                >
+                  <option value="">Selecciona el tipo</option>
+                  {["Cuenta Corriente", "Cuenta Vista", "Cuenta de Ahorro", "Cuenta RUT"].map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">Número de cuenta</label>
+                <input
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+                  placeholder="Número de tu cuenta"
+                  value={bank.account_number}
+                  onChange={e => setBank(b => ({ ...b, account_number: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {bankError && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{bankError}</p>
+            )}
+
+            <button
+              onClick={async () => {
+                setSavingBank(true)
+                setBankError(null)
+                const res = await updateStoreBankAccount(bank)
+                if (res.error) {
+                  setBankError(res.error)
+                } else {
+                  setBankSaved(true)
+                  setTimeout(() => setBankSaved(false), 2500)
+                }
+                setSavingBank(false)
+              }}
+              disabled={savingBank || !bank.bank_name || !bank.account_number || !bank.rut || !bank.account_holder}
+              className="w-full py-3 bg-green-900 text-white rounded-xl font-bold hover:bg-green-800 transition-colors disabled:opacity-50 text-sm flex items-center justify-center gap-2"
+            >
+              {savingBank ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Guardando...</>
+              ) : bankSaved ? (
+                <><CheckCircle2 className="w-4 h-4" /> ¡Guardado!</>
+              ) : (
+                "Guardar datos bancarios"
+              )}
+            </button>
+          </div>
         )}
 
         {/* Tab: Entregas */}
