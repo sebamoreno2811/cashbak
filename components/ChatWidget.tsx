@@ -3,6 +3,43 @@
 import { useState, useRef, useEffect } from "react"
 import { MessageCircle, X, Send, Loader2 } from "lucide-react"
 
+function renderMarkdown(text: string) {
+  const lines = text.split("\n")
+  const elements: React.ReactNode[] = []
+  let key = 0
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+
+    if (line.startsWith("## ")) {
+      elements.push(<p key={key++} className="font-semibold text-gray-900 mt-2 mb-0.5">{line.slice(3)}</p>)
+    } else if (line.startsWith("- ") || line.startsWith("• ")) {
+      const content = line.slice(2)
+      elements.push(
+        <div key={key++} className="flex gap-1.5 items-start">
+          <span className="mt-1 shrink-0 w-1.5 h-1.5 rounded-full bg-green-700" />
+          <span>{formatInline(content)}</span>
+        </div>
+      )
+    } else if (line.trim() === "") {
+      if (elements.length > 0) elements.push(<div key={key++} className="h-1" />)
+    } else {
+      elements.push(<p key={key++}>{formatInline(line)}</p>)
+    }
+  }
+
+  return <div className="space-y-0.5">{elements}</div>
+}
+
+function formatInline(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g)
+  return parts.map((part, i) =>
+    part.startsWith("**") && part.endsWith("**")
+      ? <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>
+      : part
+  )
+}
+
 interface Message {
   role: "user" | "assistant"
   content: string
@@ -108,13 +145,13 @@ export default function ChatWidget() {
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
-                  className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                  className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-relaxed ${
                     msg.role === "user"
-                      ? "bg-green-900 text-white rounded-br-sm"
+                      ? "bg-green-900 text-white rounded-br-sm whitespace-pre-wrap"
                       : "bg-white text-gray-800 border border-gray-200 rounded-bl-sm shadow-sm"
                   }`}
                 >
-                  {msg.content}
+                  {msg.role === "user" ? msg.content : renderMarkdown(msg.content)}
                   {msg.role === "assistant" && msg.content === "" && (
                     <span className="inline-flex gap-0.5">
                       <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />

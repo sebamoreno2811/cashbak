@@ -162,19 +162,27 @@ export async function POST(req: NextRequest) {
   // Limitar historial a últimos 10 mensajes para controlar costos
   const trimmedMessages = messages.slice(-10)
 
-  const message = await client.messages.create({
-    model: "claude-haiku-4-5",
-    max_tokens: 512,
-    system: SYSTEM_PROMPT,
-    messages: trimmedMessages,
-  })
+  try {
+    const message = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 512,
+      system: SYSTEM_PROMPT,
+      messages: trimmedMessages,
+    })
 
-  const text = message.content
-    .filter(b => b.type === "text")
-    .map(b => (b as { type: "text"; text: string }).text)
-    .join("")
+    const text = message.content
+      .filter(b => b.type === "text")
+      .map(b => (b as { type: "text"; text: string }).text)
+      .join("")
 
-  return new Response(JSON.stringify({ text }), {
-    headers: { "Content-Type": "application/json" },
-  })
+    return new Response(JSON.stringify({ text }), {
+      headers: { "Content-Type": "application/json" },
+    })
+  } catch (err: any) {
+    console.error("[/api/chat] Anthropic error:", err?.status, err?.message, err?.error)
+    return new Response(
+      JSON.stringify({ error: `Anthropic error: ${err?.status} — ${err?.message}` }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    )
+  }
 }
