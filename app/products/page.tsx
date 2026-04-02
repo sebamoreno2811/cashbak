@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { Search, SlidersHorizontal, X } from "lucide-react"
+import { Search, SlidersHorizontal, X, Trophy } from "lucide-react"
 import { toSlug } from "@/lib/slug"
 import { calculateProductCashbak, calculateMaxProductCashbak } from "@/lib/cashbak-calculator"
 import { useProducts } from "@/context/product-context"
@@ -23,7 +23,7 @@ interface Store {
 export default function ProductsPage() {
   const { products, loading } = useProducts()
   const { bets } = useBets()
-  const { selectedOption } = useBetOption()
+  const { selectedOption, setSelectedOption } = useBetOption()
   const searchParams = useSearchParams()
 
   const [stores, setStores] = useState<Store[]>([])
@@ -47,6 +47,14 @@ export default function ProductsPage() {
     [stores]
   )
 
+  const nowChile = new Date(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Santiago", hour12: false,
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    }).format(new Date()).replace(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})/, "$3-$1-$2T$4:$5:$6")
+  )
+  const availableBets = bets.filter(b => new Date(b.end_date) > nowChile)
   const selectedBet = bets.find(b => b.id === Number(selectedOption))
 
   const categories = useMemo(() =>
@@ -154,6 +162,33 @@ export default function ProductsPage() {
           </div>
         )}
       </div>
+
+      {/* Barra de evento */}
+      {availableBets.length > 0 && (
+        <div className="bg-white border-b border-gray-100 shadow-sm">
+          <div className="container mx-auto max-w-5xl px-4 py-2.5 flex items-center gap-3">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Trophy className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Evento</span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              {availableBets.map(bet => (
+                <button
+                  key={bet.id}
+                  onClick={() => setSelectedOption(bet.id.toString())}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition ${
+                    selectedOption === bet.id.toString()
+                      ? "bg-emerald-600 text-white border-emerald-600"
+                      : "border-gray-200 text-gray-600 bg-white hover:border-gray-300"
+                  }`}
+                >
+                  {bet.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="container mx-auto max-w-5xl px-4 py-6">
         {/* Tags activos */}

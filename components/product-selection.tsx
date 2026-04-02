@@ -29,10 +29,7 @@ export function ProductSelection() {
   }
 
   return (
-    <div className="mb-6">
-      <label htmlFor="option-select" className="block mb-2 text-xl font-bold">
-        Selecciona tu evento:
-      </label>
+    <div>
       <BetSelector value={selectedOption} onChange={handleOptionChange} />
     </div>
   )

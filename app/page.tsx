@@ -127,18 +127,19 @@ export default function Home() {
       {/* Cómo funciona */}
       <HowItWorks />
 
-      {/* CTA + Selector de evento */}
-      <div className="bg-green-900 text-white px-4 py-10">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-1">¿Listo para empezar?</h2>
-          <p className="text-green-200 text-sm mb-6">Elige tu evento y explora los productos disponibles.</p>
-          <div className="flex justify-center mb-2">
-            <svg className="animate-bounce text-emerald-400" width="24" height="24" fill="none" viewBox="0 0 24 24">
-              <path d="M12 5v14M12 19l-5-5M12 19l5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <div className="bg-white rounded-2xl px-4 py-4">
-            <ProductSelection />
+      {/* Selector de evento */}
+      <div className="bg-green-900 px-4 py-8">
+        <div className="container mx-auto max-w-2xl">
+          <div className="bg-white rounded-2xl overflow-hidden shadow-lg">
+            <div className="bg-emerald-600 px-5 py-4">
+              <p className="text-white text-lg font-bold leading-tight">🏆 Elige tu evento deportivo</p>
+              <p className="text-emerald-100 text-sm mt-0.5">El cashback de cada producto varía según el evento que elijas</p>
+            </div>
+            <div className="px-5 pt-5 pb-4">
+              <p className="text-lg font-bold text-gray-900 mb-0.5">¿Qué evento eliges hoy?</p>
+              <p className="text-sm text-gray-500 mb-4">Selecciona uno y empieza a explorar los productos con su cashback.</p>
+              <ProductSelection />
+            </div>
           </div>
         </div>
       </div>
