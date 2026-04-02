@@ -133,7 +133,7 @@ export default function TerminosPage() {
       <Section title="6. Sistema de CashBack">
         <Sub title="6.1 Cómo funciona">
           <p>
-            Al momento de la compra, el cliente selecciona un evento deportivo activo en la plataforma. Si ese evento ocurre según lo esperado (p. ej., gana el equipo elegido), el comprador recibe un porcentaje del valor de la compra como cashback en su cuenta CashBak. Si el evento no ocurre, el cashback no se entrega, sin afectar la validez de la compra ni el pago al vendedor.
+            Al momento de la compra, el cliente selecciona un evento deportivo activo en la plataforma. Si ese evento ocurre según lo esperado (p. ej., gana el equipo elegido), el comprador recibe un porcentaje del valor de la compra como cashback mediante transferencia bancaria a la cuenta que haya registrado en la plataforma. Si el evento no ocurre, el cashback no se entrega, sin afectar la validez de la compra ni el pago al vendedor.
           </p>
         </Sub>
         <Sub title="6.2 Cashback es condicional">
@@ -241,7 +241,7 @@ export default function TerminosPage() {
       <Section title="14. Contacto">
         <p>
           Para consultas, reclamos o cualquier comunicación relacionada con estos términos, puedes escribirnos a{" "}
-          <a href="mailto:support@cashbak.cl" className="text-green-700 hover:underline font-medium">support@cashbak.cl</a>.
+          <a href="mailto:cashbak.ops@gmail.com" className="text-green-700 hover:underline font-medium">cashbak.ops@gmail.com</a>.
         </p>
       </Section>
 

@@ -136,7 +136,7 @@ export default function PrivacyPolicyPage() {
           <footer className="pt-8 text-xs border-t text-slate-400">
             <p>
               Al utilizar CashBak, aceptas nuestra Política de Privacidad y nuestros{" "}
-              <Link href="/terms" className="text-blue-500 hover:underline">Términos y Condiciones</Link>.
+              <Link href="/terminos" className="text-blue-500 hover:underline">Términos y Condiciones</Link>.
             </p>
           </footer>
         </div>

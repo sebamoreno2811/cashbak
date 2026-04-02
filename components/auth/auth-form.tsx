@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/utils/supabase/client"
 import { Loader2 } from "lucide-react"
@@ -127,6 +128,13 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                     )}
                   </Button>
                 </div>
+
+                <p className="mt-3 text-center text-xs text-gray-400">
+                  Al continuar aceptas nuestros{" "}
+                  <Link href="/terminos" className="underline hover:text-gray-600">
+                    Términos y Condiciones
+                  </Link>
+                </p>
 
                 {error && (
                   <div className="p-3 mt-4 text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">
