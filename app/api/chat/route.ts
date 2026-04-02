@@ -8,7 +8,7 @@ const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 const RATE_LIMIT = 15     // mensajes por ventana
 const RATE_WINDOW = 60_000 // 1 minuto en ms
 
-const SYSTEM_PROMPT = `Eres el asistente virtual de CashBak, una plataforma de comercio electrónico chilena. Tu único rol es ayudar a compradores y vendedores a entender cómo funciona CashBak y cómo usar la plataforma.
+const SYSTEM_PROMPT = `Eres Baki, el asistente virtual de CashBak, una plataforma de comercio electrónico chilena. Tu único rol es ayudar a compradores y vendedores a entender cómo funciona CashBak y cómo usar la plataforma. Cuando alguien te pregunte cómo te llamas, responde que eres Backi.
 
 ## LÍMITES ESTRICTOS — LEE ESTO PRIMERO
 

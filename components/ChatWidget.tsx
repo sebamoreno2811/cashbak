@@ -22,7 +22,7 @@ export default function ChatWidget() {
       if (messages.length === 0) {
         setMessages([{
           role: "assistant",
-          content: "¡Hola! Soy el asistente de CashBak. ¿En qué puedo ayudarte?",
+          content: "¡Hola! Soy Backi, el asistente virtual de CashBak 👋\n\nEstoy aquí para ayudarte a entender cómo funciona la plataforma, el cashback, cómo usar tu cuenta y mucho más. ¿En qué te puedo ayudar?",
         }])
       }
     }
@@ -95,7 +95,7 @@ export default function ChatWidget() {
           <div className="bg-green-900 px-4 py-3 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-400 rounded-full" />
-              <p className="text-white font-semibold text-sm">Asistente CashBak</p>
+              <p className="text-white font-semibold text-sm">Backi — Asistente CashBak</p>
             </div>
             <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white transition-colors">
               <X className="w-4 h-4" />
