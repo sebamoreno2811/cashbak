@@ -22,7 +22,7 @@ export default function ChatWidget() {
       if (messages.length === 0) {
         setMessages([{
           role: "assistant",
-          content: "¡Hola! Soy Backi, el asistente virtual de CashBak 👋\n\nEstoy aquí para ayudarte a entender cómo funciona la plataforma, el cashback, cómo usar tu cuenta y mucho más. ¿En qué te puedo ayudar?",
+          content: "¡Hola! Soy Baki, el asistente virtual de CashBak 👋\n\nEstoy aquí para ayudarte a entender cómo funciona la plataforma, el cashback, cómo usar tu cuenta y mucho más. ¿En qué te puedo ayudar?",
         }])
       }
     }
@@ -73,6 +73,14 @@ export default function ChatWidget() {
           { role: "assistant", content: accumulated },
         ])
       }
+
+      // Si el stream terminó sin contenido, mostrar error
+      if (!accumulated.trim()) {
+        setMessages(prev => [
+          ...prev.slice(0, -1),
+          { role: "assistant", content: "No pude generar una respuesta. Intenta de nuevo." },
+        ])
+      }
     } catch {
       setMessages(prev => [
         ...prev.slice(0, -1),
@@ -88,22 +96,22 @@ export default function ChatWidget() {
     <>
       {/* Ventana del chat */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-50 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
+        <div className="fixed z-50 flex flex-col overflow-hidden bg-white border border-gray-200 shadow-2xl bottom-20 right-4 w-80 sm:w-96 rounded-2xl"
           style={{ maxHeight: "70vh" }}
         >
           {/* Header */}
-          <div className="bg-green-900 px-4 py-3 flex items-center justify-between shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 bg-green-900 shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-400 rounded-full" />
-              <p className="text-white font-semibold text-sm">Backi — Asistente CashBak</p>
+              <p className="text-sm font-semibold text-white">Baki — Asistente CashBak</p>
             </div>
-            <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white transition-colors">
+            <button onClick={() => setOpen(false)} className="transition-colors text-white/70 hover:text-white">
               <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Mensajes */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+          <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-gray-50">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
@@ -128,7 +136,7 @@ export default function ChatWidget() {
           </div>
 
           {/* Input */}
-          <div className="px-3 py-3 border-t border-gray-200 bg-white shrink-0 flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-3 bg-white border-t border-gray-200 shrink-0">
             <input
               ref={inputRef}
               value={input}
@@ -136,12 +144,12 @@ export default function ChatWidget() {
               onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
               placeholder="Escribe tu pregunta..."
               disabled={loading}
-              className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-700 disabled:opacity-50"
+              className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-700 disabled:opacity-50"
             />
             <button
               onClick={send}
               disabled={loading || !input.trim()}
-              className="shrink-0 bg-green-900 hover:bg-green-800 text-white rounded-xl p-2 transition-colors disabled:opacity-40"
+              className="p-2 text-white transition-colors bg-green-900 shrink-0 hover:bg-green-800 rounded-xl disabled:opacity-40"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </button>
