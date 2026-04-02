@@ -60,25 +60,18 @@ export default function ChatWidget() {
         return
       }
 
-      const reader = res.body!.getReader()
-      const decoder = new TextDecoder()
-      let accumulated = ""
+      const data = await res.json()
+      const text = data.text ?? ""
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        accumulated += decoder.decode(value, { stream: true })
-        setMessages(prev => [
-          ...prev.slice(0, -1),
-          { role: "assistant", content: accumulated },
-        ])
-      }
-
-      // Si el stream terminó sin contenido, mostrar error
-      if (!accumulated.trim()) {
+      if (!text.trim()) {
         setMessages(prev => [
           ...prev.slice(0, -1),
           { role: "assistant", content: "No pude generar una respuesta. Intenta de nuevo." },
+        ])
+      } else {
+        setMessages(prev => [
+          ...prev.slice(0, -1),
+          { role: "assistant", content: text },
         ])
       }
     } catch {

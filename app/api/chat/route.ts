@@ -162,32 +162,19 @@ export async function POST(req: NextRequest) {
   // Limitar historial a últimos 10 mensajes para controlar costos
   const trimmedMessages = messages.slice(-10)
 
-  const stream = client.messages.stream({
+  const message = await client.messages.create({
     model: "claude-haiku-4-5",
     max_tokens: 512,
     system: SYSTEM_PROMPT,
     messages: trimmedMessages,
   })
 
-  const encoder = new TextEncoder()
-  const readable = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const event of stream) {
-          if (
-            event.type === "content_block_delta" &&
-            event.delta.type === "text_delta"
-          ) {
-            controller.enqueue(encoder.encode(event.delta.text))
-          }
-        }
-      } finally {
-        controller.close()
-      }
-    },
-  })
+  const text = message.content
+    .filter(b => b.type === "text")
+    .map(b => (b as { type: "text"; text: string }).text)
+    .join("")
 
-  return new Response(readable, {
-    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  return new Response(JSON.stringify({ text }), {
+    headers: { "Content-Type": "application/json" },
   })
 }
