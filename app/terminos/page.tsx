@@ -53,7 +53,6 @@ export default function TerminosPage() {
           <li>Proporcionar información veraz, completa y actualizada.</li>
           <li>Mantener la confidencialidad de tus credenciales de acceso.</li>
           <li>Notificar a CashBak de cualquier uso no autorizado de tu cuenta.</li>
-          <li>Ser mayor de 18 años o contar con autorización de tu representante legal.</li>
         </ul>
         <p>CashBak se reserva el derecho de suspender o eliminar cuentas que infrinjan estos términos o que presenten actividad fraudulenta.</p>
       </Section>
@@ -125,7 +124,7 @@ export default function TerminosPage() {
 
         <Sub title="5.4 Monto recibido por el vendedor">
           <p>
-            El monto que recibe el vendedor corresponde al precio de venta menos la tarifa de procesamiento de pago (2%) y la comisión de CashBak. Este monto queda fijado al momento de la compra y no varía según el resultado del evento deportivo elegido por el comprador. El cashback es financiado por el margen que el vendedor declara en la plataforma y no afecta el ingreso neto del vendedor.
+            El monto que recibe el vendedor corresponde al precio de venta menos la tarifa de procesamiento de pago (2%) y la comisión de CashBak. Este monto queda fijado al momento de la compra y no varía independiente de que se cumpla el evento elegido o no. El cashback es financiado por el margen que el vendedor declara en la plataforma y no afecta el ingreso neto del vendedor.
           </p>
         </Sub>
       </Section>
