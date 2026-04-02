@@ -473,9 +473,6 @@ export default function ProductPage() {
             Compartir por WhatsApp
           </a>
 
-          <div className="mt-4 text-sm text-gray-500">
-            <p>Réplica de alta calidad</p>
-          </div>
         </div>
       </div>
 

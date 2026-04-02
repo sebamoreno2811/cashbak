@@ -22,8 +22,8 @@ export const metadata: Metadata = {
     default: "CashBak — Compra y recupera tu dinero",
     template: "%s | CashBak",
   },
-  description: "Compra camisetas de fútbol y recupera hasta el 100% de tu dinero si se cumple tu evento deportivo. Envíos a todo Chile.",
-  keywords: ["camisetas fútbol", "réplicas", "cashback", "cashbak", "camisetas Chile", "deporte"],
+  description: "CashBak es el marketplace chileno donde compras en múltiples tiendas y recuperas parte de tu dinero si se cumple tu evento deportivo. Tecnología, cashback y variedad en un solo lugar.",
+  keywords: ["cashback Chile", "marketplace Chile", "tiendas online Chile", "cashbak", "compras con cashback", "recupera tu dinero", "marketplace deportivo", "variedad de tiendas", "tecnología ecommerce", "cashback deportivo", "compras online Chile", "plataforma de comercio"],
   openGraph: {
     siteName: "CashBak",
     locale: "es_CL",
