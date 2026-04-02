@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { createClient } from "@/utils/supabase/client"
-import { User, LogOut, ShoppingBag, Shield, Building2, LayoutDashboard } from "lucide-react"
+import { User, LogOut, ShoppingBag, Shield, Building2, LayoutDashboard, ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 import BankAccountReminderModal from "@/components/bank-account-reminder-modal"
 
@@ -98,17 +97,13 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
 
   if (!user) {
     return (
-      <Button
+      <button
         onClick={onAuthRequired}
-        variant="outline"
-        size="sm"
-        className="text-green-900 border-green-900 hover:bg-green-900 hover:text-white px-2 min-[1000px]:px-4 gap-1"
+        className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/30 text-white rounded-full px-3 py-1.5 text-sm font-medium transition-all"
       >
         <User className="w-4 h-4" />
         <span className="hidden min-[1000px]:inline">Iniciar Sesión</span>
-      </Button>
-
-
+      </button>
     )
   }
 
@@ -123,11 +118,13 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
     />
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative w-8 h-8 rounded-full">
-          <Avatar className="w-8 h-8">
-            <AvatarFallback className="text-white bg-green-900">{getInitials(displayName)}</AvatarFallback>
+        <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-full pl-1 pr-3 py-1 transition-all outline-none">
+          <Avatar className="w-7 h-7 shrink-0">
+            <AvatarFallback className="text-white bg-green-700 text-xs font-bold">{getInitials(displayName)}</AvatarFallback>
           </Avatar>
-        </Button>
+          <span className="hidden sm:block text-sm font-medium text-white max-w-[120px] truncate leading-none">{displayName}</span>
+          <ChevronDown className="hidden sm:block w-3.5 h-3.5 text-white/60 shrink-0" />
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">

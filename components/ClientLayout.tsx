@@ -74,32 +74,32 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header ref={headerRef} className="text-white bg-green-900 shadow-lg relative z-40">
+      <header ref={headerRef} className="text-white bg-green-900 shadow-lg relative z-40 border-b border-green-800">
         <div className="container px-4 mx-auto">
           <div className="relative flex flex-col items-center justify-center py-4 md:h-20">
 
             {/* Top right */}
-            <div className="absolute flex items-center space-x-4 top-4 right-4">
+            <div className="absolute flex items-center gap-3 top-4 right-4">
               <UserMenu onAuthRequired={() => setShowAuthModal(true)} />
-              <Link href="/cart" className="relative flex items-center transition-colors hover:text-green-200">
-                <ShoppingCart className="w-5 h-5" />
+              <Link href="/cart" className="relative flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/30 rounded-full px-3 py-1.5 text-sm font-medium transition-all">
+                <ShoppingCart className="w-4 h-4" />
                 {totalItems > 0 && (
-                  <span className="absolute flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full -top-2 -right-2">
+                  <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-green-900 bg-white rounded-full">
                     {totalItems}
                   </span>
                 )}
-                <span className="hidden ml-2 sm:inline">Carrito</span>
+                <span className="hidden sm:inline">Carrito</span>
               </Link>
             </div>
 
             {/* Logo */}
-            <Link href="/" className="mb-2 text-xl font-bold md:mb-0 md:absolute md:left-4 md:top-4">
-              CashBak
+            <Link href="/" className="mb-3 md:mb-0 md:absolute md:left-4 md:top-1/2 md:-translate-y-1/2 flex items-center gap-2">
+              <span className="text-xl font-extrabold tracking-tight">Cash<span className="text-green-300">Bak</span></span>
             </Link>
 
             {/* Nav */}
-            <nav className="flex flex-col items-center space-y-2 md:flex-row md:space-y-0 md:space-x-6">
-              <Link href="/" className="transition-colors hover:text-green-200">Inicio</Link>
+            <nav className="flex flex-col items-center space-y-2 md:flex-row md:space-y-0 md:space-x-1">
+              <Link href="/" className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-white/10">Inicio</Link>
 
               {/* Productos mega-menu */}
               <div ref={menuRef} className="relative">
@@ -166,10 +166,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 )}
               </div>
 
-              <Link href="/tiendas" className="transition-colors hover:text-green-200">Tiendas</Link>
-              <Link href="/sell" className="transition-colors hover:text-green-200">Vende con nosotros</Link>
-              <Link href="/howto" className="transition-colors hover:text-green-200">¿Qué es CashBak?</Link>
-              <Link href="/contact" className="transition-colors hover:text-green-200">Contacto</Link>
+              <Link href="/tiendas" className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-white/10">Tiendas</Link>
+              <Link href="/sell" className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-white/10">Vende con nosotros</Link>
+              <Link href="/howto" className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-white/10">¿Qué es CashBak?</Link>
+              <Link href="/contact" className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-white/10">Contacto</Link>
             </nav>
           </div>
         </div>
