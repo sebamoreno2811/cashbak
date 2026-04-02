@@ -8,6 +8,7 @@ import { ShoppingCart, ChevronDown, Shirt, Dumbbell, Package, Tag } from "lucide
 import { useState, useRef, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import ChatWidget from "@/components/ChatWidget"
 
 // Agrupación de categorías. Las que no encajen van a "Otros"
 const CATEGORY_GROUPS: Record<string, { icon: React.ReactNode; categories: string[] }> = {
@@ -204,6 +205,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       </footer>
 
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <ChatWidget />
     </div>
   )
 }

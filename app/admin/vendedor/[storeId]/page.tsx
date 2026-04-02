@@ -18,18 +18,11 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
   // Info de la tienda
   const { data: store, error: storeError } = await supabase
     .from("stores")
-    .select("id, name, email, owner_id")
+    .select("id, name, email, owner_id, bank_name, account_type, account_number, account_holder, rut")
     .eq("id", storeId)
     .maybeSingle()
   console.log("[vendedor] storeId:", storeId, "store:", store, "error:", storeError)
   if (!store) notFound()
-
-  // Datos bancarios del dueño
-  const { data: bankAccount } = await supabase
-    .from("bank_accounts")
-    .select("bank_name, account_type, account_number, rut")
-    .eq("customer_id", store.owner_id)
-    .maybeSingle()
 
   // Productos de esta tienda
   const { data: products } = await supabase
@@ -92,11 +85,6 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
     }
   })
 
-  const formatAccount = (n: unknown) => {
-    const s = String(n ?? "")
-    return s.length > 4 ? `****${s.slice(-4)}` : s
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -128,12 +116,13 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
               <CreditCard className="w-4 h-4 text-gray-400" />
               <h2 className="font-semibold text-gray-800">Datos bancarios</h2>
             </div>
-            {bankAccount ? (
+            {store.bank_name ? (
               <div className="space-y-1.5 text-sm text-gray-600">
-                <p><span className="font-medium text-gray-700">Banco:</span> {bankAccount.bank_name}</p>
-                <p><span className="font-medium text-gray-700">Tipo:</span> {bankAccount.account_type}</p>
-                <p><span className="font-medium text-gray-700">Cuenta:</span> {formatAccount(bankAccount.account_number)}</p>
-                <p><span className="font-medium text-gray-700">RUT:</span> {bankAccount.rut}</p>
+                {store.account_holder && <p><span className="font-medium text-gray-700">Titular:</span> {store.account_holder}</p>}
+                <p><span className="font-medium text-gray-700">RUT:</span> {store.rut ?? "—"}</p>
+                <p><span className="font-medium text-gray-700">Banco:</span> {store.bank_name}</p>
+                <p><span className="font-medium text-gray-700">Tipo:</span> {store.account_type ?? "—"}</p>
+                <p><span className="font-medium text-gray-700">Cuenta:</span> {store.account_number}</p>
               </div>
             ) : (
               <p className="text-sm text-orange-600 font-medium">El vendedor no ha registrado datos bancarios</p>
