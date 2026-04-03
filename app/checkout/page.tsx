@@ -390,11 +390,8 @@ export default function CheckoutPage() {
                   : "Ocurrió un error inesperado al procesar el pago."}
               </p>
               <p className="text-gray-400 text-sm mb-8">Tu carrito sigue intacto, no se realizó ningún cobro.</p>
-              <div className="space-y-3 max-w-xs mx-auto">
-                <Button className="w-full bg-green-900 hover:bg-emerald-700 h-11" onClick={() => setPaymentError(null)}>
-                  Intentar nuevamente
-                </Button>
-                <Button variant="outline" className="w-full h-11" onClick={() => router.push("/cart")}>
+              <div className="max-w-xs mx-auto">
+                <Button className="w-full bg-green-900 hover:bg-emerald-700 h-11" onClick={() => router.push("/cart")}>
                   Volver al carrito
                 </Button>
               </div>
