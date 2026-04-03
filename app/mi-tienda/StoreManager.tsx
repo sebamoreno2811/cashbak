@@ -591,7 +591,7 @@ function ProductRow({
   onDelete: (id: number) => void
 }) {
   const marginPct = product.margin_pct ?? 0
-  const ganancia = Math.round(marginPct * product.price)
+  const ganancia = Math.round(marginPct * product.price) - Math.round(0.02 * product.price)
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 flex gap-3">
