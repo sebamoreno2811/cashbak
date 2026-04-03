@@ -95,23 +95,26 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
     return { totalVentas, totalPedidos, cashbackPendiente, cashbackEntregado, gananciasCashbak }
   }, [filtered])
 
-  // Vendedores pendientes de pago agrupados por tienda, ordenados por compra más antigua
-  const vendoresPendientes = useMemo(() => {
-    const unpaid = filtered.filter(o => !o.vendor_paid)
-    const byStore: Record<string, { store_name: string; store_id: string | null; count: number; total: number; net_total: number; oldestDate: string }> = {}
-    for (const o of unpaid) {
-      const key = o.store_id ?? "__cashbak__"
-      if (!byStore[key]) byStore[key] = { store_name: o.store_name, store_id: o.store_id, count: 0, total: 0, net_total: 0, oldestDate: o.created_at }
-      byStore[key].count++
-      byStore[key].total += o.order_total
-      byStore[key].net_total += o.vendor_net_amount
-      if (new Date(o.created_at) < new Date(byStore[key].oldestDate)) {
-        byStore[key].oldestDate = o.created_at
+  // Vendedores pendientes de pago — separados en listos (Entregado) y en camino
+  const { vendoresListos, vendoresEnCamino } = useMemo(() => {
+    type StoreRow = { store_name: string; store_id: string | null; count: number; total: number; net_total: number; oldestDate: string }
+    const groupByStore = (orders: typeof filtered) => {
+      const byStore: Record<string, StoreRow> = {}
+      for (const o of orders) {
+        const key = o.store_id ?? "__cashbak__"
+        if (!byStore[key]) byStore[key] = { store_name: o.store_name, store_id: o.store_id, count: 0, total: 0, net_total: 0, oldestDate: o.created_at }
+        byStore[key].count++
+        byStore[key].total += o.order_total
+        byStore[key].net_total += o.vendor_net_amount
+        if (new Date(o.created_at) < new Date(byStore[key].oldestDate)) byStore[key].oldestDate = o.created_at
       }
+      return Object.values(byStore).sort((a, b) => new Date(a.oldestDate).getTime() - new Date(b.oldestDate).getTime())
     }
-    return Object.values(byStore).sort((a, b) =>
-      new Date(a.oldestDate).getTime() - new Date(b.oldestDate).getTime()
-    )
+    const unpaid = filtered.filter(o => !o.vendor_paid)
+    return {
+      vendoresListos: groupByStore(unpaid.filter(o => o.shipping_status === "Entregado")),
+      vendoresEnCamino: groupByStore(unpaid.filter(o => o.shipping_status !== "Entregado")),
+    }
   }, [filtered])
 
   // Clientes con cashback pendiente, ordenados por end_date más antiguo
@@ -211,22 +214,23 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
 
       <div className="grid lg:grid-cols-2 gap-6">
 
-        {/* Vendedores pendientes de pago */}
+        {/* Listos para pagar — Entregados */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-gray-400" />
-              <h2 className="font-semibold text-gray-800">Vendedores a pagar</h2>
+              <Building2 className="w-4 h-4 text-emerald-600" />
+              <h2 className="font-semibold text-gray-800">Listos para pagar</h2>
+              <span className="text-xs text-gray-400 font-normal">Pedidos entregados</span>
             </div>
-            <span className="text-xs bg-orange-100 text-orange-700 font-semibold px-2 py-0.5 rounded-full">
-              {vendoresPendientes.length} tiendas
+            <span className="text-xs bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full">
+              {vendoresListos.length} tiendas
             </span>
           </div>
-          {vendoresPendientes.length === 0 ? (
-            <p className="text-center py-10 text-sm text-gray-400">Todo al día ✓</p>
+          {vendoresListos.length === 0 ? (
+            <p className="text-center py-10 text-sm text-gray-400">Sin pagos pendientes ✓</p>
           ) : (
             <div className="divide-y divide-gray-50">
-              {vendoresPendientes.map(v => {
+              {vendoresListos.map(v => {
                 const days = daysSince(v.oldestDate)
                 return (
                   <div key={v.store_id ?? "__cashbak__"} className={`px-5 py-3 flex items-center justify-between ${ageRowClass(days)}`}>
@@ -235,7 +239,7 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
                         <p className="text-sm font-medium text-gray-800">{v.store_name}</p>
                         <AgeBadge days={days} />
                       </div>
-                      <p className="text-xs text-gray-400">{v.count} pedido{v.count !== 1 ? "s" : ""} sin pagar · pedido más antiguo hace {days === 0 ? "hoy" : `${days} días`}</p>
+                      <p className="text-xs text-gray-400">{v.count} pedido{v.count !== 1 ? "s" : ""} · entregado hace {days === 0 ? "hoy" : `${days} días`}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-emerald-700">${v.net_total.toLocaleString("es-CL")}</p>
@@ -243,6 +247,46 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
                       {v.store_id && (
                         <Link href={`/admin/vendedor/${v.store_id}`} className="text-xs text-green-700 hover:underline font-medium">
                           Ver y pagar →
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* En camino — aún no entregados */}
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-gray-400" />
+              <h2 className="font-semibold text-gray-800">Por entregar</h2>
+              <span className="text-xs text-gray-400 font-normal">Aún no entregados</span>
+            </div>
+            <span className="text-xs bg-orange-100 text-orange-700 font-semibold px-2 py-0.5 rounded-full">
+              {vendoresEnCamino.length} tiendas
+            </span>
+          </div>
+          {vendoresEnCamino.length === 0 ? (
+            <p className="text-center py-10 text-sm text-gray-400">Sin pedidos en camino ✓</p>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {vendoresEnCamino.map(v => {
+                const days = daysSince(v.oldestDate)
+                return (
+                  <div key={v.store_id ?? "__cashbak__"} className="px-5 py-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{v.store_name}</p>
+                      <p className="text-xs text-gray-400">{v.count} pedido{v.count !== 1 ? "s" : ""} · más antiguo hace {days === 0 ? "hoy" : `${days} días`}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-gray-600">${v.net_total.toLocaleString("es-CL")}</p>
+                      <p className="text-xs text-gray-400">Total compra: ${v.total.toLocaleString("es-CL")}</p>
+                      {v.store_id && (
+                        <Link href={`/admin/vendedor/${v.store_id}`} className="text-xs text-green-700 hover:underline font-medium">
+                          Ver detalle →
                         </Link>
                       )}
                     </div>

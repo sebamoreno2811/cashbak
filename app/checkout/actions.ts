@@ -1,6 +1,6 @@
 "use server"
 
-import { createSupabaseClientWithCookies, createSupabaseAdminClient } from "@/utils/supabase/server"
+import { createSupabaseClientWithCookies } from "@/utils/supabase/server"
 import type { CheckoutFormData } from "@/types/checkout"
 import { Resend } from 'resend'
 
@@ -9,20 +9,6 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://cashbak.cl"
 const EMAIL_FROM = process.env.EMAIL_FROM || "support@cashbak.cl"
 
-async function generateMagicLink(email: string, redirectTo: string): Promise<string> {
-  try {
-    const admin = createSupabaseAdminClient()
-    const { data, error } = await admin.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-      options: { redirectTo },
-    })
-    if (error || !data?.properties?.action_link) return redirectTo
-    return data.properties.action_link
-  } catch {
-    return redirectTo
-  }
-}
 
 export async function saveCheckoutData(
   _formData: CheckoutFormData,
@@ -159,7 +145,6 @@ export async function saveCheckoutData(
 
     // 8. Email de confirmación al comprador
     try {
-      const ordersLink = await generateMagicLink(user.email!, `${APP_URL}/orders`)
       await resend.emails.send({
         from: EMAIL_FROM,
         to: user.email!,
@@ -190,10 +175,9 @@ export async function saveCheckoutData(
                   <strong>¡Éxito con tu CashBak!</strong> 🎉
                 </p>
               </div>
-              <div style="text-align:center;margin:24px 0;">
-                <a href="${ordersLink}" style="display:inline-block;padding:12px 24px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">
-                  Ver mis pedidos →
-                </a>
+              <div style="background:#f9fafb;border-radius:8px;padding:14px;margin:16px 0;font-size:13px;color:#374151;">
+                <p style="margin:0 0 6px 0;font-weight:600;">¿Cómo ver tu pedido?</p>
+                <p style="margin:0;">Ingresa a <a href="${APP_URL}" style="color:#14532d;font-weight:600;">cashbak.cl</a>, inicia sesión con tu cuenta y ve a <strong>Mi Perfil → Mis Pedidos</strong>.</p>
               </div>
               <p style="color:#9ca3af;font-size:12px;margin-top:24px;">CashBak · cashbak.cl</p>
             </div>
@@ -218,7 +202,6 @@ export async function saveCheckoutData(
       ).join("")
 
       try {
-        const storeOrdersLink = await generateMagicLink(store.email, `${APP_URL}/mi-tienda/pedidos`)
         await resend.emails.send({
           from: EMAIL_FROM,
           to: store.email,
@@ -244,10 +227,9 @@ export async function saveCheckoutData(
                   <tbody>${storeItemsHtml}</tbody>
                 </table>
                 <p style="color:#374151;font-size:14px;">Coordina el envío o retiro con el cliente según el método elegido.</p>
-                <div style="text-align:center;margin:24px 0;">
-                  <a href="${storeOrdersLink}" style="display:inline-block;padding:12px 24px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">
-                    Ver mis pedidos →
-                  </a>
+                <div style="background:#f9fafb;border-radius:8px;padding:14px;margin:16px 0;font-size:13px;color:#374151;">
+                  <p style="margin:0 0 6px 0;font-weight:600;">¿Cómo ver tus pedidos?</p>
+                  <p style="margin:0;">Ingresa a <a href="${APP_URL}" style="color:#14532d;font-weight:600;">cashbak.cl</a>, inicia sesión con tu cuenta y ve a <strong>Mi Tienda → Mis Pedidos</strong>.</p>
                 </div>
                 <p style="color:#9ca3af;font-size:12px;margin-top:24px;">CashBak · cashbak.cl</p>
               </div>
