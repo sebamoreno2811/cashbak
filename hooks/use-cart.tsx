@@ -52,6 +52,9 @@ type CartContextType = {
     cashbakAmount: number
     cashbakPercentage: number
     bet_amount: number
+    comision_cashbak: number
+    vendor_net_amount: number
+    tarifa_procesamiento: number
     size: string
     hasPrint: boolean
   }
@@ -218,13 +221,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }, 0) + shippingCost
   }
 
-  const calcItemCashbak = (item: CartItem, product: Product): { pct: number; montoApuesta: number } => {
+  const calcItemCashbak = (item: CartItem, product: Product): { pct: number; montoApuesta: number; comision_cashbak: number; vendor_net_amount: number; tarifa_procesamiento: number } => {
     const bet = bets.find(b => b.id.toString() === item.betOptionId)
-    if (!bet) return { pct: 0, montoApuesta: 0 }
+    if (!bet) return { pct: 0, montoApuesta: 0, comision_cashbak: 0, vendor_net_amount: 0, tarifa_procesamiento: 0 }
     const price = item.hasPrint ? product.price + 2990 : product.price
     const cost = item.hasPrint ? product.cost + 2500 : product.cost
     const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota: bet.odd, margenVendedorPct: product.margin_pct ?? 0.25 })
-    return { pct: sim.cashbackPct, montoApuesta: sim.montoApuesta }
+    return {
+      pct: sim.cashbackPct,
+      montoApuesta: sim.montoApuesta,
+      comision_cashbak: sim.comisionPlataforma,
+      vendor_net_amount: sim.margenVendedorNeto,
+      tarifa_procesamiento: sim.tarifaProcesamiento,
+    }
   }
 
   const getTotalcashbak = () => {
@@ -241,7 +250,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const product = products.find((p) => p.id === item.productId)
     const bet = bets.find((b) => b.id.toString() === item.betOptionId)
     const subtotal = ((product?.price || 0) + (item.hasPrint ? 2990 : 0)) * item.quantity
-    const { pct: cashbakPercentage, montoApuesta } = product ? calcItemCashbak(item, product) : { pct: 0, montoApuesta: 0 }
+    const { pct: cashbakPercentage, montoApuesta, comision_cashbak, vendor_net_amount, tarifa_procesamiento } = product
+      ? calcItemCashbak(item, product)
+      : { pct: 0, montoApuesta: 0, comision_cashbak: 0, vendor_net_amount: 0, tarifa_procesamiento: 0 }
     const cashbakAmount = (subtotal * cashbakPercentage) / 100
 
     return {
@@ -251,6 +262,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       cashbakAmount,
       cashbakPercentage,
       bet_amount: montoApuesta,
+      comision_cashbak,
+      vendor_net_amount,
+      tarifa_procesamiento,
       size: item.size,
       hasPrint: item.hasPrint,
     }

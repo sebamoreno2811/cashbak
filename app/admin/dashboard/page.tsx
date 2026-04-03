@@ -27,7 +27,7 @@ export default async function AdminDashboardPage() {
   const orderIds = (orders ?? []).map((o: { id: string }) => o.id)
   const { data: orderItems } = await supabase
     .from("order_items")
-    .select("order_id, product_id, bet_option_id, vendor_net_amount")
+    .select("order_id, product_id, bet_option_id, vendor_net_amount, comision_cashbak")
     .in("order_id", orderIds.length > 0 ? orderIds : ["none"])
 
   // Productos para obtener store_id
@@ -86,12 +86,14 @@ export default async function AdminDashboardPage() {
   // Primer store_id de cada orden + sumar vendor_net_amount por orden
   const orderStoreMap: Record<string, string> = {}
   const orderVendorNetMap: Record<string, number> = {}
+  const orderComisionMap: Record<string, number> = {}
   for (const item of orderItems ?? []) {
     if (!orderStoreMap[item.order_id]) {
       const storeId = productStoreMap[item.product_id]
       if (storeId) orderStoreMap[item.order_id] = storeId
     }
     orderVendorNetMap[item.order_id] = (orderVendorNetMap[item.order_id] ?? 0) + (item.vendor_net_amount ?? 0)
+    orderComisionMap[item.order_id] = (orderComisionMap[item.order_id] ?? 0) + (item.comision_cashbak ?? 0)
   }
 
   // Merge final
@@ -102,6 +104,7 @@ export default async function AdminDashboardPage() {
       id: o.id as string,
       order_total: o.order_total as number,
       vendor_net_amount: orderVendorNetMap[o.id as string] ?? 0,
+      comision_cashbak: orderComisionMap[o.id as string] ?? 0,
       cashback_amount: o.cashback_amount as number,
       cashback_status: (o.cashback_status as string) ?? "evento_pendiente",
       cashback_transfer_note: o.cashback_transfer_note as string | null,

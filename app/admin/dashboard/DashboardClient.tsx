@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { TrendingUp, ShoppingBag, Banknote, AlertCircle, Building2, X } from "lucide-react"
+import { TrendingUp, ShoppingBag, Banknote, AlertCircle, Building2, X, DollarSign } from "lucide-react"
 import Link from "next/link"
 
 interface Order {
@@ -11,6 +11,7 @@ interface Order {
   cashback_amount: number
   cashback_status: string
   cashback_transfer_note: string | null
+  comision_cashbak: number
   vendor_paid: boolean
   shipping_status: string | null
   created_at: string
@@ -90,7 +91,8 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
     const cashbackEntregado = filtered
       .filter(o => o.cashback_status === "transferido")
       .reduce((s, o) => s + o.cashback_amount, 0)
-    return { totalVentas, totalPedidos, cashbackPendiente, cashbackEntregado }
+    const gananciasCashbak = filtered.reduce((s, o) => s + o.comision_cashbak, 0)
+    return { totalVentas, totalPedidos, cashbackPendiente, cashbackEntregado, gananciasCashbak }
   }, [filtered])
 
   // Vendedores pendientes de pago agrupados por tienda, ordenados por compra más antigua
@@ -171,7 +173,7 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
       </div>
 
       {/* Métricas */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricCard
           label="Ventas totales"
           value={`$${metrics.totalVentas.toLocaleString("es-CL")}`}
@@ -197,6 +199,13 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
           value={`$${metrics.cashbackEntregado.toLocaleString("es-CL")}`}
           icon={<Banknote className="w-5 h-5 text-emerald-700" />}
           color="bg-emerald-50"
+        />
+        <MetricCard
+          label="Ganancias CashBak"
+          value={`$${metrics.gananciasCashbak.toLocaleString("es-CL")}`}
+          sub="Comisiones + exceso cobertura"
+          icon={<DollarSign className="w-5 h-5 text-violet-700" />}
+          color="bg-violet-50"
         />
       </div>
 

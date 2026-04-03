@@ -198,6 +198,9 @@ export default function CheckoutPage() {
               order_id: uniqueOrderId,
               cashbakPercentage: details.cashbakPercentage,
               bet_amount: details.bet_amount,
+              comision_cashbak: details.comision_cashbak,
+              vendor_net_amount: details.vendor_net_amount,
+              tarifa_procesamiento: details.tarifa_procesamiento,
               size: details.size
             }
           }),

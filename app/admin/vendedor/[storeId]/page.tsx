@@ -34,7 +34,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
   // Order items de esta tienda
   const { data: orderItems } = await supabase
     .from("order_items")
-    .select("order_id, id, product_name, quantity, price, size")
+    .select("order_id, id, product_name, quantity, price, size, vendor_net_amount")
     .in("product_id", productIds.length > 0 ? productIds : ["none"])
 
   const orderIds = [...new Set((orderItems ?? []).map((i: { order_id: string }) => i.order_id))]
@@ -69,6 +69,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
     return {
       id: o.id as string,
       order_total: o.order_total as number,
+      vendor_net_amount: (itemsByOrder[o.id as string] ?? []).reduce((sum: number, i: any) => sum + (i.vendor_net_amount ?? 0), 0),
       created_at: o.created_at as string,
       shipping_method: o.shipping_method as string | null,
       shipping_status: o.shipping_status as string | null,

@@ -15,6 +15,7 @@ interface OrderItem {
 interface VendorOrder {
   id: string
   order_total: number
+  vendor_net_amount: number
   created_at: string
   customer_name: string | null
   customer_email: string | null
@@ -74,8 +75,9 @@ function OrderRow({ order, storeId }: { order: VendorOrder; storeId: string }) {
             <p className="text-xs text-gray-400 truncate">{order.customer_email}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-gray-400">Total compra</p>
-            <p className="text-sm font-bold text-gray-900">${order.order_total.toLocaleString("es-CL")}</p>
+            <p className="text-xs text-gray-400">A transferir</p>
+            <p className="text-sm font-bold text-emerald-700">${order.vendor_net_amount.toLocaleString("es-CL")}</p>
+            <p className="text-xs text-gray-400">Compra: ${order.order_total.toLocaleString("es-CL")}</p>
           </div>
         </div>
         {open ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
@@ -153,6 +155,7 @@ export default function VendorDetailClient({
   }
 
   const total = orders.reduce((s, o) => s + o.order_total, 0)
+  const netTotal = orders.reduce((s, o) => s + o.vendor_net_amount, 0)
 
   if (allPaid) {
     return (
@@ -169,8 +172,9 @@ export default function VendorDetailClient({
       <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center justify-between">
         <div>
           <p className="text-xs text-gray-400">{orders.length} pedido{orders.length !== 1 ? "s" : ""} pendientes</p>
-          <p className="text-2xl font-bold text-gray-900">${total.toLocaleString("es-CL")}</p>
-          <p className="text-xs text-gray-400">Total a transferir al vendedor</p>
+          <p className="text-2xl font-bold text-emerald-700">${netTotal.toLocaleString("es-CL")}</p>
+          <p className="text-xs text-gray-400">Neto a transferir al vendedor</p>
+          <p className="text-xs text-gray-400">Total compras: ${total.toLocaleString("es-CL")}</p>
         </div>
         <button
           onClick={handleMarkAll}
