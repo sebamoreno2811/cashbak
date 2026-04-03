@@ -370,20 +370,31 @@ export default function CheckoutPage() {
               </div>
             </div>
           ) : paymentError ? (
-            <div className="p-6 text-center">
-              <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full">
-                <XCircle className="w-12 h-12 text-red-600" />
+            <div className="p-8 text-center">
+              <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 bg-red-100 rounded-full">
+                <XCircle className="w-10 h-10 text-red-500" />
               </div>
-              <h2 className="mb-4 text-2xl font-bold text-red-800">Error en el Pago</h2>
-              <p className="mb-6 text-gray-600">{paymentError}</p>
-              <div className="space-y-4">
-                <Button className="w-full bg-green-900 hover:bg-emerald-700" onClick={() => setPaymentError(null)}>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Hubo un problema con tu pago</h2>
+              <p className="text-gray-500 mb-1">
+                {searchParams.get("reason") === "aborted"
+                  ? "Cancelaste el pago antes de completarlo."
+                  : searchParams.get("reason") === "payment"
+                  ? "Tu banco rechazó el pago. Puedes intentar con otra tarjeta."
+                  : "Ocurrió un error inesperado al procesar el pago."}
+              </p>
+              <p className="text-gray-400 text-sm mb-8">Tu carrito sigue intacto, no se realizó ningún cobro.</p>
+              <div className="space-y-3 max-w-xs mx-auto">
+                <Button className="w-full bg-green-900 hover:bg-emerald-700 h-11" onClick={() => setPaymentError(null)}>
                   Intentar nuevamente
                 </Button>
-                <Button variant="outline" className="w-full" onClick={() => router.push("/cart")}>
+                <Button variant="outline" className="w-full h-11" onClick={() => router.push("/cart")}>
                   Volver al carrito
                 </Button>
               </div>
+              <p className="text-xs text-gray-400 mt-6">
+                ¿Sigues teniendo problemas? Escríbenos a{" "}
+                <a href="mailto:cashbak.ops@gmail.com" className="text-green-700 underline">cashbak.ops@gmail.com</a>
+              </p>
             </div>
           ) : !user ? (
             <div className="p-6 text-center">
