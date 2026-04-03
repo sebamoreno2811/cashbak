@@ -16,7 +16,7 @@ import BankAccountReminderModal from "@/components/bank-account-reminder-modal"
 export default function CheckoutPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { items, getCartTotal, getTotalcashbak, getItemDetails, clearCart, deliveryType, shippingCost } = useCart()
+  const { items, getCartTotal, getTotalcashbak, getItemDetails, clearCart, deliveryType, deliveryOption, chooseDelivery, shippingCost } = useCart()
 
   const hasProcessed = useRef(false)
 
@@ -97,6 +97,11 @@ export default function CheckoutPage() {
           errorMessage = `Error del sistema: ${message || "Error desconocido"}`
         }
 
+        // Restaurar delivery option guardada antes del pago
+        const savedDelivery = localStorage.getItem("checkout_delivery_option")
+        if (savedDelivery) {
+          try { chooseDelivery(JSON.parse(savedDelivery)) } catch {}
+        }
         setPaymentError(errorMessage)
         setIsLoading(false)
       }
@@ -145,6 +150,7 @@ export default function CheckoutPage() {
         localStorage.removeItem("checkout_cashbak_total")
         localStorage.removeItem("checkout_order_id")
         localStorage.removeItem("checkout_delivery_type")
+        localStorage.removeItem("checkout_delivery_option")
       } else {
         setPaymentError(result.error || "Error al guardar los datos de la orden")
       }
@@ -212,7 +218,8 @@ export default function CheckoutPage() {
       localStorage.setItem("checkout_cart_total", cartTotal.toString())
       localStorage.setItem("checkout_cashbak_total", cashbakTotal.toString())
       localStorage.setItem("checkout_order_id", encodedOrderId)
-      localStorage.setItem("checkout_delivery_type", deliveryType!.toString())
+      localStorage.setItem("checkout_delivery_type", deliveryType?.toString() ?? "")
+      if (deliveryOption) localStorage.setItem("checkout_delivery_option", JSON.stringify(deliveryOption))
 
       const response = await fetch("/api/webpay/initiate", {
         method: "POST",
