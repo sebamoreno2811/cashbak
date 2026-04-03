@@ -147,7 +147,11 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
             <p className="text-sm mt-1">Todos los pedidos de esta tienda ya fueron pagados.</p>
           </div>
         ) : (
-          <VendorDetailClient storeId={storeId} orders={merged} />
+          <VendorDetailClient
+            storeId={storeId}
+            ordersReady={merged.filter(o => o.shipping_status === "Entregado")}
+            ordersInTransit={merged.filter(o => o.shipping_status !== "Entregado")}
+          />
         )}
       </div>
     </div>

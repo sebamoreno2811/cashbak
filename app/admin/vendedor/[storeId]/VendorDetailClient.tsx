@@ -139,59 +139,97 @@ function OrderRow({ order, storeId }: { order: VendorOrder; storeId: string }) {
 
 export default function VendorDetailClient({
   storeId,
-  orders,
+  ordersReady,
+  ordersInTransit,
 }: {
   storeId: string
-  orders: VendorOrder[]
+  ordersReady: VendorOrder[]
+  ordersInTransit: VendorOrder[]
 }) {
   const [allPaid, setAllPaid] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   const handleMarkAll = () => {
     startTransition(async () => {
-      const res = await markAllVendorPaid(orders.map(o => o.id), storeId)
+      const res = await markAllVendorPaid(ordersReady.map(o => o.id), storeId)
       if (!res.error) setAllPaid(true)
     })
   }
 
-  const total = orders.reduce((s, o) => s + o.order_total, 0)
-  const netTotal = orders.reduce((s, o) => s + o.vendor_net_amount, 0)
-
-  if (allPaid) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <CheckCircle2 className="w-12 h-12 text-green-600" />
-        <p className="text-lg font-semibold text-green-800">Todos los pedidos marcados como pagados</p>
-      </div>
-    )
-  }
+  const netTotal = ordersReady.reduce((s, o) => s + o.vendor_net_amount, 0)
+  const total = ordersReady.reduce((s, o) => s + o.order_total, 0)
 
   return (
-    <div className="space-y-4">
-      {/* Resumen + botón pagar todo */}
-      <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-gray-400">{orders.length} pedido{orders.length !== 1 ? "s" : ""} pendientes</p>
-          <p className="text-2xl font-bold text-emerald-700">${netTotal.toLocaleString("es-CL")}</p>
-          <p className="text-xs text-gray-400">Neto a transferir al vendedor</p>
-          <p className="text-xs text-gray-400">Total compras: ${total.toLocaleString("es-CL")}</p>
+    <div className="space-y-6">
+
+      {/* ── Listos para pagar ── */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-semibold text-gray-800">Listos para pagar</h2>
+            <p className="text-xs text-gray-400">Pedidos con estado Entregado</p>
+          </div>
+          {ordersReady.length > 0 && !allPaid && (
+            <span className="text-xs bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full">
+              {ordersReady.length} pedido{ordersReady.length !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
-        <button
-          onClick={handleMarkAll}
-          disabled={isPending}
-          className="flex items-center gap-2 bg-green-900 hover:bg-green-800 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60"
-        >
-          {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-          Marcar todos como pagados
-        </button>
+
+        {allPaid ? (
+          <div className="flex items-center gap-2 px-5 py-4 bg-green-50 rounded-xl text-green-700 border border-green-200">
+            <CheckCircle2 className="w-5 h-5" />
+            <p className="font-semibold">Todos los pedidos entregados marcados como pagados</p>
+          </div>
+        ) : ordersReady.length === 0 ? (
+          <p className="text-sm text-gray-400 py-4">Sin pedidos entregados pendientes de pago.</p>
+        ) : (
+          <>
+            {/* Resumen + botón */}
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-emerald-700">${netTotal.toLocaleString("es-CL")}</p>
+                <p className="text-xs text-gray-400">Neto a transferir al vendedor</p>
+                <p className="text-xs text-gray-400">Total compras: ${total.toLocaleString("es-CL")}</p>
+              </div>
+              <button
+                onClick={handleMarkAll}
+                disabled={isPending}
+                className="flex items-center gap-2 bg-green-900 hover:bg-green-800 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60"
+              >
+                {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                Marcar todos como pagados
+              </button>
+            </div>
+            <div className="space-y-3">
+              {ordersReady.map(order => (
+                <OrderRow key={order.id} order={order} storeId={storeId} />
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Lista de pedidos */}
-      <div className="space-y-3">
-        {orders.map(order => (
-          <OrderRow key={order.id} order={order} storeId={storeId} />
-        ))}
-      </div>
+      {/* ── En camino ── */}
+      {ordersInTransit.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-semibold text-gray-800">Por entregar</h2>
+              <p className="text-xs text-gray-400">Aún no se pueden pagar</p>
+            </div>
+            <span className="text-xs bg-orange-100 text-orange-700 font-semibold px-2 py-0.5 rounded-full">
+              {ordersInTransit.length} pedido{ordersInTransit.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+          <div className="space-y-3 opacity-75">
+            {ordersInTransit.map(order => (
+              <OrderRow key={order.id} order={order} storeId={storeId} />
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
