@@ -166,21 +166,12 @@ export default function ProductsPage() {
         )}
       </div>
 
-      {/* Selector de evento — igual al inicio */}
+      {/* Selector de evento */}
       {availableBets.length > 0 && (
-        <div className="bg-green-900 px-4 py-6">
-          <div className="container mx-auto max-w-2xl">
-            <div className="bg-white rounded-2xl overflow-hidden shadow-lg">
-              <div className="bg-emerald-600 px-5 py-4">
-                <p className="text-white text-lg font-bold leading-tight">🏆 Elige tu evento deportivo</p>
-                <p className="text-emerald-100 text-sm mt-0.5">El cashback de cada producto varía según el evento que elijas</p>
-              </div>
-              <div className="px-5 pt-5 pb-4">
-                <p className="text-lg font-bold text-gray-900 mb-0.5">¿Qué evento eliges hoy?</p>
-                <p className="text-sm text-gray-500 mb-4">Selecciona uno y empieza a explorar los productos con su cashback.</p>
-                <ProductSelection />
-              </div>
-            </div>
+        <div className="bg-white border-b border-gray-100">
+          <div className="container mx-auto max-w-5xl px-4 py-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Evento seleccionado</p>
+            <ProductSelection />
           </div>
         </div>
       )}
@@ -257,8 +248,10 @@ function ProductCard({
   const maxCashbak = calculateMaxProductCashbak(product, bets)
   const selectedCashbak = selectedBetOdd ? calculateProductCashbak(product, selectedBetOdd) : null
 
+  const productHref = `/product/${product.id}/${toSlug(product.name)}`
+
   return (
-    <Link href={`/product/${product.id}/${toSlug(product.name)}`} className="group">
+    <div className="group cursor-pointer" onClick={() => window.location.href = productHref}>
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 h-full flex flex-col">
         <div className="relative aspect-square overflow-hidden">
           <Image
@@ -304,6 +297,6 @@ function ProductCard({
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }

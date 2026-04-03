@@ -137,6 +137,13 @@ export async function updateShippingStatus(orderId: string, shipping_status: str
       }
 
       await resend.emails.send({ from: EMAIL_FROM, to: customerEmail, subject, html })
+
+      // Guardar timestamp de notificación al cliente
+      await supabase
+        .from("orders")
+        .update({ customer_notified_at: new Date().toISOString() })
+        .eq("id", orderId)
+
     } catch (e) {
       console.error("Error enviando email de estado:", e)
     }

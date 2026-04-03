@@ -107,12 +107,16 @@ export default function TerminosPage() {
           </ul>
         </Sub>
 
-        <Sub title="5.2 Confirmación automática por inacción">
+        <Sub title="5.2 Recordatorio y confirmación automática por inacción">
           <p>
-            Si el comprador no confirma la recepción dentro de los <strong>5 días corridos</strong> siguientes a la notificación enviada por CashBak (ya sea por envío o por retiro disponible), el pedido se considerará automáticamente como completado. En este caso, los fondos se liberarán al vendedor de forma automática, sin perjuicio del derecho del comprador a presentar un reclamo si correspondiera.
+            Si el comprador no confirma la recepción del pedido, CashBak aplicará el siguiente proceso escalonado:
           </p>
+          <ul className="list-disc pl-5 space-y-1 mt-1">
+            <li><strong>A los 5 días corridos</strong> desde la notificación, CashBak enviará un correo electrónico de recordatorio al comprador solicitando que confirme la recepción o el retiro de su pedido.</li>
+            <li><strong>A los 10 días corridos</strong> desde la notificación, si el comprador aún no ha confirmado, el pedido se considerará automáticamente como completado y los fondos serán liberados al vendedor.</li>
+          </ul>
           <p>
-            El plazo de 5 días comienza a contarse desde el momento en que CashBak envía el correo de notificación al comprador, lo que ocurre automáticamente cuando el vendedor actualiza el estado del pedido.
+            El plazo comienza a contarse desde el momento en que CashBak envía el correo de notificación al comprador, lo que ocurre automáticamente cuando el vendedor actualiza el estado del pedido a <em>Enviado</em> o <em>Listo para entrega</em>. La liberación automática de fondos se realiza sin perjuicio del derecho del comprador a presentar un reclamo si correspondiera.
           </p>
         </Sub>
 
