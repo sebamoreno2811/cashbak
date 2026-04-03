@@ -4,12 +4,13 @@ import { useState, useEffect, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { Search, SlidersHorizontal, X, Trophy } from "lucide-react"
+import { Search, SlidersHorizontal, X } from "lucide-react"
 import { toSlug } from "@/lib/slug"
 import { calculateProductCashbak, calculateMaxProductCashbak } from "@/lib/cashbak-calculator"
 import { useProducts } from "@/context/product-context"
 import { useBets } from "@/context/bet-context"
 import { useBetOption } from "@/hooks/use-bet-option"
+import { ProductSelection } from "@/components/product-selection"
 import { createClient } from "@/utils/supabase/client"
 import type { Product } from "@/types/product"
 
@@ -23,15 +24,17 @@ interface Store {
 export default function ProductsPage() {
   const { products, loading } = useProducts()
   const { bets } = useBets()
-  const { selectedOption, setSelectedOption } = useBetOption()
+  const { selectedOption } = useBetOption()
   const searchParams = useSearchParams()
 
   const [stores, setStores] = useState<Store[]>([])
   const [search, setSearch] = useState("")
   const [storeFilter, setStoreFilter] = useState<string | null>(null)
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(
-    () => searchParams.get("category")
-  )
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(searchParams.get("category"))
+
+  useEffect(() => {
+    setCategoryFilter(searchParams.get("category"))
+  }, [searchParams])
   const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
@@ -163,28 +166,20 @@ export default function ProductsPage() {
         )}
       </div>
 
-      {/* Barra de evento */}
+      {/* Selector de evento — igual al inicio */}
       {availableBets.length > 0 && (
-        <div className="bg-white border-b border-gray-100 shadow-sm">
-          <div className="container mx-auto max-w-5xl px-4 py-2.5 flex items-center gap-3">
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Trophy className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Evento</span>
-            </div>
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-              {availableBets.map(bet => (
-                <button
-                  key={bet.id}
-                  onClick={() => setSelectedOption(bet.id.toString())}
-                  className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition ${
-                    selectedOption === bet.id.toString()
-                      ? "bg-emerald-600 text-white border-emerald-600"
-                      : "border-gray-200 text-gray-600 bg-white hover:border-gray-300"
-                  }`}
-                >
-                  {bet.name}
-                </button>
-              ))}
+        <div className="bg-green-900 px-4 py-6">
+          <div className="container mx-auto max-w-2xl">
+            <div className="bg-white rounded-2xl overflow-hidden shadow-lg">
+              <div className="bg-emerald-600 px-5 py-4">
+                <p className="text-white text-lg font-bold leading-tight">🏆 Elige tu evento deportivo</p>
+                <p className="text-emerald-100 text-sm mt-0.5">El cashback de cada producto varía según el evento que elijas</p>
+              </div>
+              <div className="px-5 pt-5 pb-4">
+                <p className="text-lg font-bold text-gray-900 mb-0.5">¿Qué evento eliges hoy?</p>
+                <p className="text-sm text-gray-500 mb-4">Selecciona uno y empieza a explorar los productos con su cashback.</p>
+                <ProductSelection />
+              </div>
             </div>
           </div>
         </div>
