@@ -80,6 +80,8 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
+    router.push("/")
+    router.refresh()
   }
 
   const getInitials = (name: string) => {

@@ -45,6 +45,9 @@ declare module "@supabase/supabase-js" {
         signIn(options: { email: string; password: string }): Promise<{ data: any; error: any }>;
         signOut(): Promise<{ error: any }>;
         getSession(): Promise<{ data: { session: any }; error: any }>;
+        admin: {
+          generateLink(options: { type: string; email: string; options?: { redirectTo?: string } }): Promise<{ data: { properties?: { action_link?: string } } | null; error: any }>;
+        };
       };
     }
   
