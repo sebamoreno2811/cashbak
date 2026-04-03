@@ -18,7 +18,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
   // Info de la tienda
   const { data: store, error: storeError } = await supabase
     .from("stores")
-    .select("id, name, email, owner_id, bank_name, account_type, account_number, account_holder, rut")
+    .select("id, name, email, owner_id, owner_rut, bank_name, account_type, account_number, account_holder, rut")
     .eq("id", storeId)
     .maybeSingle()
   console.log("[vendedor] storeId:", storeId, "store:", store, "error:", storeError)
@@ -111,22 +111,32 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4">
+            <div className="flex items-center gap-2 mb-1">
               <CreditCard className="w-4 h-4 text-gray-400" />
-              <h2 className="font-semibold text-gray-800">Datos bancarios</h2>
+              <h2 className="font-semibold text-gray-800">Identificación del dueño</h2>
             </div>
-            {store.bank_name ? (
-              <div className="space-y-1.5 text-sm text-gray-600">
-                {store.account_holder && <p><span className="font-medium text-gray-700">Titular:</span> {store.account_holder}</p>}
-                <p><span className="font-medium text-gray-700">RUT:</span> {store.rut ?? "—"}</p>
-                <p><span className="font-medium text-gray-700">Banco:</span> {store.bank_name}</p>
-                <p><span className="font-medium text-gray-700">Tipo:</span> {store.account_type ?? "—"}</p>
-                <p><span className="font-medium text-gray-700">Cuenta:</span> {store.account_number}</p>
-              </div>
-            ) : (
-              <p className="text-sm text-orange-600 font-medium">El vendedor no ha registrado datos bancarios</p>
-            )}
+            <div className="text-sm text-gray-600">
+              <p><span className="font-medium text-gray-700">RUT dueño:</span> {store.owner_rut
+                ? <span className="font-mono">{store.owner_rut}</span>
+                : <span className="text-orange-500 font-medium">No registrado</span>}
+              </p>
+            </div>
+
+            <div className="border-t border-gray-100 pt-4">
+              <h2 className="font-semibold text-gray-800 mb-3">Datos bancarios</h2>
+              {store.bank_name ? (
+                <div className="space-y-1.5 text-sm text-gray-600">
+                  {store.account_holder && <p><span className="font-medium text-gray-700">Titular:</span> {store.account_holder}</p>}
+                  <p><span className="font-medium text-gray-700">RUT cuenta:</span> {store.rut ?? "—"}</p>
+                  <p><span className="font-medium text-gray-700">Banco:</span> {store.bank_name}</p>
+                  <p><span className="font-medium text-gray-700">Tipo:</span> {store.account_type ?? "—"}</p>
+                  <p><span className="font-medium text-gray-700">Cuenta:</span> {store.account_number}</p>
+                </div>
+              ) : (
+                <p className="text-sm text-orange-600 font-medium">El vendedor no ha registrado datos bancarios</p>
+              )}
+            </div>
           </div>
         </div>
 

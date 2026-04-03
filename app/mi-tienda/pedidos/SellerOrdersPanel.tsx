@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { updateShippingStatus } from "./actions"
-import { ChevronDown, ChevronUp, Loader2, Save, Package, Truck, CheckCircle2 } from "lucide-react"
+import { ChevronDown, ChevronUp, Loader2, Save, Package, Truck, CheckCircle2, Search, X } from "lucide-react"
 
 interface OrderItem {
   id: string
@@ -165,10 +165,13 @@ function OrderRow({ order }: { order: Order }) {
 
 export default function SellerOrdersPanel({ orders }: { orders: Order[] }) {
   const [filter, setFilter] = useState("todos")
+  const [search, setSearch] = useState("")
 
-  const filtered = orders.filter(o =>
-    filter === "todos" || o.shipping_status === filter
-  )
+  const filtered = orders.filter(o => {
+    const matchesFilter = filter === "todos" || o.shipping_status === filter
+    const matchesSearch = !search.trim() || o.id.toLowerCase().includes(search.trim().toLowerCase())
+    return matchesFilter && matchesSearch
+  })
 
   const counts = Object.fromEntries(
     SHIPPING_STATUSES.map(s => [s.value, orders.filter(o => o.shipping_status === s.value).length])
@@ -176,6 +179,23 @@ export default function SellerOrdersPanel({ orders }: { orders: Order[] }) {
 
   return (
     <div>
+      {/* Buscador por ID */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Buscar por ID de pedido..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full pl-9 pr-9 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
+        />
+        {search && (
+          <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+            <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+          </button>
+        )}
+      </div>
+
       {/* Filtros */}
       <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-5 flex flex-wrap gap-2">
         {FILTER_OPTIONS.map(opt => {

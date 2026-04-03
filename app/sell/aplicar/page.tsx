@@ -45,6 +45,7 @@ export default function AplicarPage() {
   const [description, setDescription] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
+  const [ownerRut, setOwnerRut] = useState("")
   const [instagram, setInstagram] = useState("")
   const [facebook, setFacebook] = useState("")
   const [tiktok, setTiktok] = useState("")
@@ -92,10 +93,33 @@ export default function AplicarPage() {
     setNewDeliveryAddress("")
   }
 
+  function validarRut(rut: string): boolean {
+    const clean = rut.replace(/[\.\-]/g, "").toUpperCase()
+    if (clean.length < 2) return false
+    const body = clean.slice(0, -1)
+    const dv = clean.slice(-1)
+    if (!/^\d+$/.test(body)) return false
+    let sum = 0
+    let mul = 2
+    for (let i = body.length - 1; i >= 0; i--) {
+      sum += parseInt(body[i]) * mul
+      mul = mul === 7 ? 2 : mul + 1
+    }
+    const expected = 11 - (sum % 11)
+    const expectedDv = expected === 11 ? "0" : expected === 10 ? "K" : String(expected)
+    return dv === expectedDv
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
+
+    if (!validarRut(ownerRut)) {
+      setError("El RUT ingresado no es válido. Verifica el formato (ej: 12.345.678-9).")
+      setLoading(false)
+      return
+    }
 
     if (deliveryOptions.length === 0) {
       setError("Debes agregar al menos un método de entrega.")
@@ -157,6 +181,7 @@ export default function AplicarPage() {
       tiktok: tiktok.trim() || null,
       logo_url: logoUrl,
       delivery_options: deliveryOptions,
+      owner_rut: ownerRut.trim() || null,
     })
 
     if (insertError) {
@@ -298,6 +323,28 @@ export default function AplicarPage() {
                 </div>
                 {categories.length === 0 && (
                   <p className="text-xs text-gray-400">Selecciona al menos una categoría</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="owner_rut">RUT del dueño *</Label>
+                <Input
+                  id="owner_rut"
+                  required
+                  value={ownerRut}
+                  onChange={(e) => setOwnerRut(e.target.value)}
+                  placeholder="Ej: 12.345.678-9"
+                  maxLength={12}
+                  className={ownerRut && !validarRut(ownerRut) ? "border-red-400 focus-visible:ring-red-400" : ownerRut && validarRut(ownerRut) ? "border-green-500 focus-visible:ring-green-500" : ""}
+                />
+                {ownerRut && !validarRut(ownerRut) && (
+                  <p className="text-xs text-red-500">RUT inválido. Verifica el dígito verificador.</p>
+                )}
+                {ownerRut && validarRut(ownerRut) && (
+                  <p className="text-xs text-green-600">RUT válido ✓</p>
+                )}
+                {!ownerRut && (
+                  <p className="text-xs text-gray-400">Se usa para verificar tu identidad como vendedor. No se muestra públicamente.</p>
                 )}
               </div>
 
@@ -525,10 +572,11 @@ export default function AplicarPage() {
 
           <button
             type="submit"
-            disabled={loading || !name.trim() || categories.length === 0 || !email.trim() || !phone.trim() || deliveryOptions.length === 0}
+            disabled={loading || !name.trim() || categories.length === 0 || !email.trim() || !phone.trim() || deliveryOptions.length === 0 || !ownerRut.trim()}
             className="w-full py-3 bg-green-900 text-white rounded-md font-semibold hover:bg-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Enviando..." : "Enviar solicitud"}
+
           </button>
         </form>
 

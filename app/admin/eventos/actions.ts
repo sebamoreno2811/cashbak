@@ -2,6 +2,11 @@
 
 import { createSupabaseClientWithCookies as createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
+import { Resend } from "resend"
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://cashbak.cl"
+const EMAIL_FROM = process.env.EMAIL_FROM || "support@cashbak.cl"
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -35,16 +40,17 @@ export async function markBetWinner(betId: number) {
       .in("id", orderIds)
 
     if (orders && orders.length > 0) {
-      const customerIds = orders.map((o: { id: string; customer_id: string }) => o.customer_id)
+      const customerIds = orders.map((o: any) => o.customer_id)
 
-      const { data: bankAccounts } = await supabase
-        .from("bank_accounts")
-        .select("customer_id")
-        .in("customer_id", customerIds)
+      const [{ data: bankAccounts }, { data: customers }] = await Promise.all([
+        supabase.from("bank_accounts").select("customer_id").in("customer_id", customerIds),
+        supabase.from("customers").select("id, email, full_name").in("id", customerIds),
+      ])
 
-      const customersWithBank = new Set((bankAccounts ?? []).map((b: { customer_id: string }) => b.customer_id))
+      const customersWithBank = new Set((bankAccounts ?? []).map((b: any) => b.customer_id))
+      const customerMap = Object.fromEntries((customers ?? []).map((c: any) => [c.id, c]))
 
-      for (const order of orders as { id: string; customer_id: string }[]) {
+      for (const order of orders as any[]) {
         const hasBankAccount = customersWithBank.has(order.customer_id)
         await supabase
           .from("orders")
@@ -54,6 +60,42 @@ export async function markBetWinner(betId: number) {
             updated_at: new Date().toISOString(),
           })
           .eq("id", order.id)
+
+        // Email al comprador
+        const customer = customerMap[order.customer_id]
+        if (!customer?.email) continue
+        const cashbackAmount = order.cashback_amount ?? 0
+        const orderRef = order.id.slice(0, 8).toUpperCase()
+
+        try {
+          await resend.emails.send({
+            from: EMAIL_FROM,
+            to: customer.email,
+            subject: `🎉 ¡Tu evento se cumplió! CashBak pedido #${orderRef}`,
+            html: `
+              <div style="font-family:Arial,sans-serif;background:#f9fafb;padding:40px;text-align:center;">
+                <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
+                <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:520px;text-align:left;">
+                  <h2 style="color:#14532d;margin-top:0;">¡Felicidades, tu evento se cumplió! 🏆</h2>
+                  <p style="color:#555;">Hola ${customer.full_name ?? ""},  el evento que elegiste al momento de tu compra resultó a tu favor.</p>
+                  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
+                    <p style="color:#166534;font-size:13px;margin:0 0 6px 0;">Tu cashback para el pedido <strong>#${orderRef}</strong></p>
+                    <p style="color:#14532d;font-size:32px;font-weight:800;margin:0;">$${cashbackAmount.toLocaleString("es-CL")}</p>
+                  </div>
+                  <p style="color:#555;font-size:14px;">Recibirás esta transferencia pronto en la cuenta bancaria que registraste en tu perfil.</p>
+                  <div style="text-align:center;margin:24px 0;">
+                    <a href="${APP_URL}/orders" style="display:inline-block;padding:12px 24px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">
+                      Ver mis pedidos →
+                    </a>
+                  </div>
+                  <p style="color:#9ca3af;font-size:12px;margin-top:24px;">CashBak · cashbak.cl</p>
+                </div>
+              </div>
+            `,
+          })
+        } catch (e) {
+          console.error(`[eventos] Error enviando email ganador a ${customer.email}:`, e)
+        }
       }
     }
   }
@@ -78,11 +120,52 @@ export async function markBetLost(betId: number) {
     .eq("bet_option_id", betId)
 
   if (orderItems && orderItems.length > 0) {
-    const orderIds = [...new Set(orderItems.map((i: { order_id: string }) => i.order_id))]
+    const orderIds = [...new Set(orderItems.map((i: any) => i.order_id))]
     await supabase
       .from("orders")
       .update({ cashback_status: "evento_perdido", updated_at: new Date().toISOString() })
       .in("id", orderIds)
+
+    // Obtener datos de clientes para enviar emails
+    const { data: orders } = await supabase
+      .from("orders")
+      .select("id, customer_id, customers(email, full_name)")
+      .in("id", orderIds)
+
+    for (const order of orders as any[] ?? []) {
+      const customer = order.customers
+      if (!customer?.email) continue
+      const orderRef = order.id.slice(0, 8).toUpperCase()
+
+      try {
+        await resend.emails.send({
+          from: EMAIL_FROM,
+          to: customer.email,
+          subject: `Tu evento no se cumplió — Pedido #${orderRef}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;background:#f9fafb;padding:40px;text-align:center;">
+              <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
+              <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:520px;text-align:left;">
+                <h2 style="color:#374151;margin-top:0;">Esta vez no fue, ¡pero no te desanimes!</h2>
+                <p style="color:#555;">Hola ${customer.full_name ?? ""}, el evento que elegiste para tu pedido <strong>#${orderRef}</strong> no se cumplió esta vez.</p>
+                <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:20px 0;">
+                  <p style="color:#6b7280;font-size:14px;margin:0;">Tu producto llegó o llegará de todas formas y eso es lo importante. El próximo evento podría ser el que te otorgue ese cashback que estás esperando. 💪</p>
+                </div>
+                <p style="color:#555;font-size:14px;">Sigue explorando productos y elige el evento que más te convenza en tu próxima compra.</p>
+                <div style="text-align:center;margin:24px 0;">
+                  <a href="${APP_URL}/products" style="display:inline-block;padding:12px 24px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">
+                    Explorar productos →
+                  </a>
+                </div>
+                <p style="color:#9ca3af;font-size:12px;margin-top:24px;">CashBak · cashbak.cl</p>
+              </div>
+            </div>
+          `,
+        })
+      } catch (e) {
+        console.error(`[eventos] Error enviando email perdedor a ${customer.email}:`, e)
+      }
+    }
   }
 
   revalidatePath("/admin/eventos")

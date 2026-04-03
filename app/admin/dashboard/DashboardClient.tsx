@@ -7,6 +7,7 @@ import Link from "next/link"
 interface Order {
   id: string
   order_total: number
+  vendor_net_amount: number
   cashback_amount: number
   cashback_status: string
   cashback_transfer_note: string | null
@@ -95,12 +96,13 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
   // Vendedores pendientes de pago agrupados por tienda, ordenados por compra más antigua
   const vendoresPendientes = useMemo(() => {
     const unpaid = filtered.filter(o => !o.vendor_paid)
-    const byStore: Record<string, { store_name: string; store_id: string | null; count: number; total: number; oldestDate: string }> = {}
+    const byStore: Record<string, { store_name: string; store_id: string | null; count: number; total: number; net_total: number; oldestDate: string }> = {}
     for (const o of unpaid) {
       const key = o.store_id ?? "__cashbak__"
-      if (!byStore[key]) byStore[key] = { store_name: o.store_name, store_id: o.store_id, count: 0, total: 0, oldestDate: o.created_at }
+      if (!byStore[key]) byStore[key] = { store_name: o.store_name, store_id: o.store_id, count: 0, total: 0, net_total: 0, oldestDate: o.created_at }
       byStore[key].count++
       byStore[key].total += o.order_total
+      byStore[key].net_total += o.vendor_net_amount
       if (new Date(o.created_at) < new Date(byStore[key].oldestDate)) {
         byStore[key].oldestDate = o.created_at
       }
@@ -227,7 +229,8 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
                       <p className="text-xs text-gray-400">{v.count} pedido{v.count !== 1 ? "s" : ""} sin pagar · pedido más antiguo hace {days === 0 ? "hoy" : `${days} días`}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-gray-900">${v.total.toLocaleString("es-CL")}</p>
+                      <p className="text-sm font-bold text-emerald-700">${v.net_total.toLocaleString("es-CL")}</p>
+                      <p className="text-xs text-gray-400">Total compra: ${v.total.toLocaleString("es-CL")}</p>
                       {v.store_id && (
                         <Link href={`/admin/vendedor/${v.store_id}`} className="text-xs text-green-700 hover:underline font-medium">
                           Ver y pagar →

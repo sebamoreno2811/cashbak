@@ -49,6 +49,7 @@ export async function GET(request: Request) {
     .not("customer_notified_at", "is", null)
     .lt("customer_notified_at", fiveDaysAgo)
     .gt("customer_notified_at", tenDaysAgo)
+    .in("shipping_status", ["Enviado", "Listo para entrega"])
 
   for (const order of toRemind ?? []) {
     const customerEmail = (order as any).customers?.email
@@ -93,7 +94,7 @@ export async function GET(request: Request) {
           <p style="color:#555;">Hola ${customerName}, ${contextText}</p>
           <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:14px;margin:20px 0;">
             <p style="color:#92400e;margin:0;font-size:13px;">
-              <strong>⚠️ Aviso:</strong> Si no confirmas la recepción en los próximos días, el pedido se marcará como entregado automáticamente.
+              <strong>⚠️ Aviso:</strong> Si ya recibiste el pedido y no confirmas en los próximos días, tu pedido se confirmará automáticamente.
             </p>
           </div>
           <div style="text-align:center;margin:24px 0;">
