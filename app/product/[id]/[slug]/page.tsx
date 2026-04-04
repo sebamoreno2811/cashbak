@@ -81,6 +81,11 @@ export default function ProductPage() {
   useEffect(() => {
     if (!loading && products) {
       const foundProduct = products.find(p => p.id.toString() === params.id)
+      if (foundProduct) {
+        import("posthog-js").then(({ default: posthog }) => {
+          posthog.capture("producto_visto", { product_id: foundProduct.id, product_name: foundProduct.name, price: foundProduct.price })
+        })
+      }
       setProduct(foundProduct ?? null)
       setHasPrint(foundProduct?.hasPrint ?? false)
       if (foundProduct) {

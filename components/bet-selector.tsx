@@ -16,6 +16,7 @@ import {
 import { useEffect } from "react"
 import { useBetOption } from "@/hooks/use-bet-option"
 import { useBets } from "@/context/bet-context"
+import posthog from "posthog-js"
 
 type BetSelectorProps = {
   value: string
@@ -79,7 +80,15 @@ export default function BetSelector({ value, onChange }: BetSelectorProps) {
 
   return (
     <div className="mb-6">
-      <Select value={value} onValueChange={onChange}>
+      <Select
+        value={value}
+        onOpenChange={(open) => { if (open) posthog.capture("selector_evento_abierto") }}
+        onValueChange={(newValue) => {
+          const bet = bets.find(b => b.id.toString() === newValue)
+          posthog.capture("evento_seleccionado", { bet_id: newValue, bet_name: bet?.name })
+          onChange(newValue)
+        }}
+      >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Selecciona una opción">
             {selectedBet ? selectedBet.name : null}
