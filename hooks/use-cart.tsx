@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react"
 import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
+import posthog from "posthog-js"
 import type { Product } from "@/types/product"
 import type { DeliveryOption } from "@/types/delivery"
 export type { DeliveryOption }
@@ -119,6 +120,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         item.size === size &&
         item.hasPrint === hasPrint
     )
+
+    posthog.capture("producto_agregado_carrito", {
+      product_id: productId,
+      product_name: product.name,
+      price: product.price,
+      cashback_pct: sim.cashbackPct,
+      bet_option_id: betOptionId,
+    })
 
     if (existingItemIndex >= 0) {
       const updatedItems = [...items]

@@ -8,6 +8,7 @@ import { ArrowLeft, CreditCard, AlertCircle, CheckCircle, XCircle, Loader2 } fro
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { saveCheckoutData, updateProductStock } from "./actions"
+import posthog from "posthog-js"
 import AuthModal from "@/components/auth/auth-modal"
 import useSupabaseUser from "@/hooks/use-supabase-user"
 import BankAccountReminderModal from "@/components/bank-account-reminder-modal"
@@ -102,6 +103,7 @@ export default function CheckoutPage() {
         if (savedDelivery) {
           try { chooseDelivery(JSON.parse(savedDelivery)) } catch {}
         }
+        posthog.capture("pago_fallido", { reason: reason ?? "unknown" })
         setPaymentError(errorMessage)
         setIsLoading(false)
       }
@@ -141,6 +143,7 @@ export default function CheckoutPage() {
         }
 
         localStorage.setItem("processed_order_id", orderIdParam || "")
+        posthog.capture("compra_completada", { order_id: orderIdParam, cart_total: cartTotal, cashbak_total: cashbakTotal })
         setPaymentSuccess(true)
         if (!bankAccount) setShowBankReminder(true)
         clearCart()
@@ -255,9 +258,11 @@ export default function CheckoutPage() {
       form.appendChild(tokenInput)
       document.body.appendChild(form)
 
+      posthog.capture("checkout_iniciado", { cart_total: cartTotal, items_count: items.length })
       form.submit()
     } catch (error: any) {
       console.error("Error al iniciar el pago:", error)
+      posthog.capture("checkout_error", { reason: error.message })
       setPaymentError("Error al iniciar el pago: " + (error.message || "Error desconocido"))
       setPaymentProcessing(false)
     }

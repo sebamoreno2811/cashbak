@@ -1,6 +1,8 @@
 import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
+import { Analytics } from "@vercel/analytics/react"
+import PostHogProvider from "@/components/PostHogProvider"
 import { CartProvider } from "@/hooks/use-cart"
 import { BetOptionProvider } from "@/hooks/use-bet-option"
 import { ProductSelectionProvider } from "@/hooks/use-product-selection"
@@ -48,6 +50,8 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
+        <Analytics />
+        <PostHogProvider>
         <ProductsProvider>
           <BetProvider>
             <CustomerProvider>
@@ -67,6 +71,7 @@ export default function RootLayout({
             </CustomerProvider>
           </BetProvider>
         </ProductsProvider>
+        </PostHogProvider>
       </body>
     </html>
   )
