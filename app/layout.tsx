@@ -49,6 +49,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#14532d" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="CashBak" />
+        <link rel="apple-touch-icon" href="/img/logo.png" />
+      </head>
       <body className={inter.className}>
         <Analytics />
         <PostHogProvider>
