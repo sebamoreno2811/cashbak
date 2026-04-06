@@ -1,5 +1,5 @@
 {
-  "name": "CashBak — Compra y recupera tu dinero",
+  "name": "CashBak",
   "short_name": "CashBak",
   "description": "Marketplace chileno donde compras y recuperas parte de tu dinero si se cumple tu evento.",
   "start_url": "/",
