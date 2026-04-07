@@ -121,50 +121,79 @@ export async function markBetLost(betId: number) {
 
   if (orderItems && orderItems.length > 0) {
     const orderIds = [...new Set(orderItems.map((i: any) => i.order_id))]
-    await supabase
-      .from("orders")
-      .update({ cashback_status: "evento_perdido", updated_at: new Date().toISOString() })
-      .in("id", orderIds)
 
-    // Obtener datos de clientes para enviar emails
+    // Para cada orden, revisar el estado de TODOS sus eventos antes de actualizar
     const { data: orders } = await supabase
       .from("orders")
       .select("id, customer_id, customers(email, full_name)")
       .in("id", orderIds)
 
     for (const order of orders as any[] ?? []) {
-      const customer = order.customers
-      if (!customer?.email) continue
-      const orderRef = order.id.slice(0, 8).toUpperCase()
+      // Obtener todos los bet_option_id de esta orden
+      const { data: allItems } = await supabase
+        .from("order_items")
+        .select("bet_option_id")
+        .eq("order_id", order.id)
 
-      try {
-        await resend.emails.send({
-          from: EMAIL_FROM,
-          to: customer.email,
-          subject: `Tu evento no se cumplió — Pedido #${orderRef}`,
-          html: `
-            <div style="font-family:Arial,sans-serif;background:#f9fafb;padding:40px;text-align:center;">
-              <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
-              <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:520px;text-align:left;">
-                <h2 style="color:#374151;margin-top:0;">Esta vez no fue, ¡pero no te desanimes!</h2>
-                <p style="color:#555;">Hola ${customer.full_name ?? ""}, el evento que elegiste para tu pedido <strong>#${orderRef}</strong> no se cumplió esta vez.</p>
-                <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:20px 0;">
-                  <p style="color:#6b7280;font-size:14px;margin:0;">Tu producto llegó o llegará de todas formas y eso es lo importante. El próximo evento podría ser el que te otorgue ese CashBak que estás esperando. 💪</p>
+      const allBetIds = [...new Set((allItems ?? []).map((i: any) => i.bet_option_id).filter(Boolean))]
+
+      // Obtener el resultado de todos los eventos de esta orden
+      const { data: allBets } = await supabase
+        .from("bets")
+        .select("id, is_winner")
+        .in("id", allBetIds.length > 0 ? allBetIds : [-1])
+
+      const hasWinner = (allBets ?? []).some((b: any) => b.is_winner === true)
+      const allResolved = (allBets ?? []).every((b: any) => b.is_winner !== null)
+
+      if (hasWinner) {
+        // Al menos un evento ganó — mantener transferencia_pendiente
+        await supabase
+          .from("orders")
+          .update({ cashback_status: "transferencia_pendiente", updated_at: new Date().toISOString() })
+          .eq("id", order.id)
+      } else if (allResolved) {
+        // Todos los eventos resueltos y todos perdieron
+        await supabase
+          .from("orders")
+          .update({ cashback_status: "evento_perdido", updated_at: new Date().toISOString() })
+          .eq("id", order.id)
+
+        // Email solo si todos los eventos de la orden fallaron
+        const customer = order.customers
+        if (!customer?.email) continue
+        const orderRef = order.id.slice(0, 8).toUpperCase()
+
+        try {
+          await resend.emails.send({
+            from: EMAIL_FROM,
+            to: customer.email,
+            subject: `Tu evento no se cumplió — Pedido #${orderRef}`,
+            html: `
+              <div style="font-family:Arial,sans-serif;background:#f9fafb;padding:40px;text-align:center;">
+                <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
+                <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:520px;text-align:left;">
+                  <h2 style="color:#374151;margin-top:0;">Esta vez no fue, ¡pero no te desanimes!</h2>
+                  <p style="color:#555;">Hola ${customer.full_name ?? ""}, el evento que elegiste para tu pedido <strong>#${orderRef}</strong> no se cumplió esta vez.</p>
+                  <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:20px 0;">
+                    <p style="color:#6b7280;font-size:14px;margin:0;">Tu producto llegó o llegará de todas formas y eso es lo importante. El próximo evento podría ser el que te otorgue ese CashBak que estás esperando. 💪</p>
+                  </div>
+                  <p style="color:#555;font-size:14px;">Sigue explorando productos y elige el evento que más te convenza en tu próxima compra.</p>
+                  <div style="text-align:center;margin:24px 0;">
+                    <a href="${APP_URL}/products" style="display:inline-block;padding:12px 24px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">
+                      Explorar productos →
+                    </a>
+                  </div>
+                  <p style="color:#9ca3af;font-size:12px;margin-top:24px;">CashBak · cashbak.cl</p>
                 </div>
-                <p style="color:#555;font-size:14px;">Sigue explorando productos y elige el evento que más te convenza en tu próxima compra.</p>
-                <div style="text-align:center;margin:24px 0;">
-                  <a href="${APP_URL}/products" style="display:inline-block;padding:12px 24px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">
-                    Explorar productos →
-                  </a>
-                </div>
-                <p style="color:#9ca3af;font-size:12px;margin-top:24px;">CashBak · cashbak.cl</p>
               </div>
-            </div>
-          `,
-        })
-      } catch (e) {
-        console.error(`[eventos] Error enviando email perdedor a ${customer.email}:`, e)
+            `,
+          })
+        } catch (e) {
+          console.error(`[eventos] Error enviando email perdedor a ${customer.email}:`, e)
+        }
       }
+      // Si aún hay eventos pendientes: no cambiar el estado de la orden
     }
   }
 

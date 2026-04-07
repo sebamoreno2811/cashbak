@@ -31,18 +31,25 @@ export async function markCashbackTransferred(orderId: string, customerEmail: st
   try {
     const { data: order } = await supabase
       .from("orders")
-      .select("cashback_amount, customer_id")
+      .select("customer_id")
       .eq("id", orderId)
       .single()
 
     if (order) {
-      const { data: customer } = await supabase
-        .from("customers")
-        .select("email, full_name")
-        .eq("id", order.customer_id)
-        .single()
+      const [{ data: customer }, { data: items }] = await Promise.all([
+        supabase.from("customers").select("email, full_name").eq("id", order.customer_id).single(),
+        supabase.from("order_items").select("price, quantity, cashback_percentage, bet_option_id").eq("order_id", orderId),
+      ])
 
-      if (customer?.email) {
+      if (customer?.email && items) {
+        const betIds = [...new Set(items.map((i: any) => i.bet_option_id).filter(Boolean))]
+        const { data: bets } = await supabase.from("bets").select("id, is_winner").in("id", betIds.length > 0 ? betIds : [-1])
+        const betMap = Object.fromEntries((bets ?? []).map((b: any) => [String(b.id), b]))
+
+        const winningCashback = items
+          .filter((i: any) => betMap[String(i.bet_option_id)]?.is_winner === true)
+          .reduce((s: number, i: any) => s + Math.round(i.price * i.quantity * i.cashback_percentage / 100), 0)
+
         const orderRef = orderId.slice(0, 8).toUpperCase()
         const nombre = customer.full_name?.split(" ")[0] || "Cliente"
 
@@ -58,7 +65,7 @@ export async function markCashbackTransferred(orderId: string, customerEmail: st
                 <p style="color:#555;">Hola <strong>${nombre}</strong>, ya realizamos la transferencia de tu CashBak correspondiente al pedido <strong>#${orderRef}</strong>.</p>
                 <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
                   <p style="color:#166534;font-size:13px;margin:0 0 6px 0;">Monto transferido</p>
-                  <p style="color:#14532d;font-size:36px;font-weight:800;margin:0;">$${order.cashback_amount.toLocaleString("es-CL")}</p>
+                  <p style="color:#14532d;font-size:36px;font-weight:800;margin:0;">$${winningCashback.toLocaleString("es-CL")}</p>
                   <p style="color:#6b7280;font-size:11px;margin:6px 0 0 0;">Transferido a tu cuenta bancaria registrada</p>
                 </div>
                 <p style="color:#555;font-size:14px;">El dinero ya fue depositado en la cuenta que registraste en tu perfil. Si tienes alguna duda, contáctanos respondiendo este correo.</p>
@@ -98,19 +105,26 @@ export async function markAllCashbackTransferred(orderIds: string[], customerEma
     try {
       const { data: order } = await supabase
         .from("orders")
-        .select("cashback_amount, customer_id")
+        .select("customer_id")
         .eq("id", orderId)
         .single()
 
       if (!order) continue
 
-      const { data: customer } = await supabase
-        .from("customers")
-        .select("email, full_name")
-        .eq("id", order.customer_id)
-        .single()
+      const [{ data: customer }, { data: items }] = await Promise.all([
+        supabase.from("customers").select("email, full_name").eq("id", order.customer_id).single(),
+        supabase.from("order_items").select("price, quantity, cashback_percentage, bet_option_id").eq("order_id", orderId),
+      ])
 
-      if (!customer?.email) continue
+      if (!customer?.email || !items) continue
+
+      const betIds = [...new Set(items.map((i: any) => i.bet_option_id).filter(Boolean))]
+      const { data: bets } = await supabase.from("bets").select("id, is_winner").in("id", betIds.length > 0 ? betIds : [-1])
+      const betMap = Object.fromEntries((bets ?? []).map((b: any) => [String(b.id), b]))
+
+      const winningCashback = items
+        .filter((i: any) => betMap[String(i.bet_option_id)]?.is_winner === true)
+        .reduce((s: number, i: any) => s + Math.round(i.price * i.quantity * i.cashback_percentage / 100), 0)
 
       const orderRef = orderId.slice(0, 8).toUpperCase()
       const nombre = customer.full_name?.split(" ")[0] || "Cliente"
@@ -127,7 +141,7 @@ export async function markAllCashbackTransferred(orderIds: string[], customerEma
               <p style="color:#555;">Hola <strong>${nombre}</strong>, ya realizamos la transferencia de tu CashBak correspondiente al pedido <strong>#${orderRef}</strong>.</p>
               <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
                 <p style="color:#166534;font-size:13px;margin:0 0 6px 0;">Monto transferido</p>
-                <p style="color:#14532d;font-size:36px;font-weight:800;margin:0;">$${order.cashback_amount.toLocaleString("es-CL")}</p>
+                <p style="color:#14532d;font-size:36px;font-weight:800;margin:0;">$${winningCashback.toLocaleString("es-CL")}</p>
                 <p style="color:#6b7280;font-size:11px;margin:6px 0 0 0;">Transferido a tu cuenta bancaria registrada</p>
               </div>
               <p style="color:#555;font-size:14px;">El dinero ya fue depositado en la cuenta que registraste en tu perfil.</p>

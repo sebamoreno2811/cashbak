@@ -165,15 +165,20 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
     })
   }, [orders, storeFilter, dateFrom, dateTo])
 
+  const winningCashback = (o: Order) =>
+    o.items
+      .filter(i => i.is_winner === true)
+      .reduce((s, i) => s + Math.round(i.price * i.quantity * i.cashback_percentage / 100), 0)
+
   const metrics = useMemo(() => {
     const totalVentas = filtered.reduce((s, o) => s + o.order_total, 0)
     const totalPedidos = filtered.length
     const cashbackPendiente = filtered
       .filter(o => o.cashback_status === "transferencia_pendiente")
-      .reduce((s, o) => s + o.cashback_amount, 0)
+      .reduce((s, o) => s + winningCashback(o), 0)
     const cashbackEntregado = filtered
       .filter(o => o.cashback_status === "transferido")
-      .reduce((s, o) => s + o.cashback_amount, 0)
+      .reduce((s, o) => s + winningCashback(o), 0)
     const gananciasCashbak = filtered.reduce((s, o) => s + o.comision_cashbak, 0)
     return { totalVentas, totalPedidos, cashbackPendiente, cashbackEntregado, gananciasCashbak }
   }, [filtered])

@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     const ids = toConfirm.map((o: any) => o.id)
     await supabase
       .from("orders")
-      .update({ customer_confirmed: true })
+      .update({ customer_confirmed: true, shipping_status: "Entregado" })
       .in("id", ids)
     autoConfirmed = ids.length
     console.log(`[cron] Auto-confirmed ${ids.length} orders`)

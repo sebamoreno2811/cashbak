@@ -37,6 +37,8 @@ export async function updateShippingStatus(orderId: string, shipping_status: str
 
   if (!orderItem) return { error: "No tienes acceso a este pedido" }
 
+  if (shipping_status === "Entregado") return { error: "No autorizado" }
+
   const { error } = await supabase
     .from("orders")
     .update({ shipping_status, updated_at: new Date().toISOString() })

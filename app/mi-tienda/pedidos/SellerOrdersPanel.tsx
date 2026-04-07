@@ -28,7 +28,6 @@ const SHIPPING_STATUSES = [
   { value: "Preparando pedido", label: "Preparando pedido" },
   { value: "Listo para entrega", label: "Listo para entrega" },
   { value: "Enviado", label: "Enviado" },
-  { value: "Entregado", label: "Entregado" },
 ]
 
 const SHIPPING_COLORS: Record<string, string> = {
