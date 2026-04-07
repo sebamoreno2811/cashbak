@@ -28,11 +28,18 @@ export async function markBetWinner(betId: number) {
   // Buscar todos los pedidos que tengan items con este evento
   const { data: orderItems } = await supabase
     .from("order_items")
-    .select("order_id")
+    .select("order_id, price, quantity, cashback_percentage")
     .eq("bet_option_id", betId)
 
   if (orderItems && orderItems.length > 0) {
-    const orderIds = [...new Set(orderItems.map((i: { order_id: string }) => i.order_id))]
+    const orderIds = [...new Set(orderItems.map((i: any) => i.order_id))]
+
+    // Cashback ganado por orden (solo items de este evento)
+    const cashbackByOrder: Record<string, number> = {}
+    for (const item of orderItems) {
+      cashbackByOrder[item.order_id] = (cashbackByOrder[item.order_id] ?? 0) +
+        Math.round((item.price ?? 0) * (item.quantity ?? 1) * (item.cashback_percentage ?? 0) / 100)
+    }
 
     const { data: orders } = await supabase
       .from("orders")
@@ -64,7 +71,7 @@ export async function markBetWinner(betId: number) {
         // Email al comprador
         const customer = customerMap[order.customer_id]
         if (!customer?.email) continue
-        const cashbackAmount = order.cashback_amount ?? 0
+        const cashbackAmount = cashbackByOrder[order.id] ?? 0
         const orderRef = order.id.slice(0, 8).toUpperCase()
 
         try {
