@@ -70,7 +70,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
     return {
       id: o.id as string,
       order_total: o.order_total as number,
-      vendor_net_amount: (itemsByOrder[o.id as string] ?? []).reduce((sum: number, i: any) => sum + (i.vendor_net_amount ?? 0), 0),
+      vendor_net_amount: (itemsByOrder[o.id as string] ?? []).reduce((sum: number, i: any) => sum + (i.vendor_net_amount ?? 0) * (i.quantity ?? 1), 0),
       created_at: o.created_at as string,
       shipping_method: o.shipping_method as string | null,
       shipping_status: o.shipping_status as string | null,
@@ -83,7 +83,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
         quantity: i.quantity as number,
         price: i.price as number,
         size: i.size as string | null,
-        vendor_net_amount: i.vendor_net_amount as number ?? 0,
+        vendor_net_amount: (i.vendor_net_amount as number ?? 0) * (i.quantity as number ?? 1),
       })),
     }
   })
