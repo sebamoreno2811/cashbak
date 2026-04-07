@@ -23,7 +23,7 @@ async function sendVendorPaidEmail(supabase: any, orderId: string) {
     // Obtener items del pedido con info de tienda y monto neto
     const { data: items } = await supabase
       .from("order_items")
-      .select("vendor_net_amount, products(store_id)")
+      .select("vendor_net_amount, quantity, products(store_id)")
       .eq("order_id", orderId)
 
     if (!items || items.length === 0) return
@@ -31,7 +31,7 @@ async function sendVendorPaidEmail(supabase: any, orderId: string) {
     const storeId = items[0]?.products?.store_id
     if (!storeId) return
 
-    const vendorNetAmount = items.reduce((sum: number, i: any) => sum + (i.vendor_net_amount ?? 0), 0)
+    const vendorNetAmount = items.reduce((sum: number, i: any) => sum + (i.vendor_net_amount ?? 0) * (i.quantity ?? 1), 0)
 
     const { data: store } = await supabase
       .from("stores")

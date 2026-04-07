@@ -91,7 +91,7 @@ export default async function SellerPedidosPage() {
 
   const merged = (orders ?? []).map((o: Record<string, unknown>) => {
     const items = itemsByOrder[o.id as string] ?? []
-    const vendor_net_amount = items.reduce((sum: number, item: any) => sum + (item.vendor_net_amount ?? 0), 0)
+    const vendor_net_amount = items.reduce((sum: number, item: any) => sum + (item.vendor_net_amount ?? 0) * (item.quantity ?? 1), 0)
     return {
       id: o.id as string,
       order_total: o.order_total as number,

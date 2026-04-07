@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { TrendingUp, ShoppingBag, Banknote, AlertCircle, Building2, X, DollarSign, ChevronDown } from "lucide-react"
+import { TrendingUp, ShoppingBag, Banknote, AlertCircle, Building2, X, DollarSign } from "lucide-react"
 import Link from "next/link"
 
 interface OrderItem {
@@ -77,76 +77,69 @@ function MetricCard({ label, value, sub, icon, color }: {
   )
 }
 
+interface CustomerGroup {
+  customer_id: string
+  customer_name: string | null
+  customer_email: string | null
+  total_cashback: number
+  order_count: number
+  oldest_date: string
+  has_note: boolean
+}
+
 function CashbackPendienteList({ orders }: { orders: Order[] }) {
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const groups = useMemo<CustomerGroup[]>(() => {
+    const byCustomer: Record<string, CustomerGroup> = {}
+    for (const o of orders) {
+      const key = o.customer_email ?? o.id
+      if (!byCustomer[key]) {
+        byCustomer[key] = {
+          customer_id: key,
+          customer_name: o.customer_name,
+          customer_email: o.customer_email,
+          total_cashback: 0,
+          order_count: 0,
+          oldest_date: o.bet_end_date ?? o.created_at,
+          has_note: false,
+        }
+      }
+      byCustomer[key].total_cashback += o.cashback_amount
+      byCustomer[key].order_count++
+      if (o.cashback_transfer_note) byCustomer[key].has_note = true
+      const d = o.bet_end_date ?? o.created_at
+      if (new Date(d) < new Date(byCustomer[key].oldest_date)) byCustomer[key].oldest_date = d
+    }
+    return Object.values(byCustomer).sort((a, b) => new Date(a.oldest_date).getTime() - new Date(b.oldest_date).getTime())
+  }, [orders])
 
   return (
     <div className="divide-y divide-gray-50 max-h-[480px] overflow-y-auto">
-      {orders.map(o => {
-        const refDate = o.bet_end_date ?? o.created_at
-        const days = daysSince(refDate)
-        const isOpen = expandedId === o.id
-
+      {groups.map(g => {
+        const days = daysSince(g.oldest_date)
         return (
-          <div key={o.id} className={ageRowClass(days)}>
-            <button
-              onClick={() => setExpandedId(isOpen ? null : o.id)}
-              className="w-full px-5 py-3 flex items-center justify-between gap-4 hover:bg-black/5 transition-colors text-left"
-            >
+          <Link
+            key={g.customer_id}
+            href={`/admin/cashback/${encodeURIComponent(g.customer_email ?? g.customer_id)}`}
+            className={`block px-5 py-3 hover:bg-black/5 transition-colors ${ageRowClass(days)}`}
+          >
+            <div className="flex items-center justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-gray-800 truncate">{o.customer_name ?? "—"}</p>
+                  <p className="text-sm font-medium text-gray-800 truncate">{g.customer_name ?? "—"}</p>
                   <AgeBadge days={days} />
                 </div>
-                <p className="text-xs text-gray-400 truncate">{o.customer_email}</p>
-                {o.cashback_transfer_note && (
-                  <p className="text-xs text-orange-600 mt-0.5 truncate">{o.cashback_transfer_note}</p>
+                <p className="text-xs text-gray-400 truncate">{g.customer_email}</p>
+                {g.has_note && (
+                  <p className="text-xs text-orange-600 mt-0.5">Sin datos bancarios</p>
                 )}
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="text-right">
-                  <p className="text-sm font-bold text-emerald-700">${o.cashback_amount.toLocaleString("es-CL")}</p>
-                  <p className="text-xs text-gray-400">
-                    {o.bet_end_date
-                      ? new Date(o.bet_end_date).toLocaleDateString("es-CL", { day: "2-digit", month: "short" })
-                      : new Date(o.created_at).toLocaleDateString("es-CL", { day: "2-digit", month: "short" })}
-                  </p>
-                </div>
-                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+              <div className="text-right shrink-0">
+                <p className="text-sm font-bold text-emerald-700">${g.total_cashback.toLocaleString("es-CL")}</p>
+                <p className="text-xs text-gray-400">{g.order_count} pedido{g.order_count !== 1 ? "s" : ""}</p>
+                <p className="text-xs text-green-700 font-medium">Ver detalle →</p>
               </div>
-            </button>
-
-            {isOpen && (
-              <div className="px-5 pb-4 bg-white border-t border-gray-100">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mt-3 mb-2">Detalle del pedido</p>
-                <div className="space-y-2">
-                  {o.items.map((item, i) => {
-                    const resultado = item.is_winner === true ? "Ganado" : item.is_winner === false ? "Perdido" : "Pendiente"
-                    const resultColor = item.is_winner === true ? "text-green-600 bg-green-50" : item.is_winner === false ? "text-red-500 bg-red-50" : "text-yellow-600 bg-yellow-50"
-                    const cashbackMonto = Math.round((item.cashback_percentage / 100) * o.order_total)
-                    return (
-                      <div key={i} className="flex items-start justify-between gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-gray-800 truncate">{item.product_name}</p>
-                          <p className="text-xs text-gray-500 truncate mt-0.5">Evento: {item.bet_name}</p>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${resultColor}`}>
-                            {resultado}
-                          </span>
-                          <span className="text-xs font-bold text-emerald-700">{item.cashback_percentage}%</span>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-                <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
-                  <span className="text-xs text-gray-500">Total a transferir</span>
-                  <span className="text-sm font-bold text-emerald-700">${o.cashback_amount.toLocaleString("es-CL")}</span>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          </Link>
         )
       })}
     </div>

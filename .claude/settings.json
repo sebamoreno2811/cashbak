@@ -17,7 +17,8 @@
     ],
     "additionalDirectories": [
       "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]",
-      "/Users/sebastianmoreno/Desktop/cashbak-video/public"
+      "/Users/sebastianmoreno/Desktop/cashbak-video/public",
+      "/Users/sebastianmoreno/Desktop/cashbak/app/admin/cashback"
     ]
   }
 }
