@@ -10,6 +10,7 @@ interface OrderItem {
   quantity: number
   price: number
   size: string | null
+  vendor_net_amount: number
 }
 
 interface VendorOrder {
@@ -91,13 +92,18 @@ function OrderRow({ order, storeId }: { order: VendorOrder; storeId: string }) {
             </p>
             <div className="space-y-1.5">
               {order.items.map(item => (
-                <div key={item.id} className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-800">{item.product_name}</span>
-                    {item.size && <span className="ml-2 text-xs text-gray-400">Talla: {item.size}</span>}
-                    <span className="ml-2 text-xs text-gray-400">x{item.quantity}</span>
+                <div key={item.id} className="bg-gray-50 rounded-lg px-3 py-2 text-sm">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-medium text-gray-800">{item.product_name}</span>
+                      {item.size && <span className="ml-2 text-xs text-gray-400">Talla: {item.size}</span>}
+                      <span className="ml-2 text-xs text-gray-400">x{item.quantity}</span>
+                    </div>
+                    <div className="text-right shrink-0 ml-4">
+                      <p className="font-semibold text-gray-800">${(item.price * item.quantity).toLocaleString("es-CL")}</p>
+                      <p className="text-xs text-emerald-600 font-medium">Margen: ${item.vendor_net_amount.toLocaleString("es-CL")}</p>
+                    </div>
                   </div>
-                  <p className="font-semibold text-gray-800">${(item.price * item.quantity).toLocaleString("es-CL")}</p>
                 </div>
               ))}
             </div>

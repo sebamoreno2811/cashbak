@@ -64,7 +64,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
     itemsByOrder[item.order_id]!.push(item)
   }
 
-  type MergedOrder = { id: string; order_total: number; vendor_net_amount: number; created_at: string; shipping_method: string | null; shipping_status: string | null; customer_confirmed: boolean; customer_name: string | null; customer_email: string | null; items: { id: string; product_name: string; quantity: number; price: number; size: string | null }[] }
+  type MergedOrder = { id: string; order_total: number; vendor_net_amount: number; created_at: string; shipping_method: string | null; shipping_status: string | null; customer_confirmed: boolean; customer_name: string | null; customer_email: string | null; items: { id: string; product_name: string; quantity: number; price: number; size: string | null; vendor_net_amount: number }[] }
   const merged: MergedOrder[] = (orders ?? []).map((o: Record<string, unknown>) => {
     const c = customerMap[o.customer_id as string] as { full_name: string | null; email: string } | undefined
     return {
@@ -83,6 +83,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
         quantity: i.quantity as number,
         price: i.price as number,
         size: i.size as string | null,
+        vendor_net_amount: i.vendor_net_amount as number ?? 0,
       })),
     }
   })
