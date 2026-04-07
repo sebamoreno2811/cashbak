@@ -27,7 +27,7 @@ export default async function AdminDashboardPage() {
   const orderIds = (orders ?? []).map((o: { id: string }) => o.id)
   const { data: orderItems } = await supabase
     .from("order_items")
-    .select("order_id, product_id, bet_option_id, vendor_net_amount, comision_cashbak, cashback_percentage, product_name, quantity")
+    .select("order_id, product_id, bet_option_id, vendor_net_amount, comision_cashbak, cashback_percentage, product_name, quantity, price")
     .in("order_id", orderIds.length > 0 ? orderIds : ["none"])
 
   // Productos para obtener store_id
@@ -51,7 +51,7 @@ export default async function AdminDashboardPage() {
   )
 
   // Items agrupados por orden (para el detalle)
-  const orderItemsMap: Record<string, { product_name: string; bet_name: string; bet_id: string; cashback_percentage: number; is_winner: boolean | null }[]> = {}
+  const orderItemsMap: Record<string, { product_name: string; bet_name: string; bet_id: string; cashback_percentage: number; is_winner: boolean | null; price: number; quantity: number }[]> = {}
   for (const item of orderItems ?? []) {
     if (!orderItemsMap[item.order_id]) orderItemsMap[item.order_id] = []
     const bet = item.bet_option_id ? betMap[String(item.bet_option_id)] : null
@@ -61,6 +61,8 @@ export default async function AdminDashboardPage() {
       bet_id: item.bet_option_id ? String(item.bet_option_id) : "",
       cashback_percentage: item.cashback_percentage ?? 0,
       is_winner: bet?.is_winner ?? null,
+      price: item.price ?? 0,
+      quantity: item.quantity ?? 1,
     })
   }
 

@@ -142,7 +142,10 @@ export default function TerminosPage() {
         </Sub>
         <Sub title="6.2 Momento de la transferencia del CashBak">
           <p>
-            El CashBak de un pedido se transfiere en un <strong>único pago</strong> una vez que <strong>todos los eventos asociados a esa orden hayan sido confirmados</strong> (ganados o perdidos). Si el pedido contiene productos con distintos eventos y alguno de ellos aún no tiene resultado definitivo, la transferencia del CashBak ganado espera hasta que el último evento quede resuelto. Esto garantiza que se realice una sola transferencia consolidada por pedido.
+            El CashBak de un pedido se transfiere en un <strong>único pago consolidado</strong> una vez que <strong>todos los eventos asociados a esa orden hayan sido confirmados</strong> (ganados o perdidos). Si el pedido contiene productos con distintos eventos y alguno aún no tiene resultado, la transferencia espera hasta que el último evento quede resuelto.
+          </p>
+          <p className="mt-3">
+            Cada evento es <strong>completamente independiente</strong>: si en un pedido con 4 productos el cliente acierta solo 1 evento, recibirá el CashBak correspondiente a ese producto de todas formas. No es necesario acertar todos los eventos para recibir el CashBak de los que sí se cumplieron.
           </p>
         </Sub>
         <Sub title="6.3 CashBak es condicional">

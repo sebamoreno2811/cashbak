@@ -10,12 +10,14 @@ interface OrderItem {
   cashback_percentage: number
   is_winner: boolean | null
   quantity: number
+  price: number
 }
 
 interface CashbackOrder {
   id: string
   order_total: number
   cashback_amount: number
+  winning_cashback: number
   cashback_transfer_note: string | null
   created_at: string
   bet_end_date: string | null
@@ -76,7 +78,7 @@ function OrderRow({ order, customerEmail }: { order: CashbackOrder; customerEmai
           </div>
           <div className="text-right">
             <p className="text-xs text-gray-400">CashBak a transferir</p>
-            <p className="text-sm font-bold text-emerald-700">${order.cashback_amount.toLocaleString("es-CL")}</p>
+            <p className="text-sm font-bold text-emerald-700">${order.winning_cashback.toLocaleString("es-CL")}</p>
             <p className="text-xs text-gray-400">Compra: ${order.order_total.toLocaleString("es-CL")}</p>
           </div>
         </div>
@@ -126,7 +128,8 @@ function OrderRow({ order, customerEmail }: { order: CashbackOrder; customerEmai
             </div>
             <div className="bg-emerald-50 rounded-lg px-4 py-3">
               <p className="text-xs text-gray-400 mb-0.5">CashBak a transferir</p>
-              <p className="text-base font-bold text-emerald-700">${order.cashback_amount.toLocaleString("es-CL")}</p>
+              <p className="text-base font-bold text-emerald-700">${order.winning_cashback.toLocaleString("es-CL")}</p>
+              <p className="text-[10px] text-gray-400">Solo eventos ganados</p>
             </div>
           </div>
 
@@ -156,7 +159,7 @@ export default function CashbackDetailClient({
   const [allDone, setAllDone] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  const totalCashback = orders.reduce((s, o) => s + o.cashback_amount, 0)
+  const totalCashback = orders.reduce((s, o) => s + o.winning_cashback, 0)
 
   const handleMarkAll = () => {
     startTransition(async () => {

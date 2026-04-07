@@ -10,6 +10,8 @@ interface OrderItem {
   bet_id: string
   cashback_percentage: number
   is_winner: boolean | null
+  price: number
+  quantity: number
 }
 
 interface Order {
@@ -103,7 +105,10 @@ function CashbackPendienteList({ orders }: { orders: Order[] }) {
           has_note: false,
         }
       }
-      byCustomer[key].total_cashback += o.cashback_amount
+      const winningCashback = o.items
+        .filter(i => i.is_winner === true)
+        .reduce((s, i) => s + Math.round(i.price * i.quantity * i.cashback_percentage / 100), 0)
+      byCustomer[key].total_cashback += winningCashback
       byCustomer[key].order_count++
       if (o.cashback_transfer_note) byCustomer[key].has_note = true
       const d = o.bet_end_date ?? o.created_at
@@ -201,7 +206,8 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
       .filter(o =>
         o.cashback_status === "transferencia_pendiente" &&
         o.items.length > 0 &&
-        o.items.every(item => item.is_winner !== null)
+        o.items.every(item => item.is_winner !== null) &&
+        o.items.some(item => item.is_winner === true)
       )
       .sort((a, b) => {
         const aDate = a.bet_end_date ? new Date(a.bet_end_date).getTime() : new Date(a.created_at).getTime()

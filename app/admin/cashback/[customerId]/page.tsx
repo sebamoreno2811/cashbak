@@ -45,7 +45,7 @@ export default async function CashbackDetailPage({ params }: { params: Promise<{
   // Items con bet info
   const { data: orderItems } = await supabase
     .from("order_items")
-    .select("order_id, product_name, quantity, cashback_percentage, bet_option_id")
+    .select("order_id, product_name, quantity, price, cashback_percentage, bet_option_id")
     .in("order_id", orderIds.length > 0 ? orderIds : ["none"])
 
   // Bet info
@@ -67,6 +67,7 @@ export default async function CashbackDetailPage({ params }: { params: Promise<{
       cashback_percentage: item.cashback_percentage ?? 0,
       is_winner: bet?.is_winner ?? null,
       quantity: item.quantity ?? 1,
+      price: item.price ?? 0,
     })
   }
 
@@ -82,15 +83,24 @@ export default async function CashbackDetailPage({ params }: { params: Promise<{
     }
   }
 
-  const merged = (orders ?? []).map((o: any) => ({
-    id: o.id,
-    order_total: o.order_total,
-    cashback_amount: o.cashback_amount,
-    cashback_transfer_note: o.cashback_transfer_note,
-    created_at: o.created_at,
-    bet_end_date: betEndDateByOrder[o.id] ?? null,
-    items: itemsByOrder[o.id] ?? [],
-  }))
+  const merged = (orders ?? [])
+    .map((o: any) => {
+      const items = itemsByOrder[o.id] ?? []
+      const winning_cashback = items
+        .filter((i: any) => i.is_winner === true)
+        .reduce((s: number, i: any) => s + Math.round(i.price * i.quantity * i.cashback_percentage / 100), 0)
+      return {
+        id: o.id,
+        order_total: o.order_total,
+        cashback_amount: o.cashback_amount,
+        winning_cashback,
+        cashback_transfer_note: o.cashback_transfer_note,
+        created_at: o.created_at,
+        bet_end_date: betEndDateByOrder[o.id] ?? null,
+        items,
+      }
+    })
+    .filter((o: any) => o.items.some((i: any) => i.is_winner === true))
 
   return (
     <div className="min-h-screen bg-gray-50">
