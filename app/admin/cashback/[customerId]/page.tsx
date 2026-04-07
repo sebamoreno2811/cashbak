@@ -28,7 +28,7 @@ export default async function CashbackDetailPage({ params }: { params: Promise<{
   // Datos bancarios
   const { data: bankAccount } = await supabase
     .from("bank_accounts")
-    .select("rut, bank_name, account_type, account_number, account_holder")
+    .select("rut, bank_name, account_type, account_number")
     .eq("customer_id", customer.id)
     .maybeSingle()
 
@@ -119,7 +119,6 @@ export default async function CashbackDetailPage({ params }: { params: Promise<{
               bank_name: bankAccount?.bank_name ?? null,
               account_type: bankAccount?.account_type ?? null,
               account_number: bankAccount?.account_number ?? null,
-              account_holder: bankAccount?.account_holder ?? null,
             }}
             orders={merged}
           />

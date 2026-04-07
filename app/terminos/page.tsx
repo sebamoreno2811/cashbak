@@ -137,20 +137,25 @@ export default function TerminosPage() {
       <Section title="6. Sistema de CashBack">
         <Sub title="6.1 Cómo funciona">
           <p>
-            Al momento de la compra, el cliente selecciona un evento deportivo activo en la plataforma. Si ese evento ocurre según lo esperado (p. ej., gana el equipo elegido), el comprador recibe un porcentaje del valor de la compra como CashBak mediante transferencia bancaria a la cuenta que haya registrado en la plataforma. Si el evento no ocurre, el CashBak no se entrega, sin afectar la validez de la compra ni el pago al vendedor.
+            Al momento de la compra, el cliente selecciona un evento deportivo activo en la plataforma por cada producto en su pedido. Si ese evento ocurre según lo esperado (p. ej., gana el equipo elegido), el comprador recibe un porcentaje del valor de la compra como CashBak mediante transferencia bancaria a la cuenta que haya registrado en la plataforma. Si el evento no ocurre, el CashBak no se entrega, sin afectar la validez de la compra ni el pago al vendedor.
           </p>
         </Sub>
-        <Sub title="6.2 CashBak es condicional">
+        <Sub title="6.2 Momento de la transferencia del CashBak">
+          <p>
+            El CashBak de un pedido se transfiere en un <strong>único pago</strong> una vez que <strong>todos los eventos asociados a esa orden hayan sido confirmados</strong> (ganados o perdidos). Si el pedido contiene productos con distintos eventos y alguno de ellos aún no tiene resultado definitivo, la transferencia del CashBak ganado espera hasta que el último evento quede resuelto. Esto garantiza que se realice una sola transferencia consolidada por pedido.
+          </p>
+        </Sub>
+        <Sub title="6.3 CashBak es condicional">
           <p>
             El CashBak no está garantizado. Su entrega depende exclusivamente del resultado del evento deportivo vinculado a la compra. CashBak no es responsable del resultado de eventos deportivos de terceros.
           </p>
         </Sub>
-        <Sub title="6.3 Uso del CashBak">
+        <Sub title="6.4 Uso del CashBak">
           <p>
             El CashBak acumulado puede ser utilizado para futuras compras dentro de la plataforma, sujeto a las condiciones vigentes al momento de su uso. CashBak se reserva el derecho de modificar las condiciones de uso del CashBak con aviso previo.
           </p>
         </Sub>
-        <Sub title="6.4 Evento perdido">
+        <Sub title="6.5 Evento perdido">
           <p>
             Si el evento deportivo seleccionado resulta desfavorable para el comprador, el estado del CashBak asociado al pedido pasará automáticamente a <em>Evento perdido</em>. El comprador conserva el producto adquirido y el vendedor recibe el pago correspondiente con normalidad.
           </p>

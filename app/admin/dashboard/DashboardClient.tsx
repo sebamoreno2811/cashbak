@@ -198,7 +198,11 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
   // Clientes con cashback pendiente, ordenados por end_date más antiguo
   const cashbackPendienteList = useMemo(() => {
     return filtered
-      .filter(o => o.cashback_status === "transferencia_pendiente")
+      .filter(o =>
+        o.cashback_status === "transferencia_pendiente" &&
+        o.items.length > 0 &&
+        o.items.every(item => item.is_winner !== null)
+      )
       .sort((a, b) => {
         const aDate = a.bet_end_date ? new Date(a.bet_end_date).getTime() : new Date(a.created_at).getTime()
         const bDate = b.bet_end_date ? new Date(b.bet_end_date).getTime() : new Date(b.created_at).getTime()

@@ -29,7 +29,6 @@ interface CustomerInfo {
   bank_name: string | null
   account_type: string | null
   account_number: string | null
-  account_holder: string | null
 }
 
 const RESULT_COLORS: Record<string, string> = {
@@ -183,7 +182,6 @@ export default function CashbackDetailClient({
           <h2 className="font-semibold text-gray-800 mb-3">Datos bancarios</h2>
           {customer.bank_name ? (
             <div className="space-y-1.5 text-sm text-gray-600">
-              {customer.account_holder && <p><span className="font-medium text-gray-700">Titular:</span> {customer.account_holder}</p>}
               {customer.rut && <p><span className="font-medium text-gray-700">RUT:</span> <span className="font-mono">{customer.rut}</span></p>}
               <p><span className="font-medium text-gray-700">Banco:</span> {customer.bank_name}</p>
               <p><span className="font-medium text-gray-700">Tipo:</span> {customer.account_type ?? "—"}</p>

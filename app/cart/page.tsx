@@ -455,10 +455,10 @@ export default function CartPage() {
                 </p>
               )}
 
-              <div className="mt-6">
-                <h3 className="mb-2 text-sm font-medium">Información de CashBak</h3>
-                <p className="text-sm text-gray-600">
-                  El CashBak se depositará en tu cuenta bancaria registrada una vez que se confirme el resultado de los eventos deportivos seleccionados.
+              <div className="mt-6 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+                <h3 className="mb-1 text-sm font-semibold text-emerald-800">¿Cuándo recibes tu CashBak?</h3>
+                <p className="text-xs text-emerald-700 leading-relaxed">
+                  El CashBak de tu pedido se transfiere en un solo pago una vez que <strong>todos los eventos asociados a tu orden hayan sido confirmados</strong>. Si algún evento aún no tiene resultado, la transferencia espera hasta que todos estén resueltos.
                 </p>
               </div>
             </div>
