@@ -109,11 +109,11 @@ export async function saveCheckoutData(
       bet_name: item.betName,
       cashback_percentage: item.cashbakPercentage,
       order_id_client: item.order_id,
-      bet_amount: item.bet_amount,
+      bet_amount: (item.bet_amount ?? 0) * item.quantity,
       size: item.size,
-      comision_cashbak: item.comision_cashbak ?? null,
-      tarifa_procesamiento: item.tarifa_procesamiento ?? null,
-      vendor_net_amount: item.vendor_net_amount ?? null,
+      comision_cashbak: (item.comision_cashbak ?? 0) * item.quantity,
+      tarifa_procesamiento: (item.tarifa_procesamiento ?? 0) * item.quantity,
+      vendor_net_amount: (item.vendor_net_amount ?? 0) * item.quantity,
     }))
 
     const { error: itemsError } = await supabase.from("order_items").insert(orderItems)

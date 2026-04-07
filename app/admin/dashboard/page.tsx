@@ -27,7 +27,7 @@ export default async function AdminDashboardPage() {
   const orderIds = (orders ?? []).map((o: { id: string }) => o.id)
   const { data: orderItems } = await supabase
     .from("order_items")
-    .select("order_id, product_id, bet_option_id, vendor_net_amount, comision_cashbak")
+    .select("order_id, product_id, bet_option_id, vendor_net_amount, comision_cashbak, cashback_percentage, product_name")
     .in("order_id", orderIds.length > 0 ? orderIds : ["none"])
 
   // Productos para obtener store_id
@@ -37,15 +37,32 @@ export default async function AdminDashboardPage() {
     .select("id, store_id")
     .in("id", productIds.length > 0 ? productIds : ["none"])
 
-  // Bets para obtener end_date
+  // Bets para obtener end_date, nombre y resultado
   const betIds = [...new Set((orderItems ?? []).map((i: { bet_option_id: string }) => i.bet_option_id).filter(Boolean))]
   const { data: bets } = await supabase
     .from("bets")
-    .select("id, end_date")
+    .select("id, end_date, name, is_winner")
     .in("id", betIds.length > 0 ? betIds : [-1])
+  const betMap = Object.fromEntries(
+    (bets ?? []).map((b: { id: number; end_date: string; name: string; is_winner: boolean | null }) => [String(b.id), b])
+  )
   const betEndDateMap = Object.fromEntries(
     (bets ?? []).map((b: { id: number; end_date: string }) => [String(b.id), b.end_date])
   )
+
+  // Items agrupados por orden (para el detalle)
+  const orderItemsMap: Record<string, { product_name: string; bet_name: string; bet_id: string; cashback_percentage: number; is_winner: boolean | null }[]> = {}
+  for (const item of orderItems ?? []) {
+    if (!orderItemsMap[item.order_id]) orderItemsMap[item.order_id] = []
+    const bet = item.bet_option_id ? betMap[String(item.bet_option_id)] : null
+    orderItemsMap[item.order_id].push({
+      product_name: item.product_name ?? "Producto",
+      bet_name: bet?.name ?? "—",
+      bet_id: item.bet_option_id ? String(item.bet_option_id) : "",
+      cashback_percentage: item.cashback_percentage ?? 0,
+      is_winner: bet?.is_winner ?? null,
+    })
+  }
 
   // Bet más antiguo por orden (para cashback)
   const orderBetEndDateMap: Record<string, string> = {}
@@ -116,6 +133,7 @@ export default async function AdminDashboardPage() {
       customer_name: c?.full_name ?? null,
       customer_email: c?.email ?? null,
       bet_end_date: orderBetEndDateMap[o.id as string] ?? null,
+      items: orderItemsMap[o.id as string] ?? [],
     }
   })
 

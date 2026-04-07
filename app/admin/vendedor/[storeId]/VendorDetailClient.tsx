@@ -103,6 +103,19 @@ function OrderRow({ order, storeId }: { order: VendorOrder; storeId: string }) {
             </div>
           </div>
 
+          {/* Resumen financiero */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-gray-50 rounded-lg px-4 py-3">
+              <p className="text-xs text-gray-400 mb-0.5">Precio total de compra</p>
+              <p className="text-base font-bold text-gray-800">${order.order_total.toLocaleString("es-CL")}</p>
+            </div>
+            <div className="bg-emerald-50 rounded-lg px-4 py-3">
+              <p className="text-xs text-gray-400 mb-0.5">Margen vendedor (neto)</p>
+              <p className="text-base font-bold text-emerald-700">${order.vendor_net_amount.toLocaleString("es-CL")}</p>
+              <p className="text-[10px] text-gray-400">Ya descontado el 2% procesamiento</p>
+            </div>
+          </div>
+
           <div className="flex flex-wrap gap-3 text-xs text-gray-500">
             {order.shipping_method && (
               <p>Método: <span className="font-medium">{order.shipping_method}</span></p>

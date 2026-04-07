@@ -79,7 +79,7 @@ export async function markBetWinner(betId: number) {
                   <h2 style="color:#14532d;margin-top:0;">¡Felicidades, tu evento se cumplió! 🏆</h2>
                   <p style="color:#555;">Hola ${customer.full_name ?? ""},  el evento que elegiste al momento de tu compra resultó a tu favor.</p>
                   <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
-                    <p style="color:#166534;font-size:13px;margin:0 0 6px 0;">Tu cashback para el pedido <strong>#${orderRef}</strong></p>
+                    <p style="color:#166534;font-size:13px;margin:0 0 6px 0;">Tu CashBak para el pedido <strong>#${orderRef}</strong></p>
                     <p style="color:#14532d;font-size:32px;font-weight:800;margin:0;">$${cashbackAmount.toLocaleString("es-CL")}</p>
                   </div>
                   <p style="color:#555;font-size:14px;">Recibirás esta transferencia pronto en la cuenta bancaria que registraste en tu perfil.</p>
@@ -149,7 +149,7 @@ export async function markBetLost(betId: number) {
                 <h2 style="color:#374151;margin-top:0;">Esta vez no fue, ¡pero no te desanimes!</h2>
                 <p style="color:#555;">Hola ${customer.full_name ?? ""}, el evento que elegiste para tu pedido <strong>#${orderRef}</strong> no se cumplió esta vez.</p>
                 <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:20px 0;">
-                  <p style="color:#6b7280;font-size:14px;margin:0;">Tu producto llegó o llegará de todas formas y eso es lo importante. El próximo evento podría ser el que te otorgue ese cashback que estás esperando. 💪</p>
+                  <p style="color:#6b7280;font-size:14px;margin:0;">Tu producto llegó o llegará de todas formas y eso es lo importante. El próximo evento podría ser el que te otorgue ese CashBak que estás esperando. 💪</p>
                 </div>
                 <p style="color:#555;font-size:14px;">Sigue explorando productos y elige el evento que más te convenza en tu próxima compra.</p>
                 <div style="text-align:center;margin:24px 0;">

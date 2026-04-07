@@ -29,6 +29,7 @@ import {
 import { Trash2, ArrowLeft, ShoppingBag } from "lucide-react"
 import { useBets } from "@/context/bet-context"
 import BetSelector from "@/components/bet-selector"
+import { calculateProductCashbak } from "@/lib/cashbak-calculator"
 import useSupabaseUser from "@/hooks/use-supabase-user"
 import AuthModal from "@/components/auth/auth-modal"
 import ShippingDetailsForm from "@/components/shipping-modal"
@@ -219,9 +220,9 @@ export default function CartPage() {
             <div className="overflow-hidden bg-white rounded-lg shadow-lg">
               <div className="p-6">
                 <div className="hidden mb-4 md:grid md:grid-cols-12 md:gap-4 md:text-sm md:font-medium md:text-gray-500">
-                  <div className="col-span-6">Producto</div>
-                  <div className="col-span-2">Precio</div>
-                  <div className="col-span-2"></div>
+                  <div className="col-span-5">Producto</div>
+                  <div className="col-span-2 text-center">Precio</div>
+                  <div className="col-span-3"></div>
                   <div className="col-span-2 text-right">Subtotal</div>
                 </div>
 
@@ -231,9 +232,9 @@ export default function CartPage() {
                     if (!product) return null
 
                     return (
-                      <div key={index} className="py-6 md:grid md:grid-cols-12 md:gap-4">
+                      <div key={index} className="py-6 md:grid md:grid-cols-12 md:gap-4 md:items-center">
                         {/* Producto */}
-                        <div className="flex md:col-span-6">
+                        <div className="flex min-w-0 md:col-span-5">
                           <div className="flex-shrink-0 w-24 h-24 overflow-hidden rounded-md">
                             <img
                               src={product.image || "/placeholder.svg"}
@@ -241,20 +242,23 @@ export default function CartPage() {
                               className="object-cover w-full h-full"
                             />
                           </div>
-                          <div className="flex flex-col flex-1 ml-4">
-                            <h3 className="text-base font-medium">{product.name}</h3>
+                          <div className="flex flex-col flex-1 ml-4 min-w-0">
+                            <h3 className="text-base font-medium truncate">{product.name}</h3>
                             {product.store_id && storeInfoMap[product.store_id] && (
                               <div className="flex items-center gap-1 mt-1">
-                                <Building2 className="w-3.5 h-3.5 text-gray-400" />
-                                <span className="text-xs text-gray-500">{storeInfoMap[product.store_id].name}</span>
+                                <Building2 className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                <span className="text-xs text-gray-500 truncate">{storeInfoMap[product.store_id].name}</span>
                               </div>
                             )}
-                            <p className="mt-1 text-sm text-gray-500">Categoría: {product.category_name}</p>
+                            <p className="mt-1 text-sm text-gray-500 truncate">Categoría: {product.category_name}</p>
 
                             <div className="mt-2">
                               <BetSelector
                                 value={item.betOptionId}
                                 onChange={(value) => updateItemBetOption(index, value)}
+                                className="mb-0"
+                                compact
+                                getCashback={(bet) => product ? calculateProductCashbak(product, bet.odd) : 0}
                               />
                             </div>
                             <div>
@@ -305,12 +309,12 @@ export default function CartPage() {
                         </div>
 
                         {/* Precio */}
-                        <div className="hidden md:flex md:col-span-2 md:items-center">
-                          <span>${(product.price + (item.hasPrint ? 2990 : 0)).toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                        <div className="hidden md:flex md:col-span-2 md:items-center md:justify-center">
+                          <span className="text-sm font-medium text-gray-800">${(product.price + (item.hasPrint ? 2990 : 0)).toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                         </div>
 
                         {/* Cantidad y Talla */}
-                        <div className="flex items-end mt-4 gap-x-4 md:mt-0 md:col-span-2">
+                        <div className="flex items-end mt-4 gap-x-4 md:mt-0 md:col-span-3 md:items-center">
                           <div className="flex flex-col">
                             <label className="mb-1 text-sm text-gray-600">Cantidad</label>
                             {(() => {
@@ -359,8 +363,8 @@ export default function CartPage() {
                         </div>
 
                         {/* Subtotal */}
-                        <div className="hidden text-right md:flex md:col-span-2 md:items-center md:justify-end">
-                          <span>${subtotal.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                        <div className="hidden md:flex md:col-span-2 md:items-center md:justify-end">
+                          <span className="text-sm font-semibold text-gray-900">${subtotal.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                         </div>
                       </div>
                     )
@@ -435,7 +439,6 @@ export default function CartPage() {
                     <span>Total</span>
                     <span>${total.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">Impuestos incluidos</p>
                 </div>
               </div>
 
@@ -455,7 +458,7 @@ export default function CartPage() {
               <div className="mt-6">
                 <h3 className="mb-2 text-sm font-medium">Información de CashBak</h3>
                 <p className="text-sm text-gray-600">
-                  El CashBak se acreditará en tu cuenta una vez que se confirme el resultado de los eventos deportivos seleccionados.
+                  El CashBak se depositará en tu cuenta bancaria registrada una vez que se confirme el resultado de los eventos deportivos seleccionados.
                 </p>
               </div>
             </div>

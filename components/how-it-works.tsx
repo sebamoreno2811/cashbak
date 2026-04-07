@@ -107,7 +107,7 @@ export default function HowItWorks() {
               Elige un producto y tu evento
             </h3>
             <p className="text-green-200 text-lg leading-relaxed">
-              Elige un producto y un evento deportivo. Pagas y recibes tu compra siempre — sin importar el resultado. El evento solo determina si recibes cashback o no.
+              Elige un producto y un evento deportivo. Pagas y recibes tu compra siempre — sin importar el resultado. El evento solo determina si recibes CashBak o no.
             </p>
           </div>
         </div>
@@ -187,7 +187,7 @@ export default function HowItWorks() {
               <p className="font-bold text-base leading-snug">{SELECTED.emoji} {SELECTED.name}</p>
               <div className="flex items-center gap-2 mt-3">
                 <span className="bg-emerald-500 text-white text-sm font-bold px-3 py-1 rounded-full">
-                  {SELECTED.cashback}% cashback
+                  {SELECTED.cashback}% CashBak
                 </span>
                 <span className="text-green-300 text-sm">si se cumple</span>
               </div>
@@ -270,7 +270,7 @@ export default function HowItWorks() {
               Recibe el dinero en tu cuenta
             </h3>
             <p className="text-green-200 text-lg leading-relaxed">
-              Si tu evento se cumple, el cashback llega automáticamente a tu cuenta. Sin trámites, sin vueltas. Si no se cumple, igual recibes tu compra — sin riesgo, sin letras chicas.
+              Si tu evento se cumple, el CashBak llega automáticamente a tu cuenta. Sin trámites, sin vueltas. Si no se cumple, igual recibes tu compra — sin riesgo, sin letras chicas.
             </p>
           </div>
         </div>
@@ -319,7 +319,7 @@ export default function HowItWorks() {
                   <span>+${Math.round(PRODUCT_PRICE * SELECTED.cashback / 100).toLocaleString("es-CL")}</span>
                 </div>
                 <div className="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-100">
-                  <span>Cashback recibido</span>
+                  <span>CashBak recibido</span>
                   <span className="text-emerald-600">${Math.round(PRODUCT_PRICE * SELECTED.cashback / 100).toLocaleString("es-CL")}</span>
                 </div>
               </div>

@@ -39,10 +39,10 @@ export default function TerminosPage() {
       {/* 1 */}
       <Section title="1. Qué es CashBak">
         <p>
-          CashBak es una plataforma de comercio electrónico que conecta vendedores independientes con compradores, incorporando un sistema de recompensas condicionadas a eventos deportivos. Al realizar una compra, el cliente puede recibir un porcentaje del valor del producto de vuelta (<strong>cashback</strong>) si el evento deportivo seleccionado al momento de la compra resulta a su favor.
+          CashBak es una plataforma de comercio electrónico que conecta vendedores independientes con compradores, incorporando un sistema de recompensas condicionadas a eventos deportivos. Al realizar una compra, el cliente puede recibir un porcentaje del valor del producto de vuelta (<strong>CashBak</strong>) si el evento deportivo seleccionado al momento de la compra resulta a su favor.
         </p>
         <p>
-          CashBak actúa como intermediario entre vendedores y compradores, facilitando la transacción, el sistema de pagos y la gestión del cashback. CashBak no fabrica, almacena ni distribuye los productos publicados por los vendedores.
+          CashBak actúa como intermediario entre vendedores y compradores, facilitando la transacción, el sistema de pagos y la gestión del CashBak. CashBak no fabrica, almacena ni distribuye los productos publicados por los vendedores.
         </p>
       </Section>
 
@@ -128,7 +128,7 @@ export default function TerminosPage() {
 
         <Sub title="5.4 Monto recibido por el vendedor">
           <p>
-            El monto que recibe el vendedor corresponde al precio de venta menos la tarifa de procesamiento de pago (2%) y la comisión de CashBak. Este monto queda fijado al momento de la compra y no varía independiente de que se cumpla el evento elegido o no. El cashback es financiado por el margen que el vendedor declara en la plataforma y no afecta el ingreso neto del vendedor.
+            El monto que recibe el vendedor corresponde al precio de venta menos la tarifa de procesamiento de pago (2%) y la comisión de CashBak. Este monto queda fijado al momento de la compra y no varía independiente de que se cumpla el evento elegido o no. El CashBak es financiado por el margen que el vendedor declara en la plataforma y no afecta el ingreso neto del vendedor.
           </p>
         </Sub>
       </Section>
@@ -137,22 +137,22 @@ export default function TerminosPage() {
       <Section title="6. Sistema de CashBack">
         <Sub title="6.1 Cómo funciona">
           <p>
-            Al momento de la compra, el cliente selecciona un evento deportivo activo en la plataforma. Si ese evento ocurre según lo esperado (p. ej., gana el equipo elegido), el comprador recibe un porcentaje del valor de la compra como cashback mediante transferencia bancaria a la cuenta que haya registrado en la plataforma. Si el evento no ocurre, el cashback no se entrega, sin afectar la validez de la compra ni el pago al vendedor.
+            Al momento de la compra, el cliente selecciona un evento deportivo activo en la plataforma. Si ese evento ocurre según lo esperado (p. ej., gana el equipo elegido), el comprador recibe un porcentaje del valor de la compra como CashBak mediante transferencia bancaria a la cuenta que haya registrado en la plataforma. Si el evento no ocurre, el CashBak no se entrega, sin afectar la validez de la compra ni el pago al vendedor.
           </p>
         </Sub>
-        <Sub title="6.2 Cashback es condicional">
+        <Sub title="6.2 CashBak es condicional">
           <p>
-            El cashback no está garantizado. Su entrega depende exclusivamente del resultado del evento deportivo vinculado a la compra. CashBak no es responsable del resultado de eventos deportivos de terceros.
+            El CashBak no está garantizado. Su entrega depende exclusivamente del resultado del evento deportivo vinculado a la compra. CashBak no es responsable del resultado de eventos deportivos de terceros.
           </p>
         </Sub>
-        <Sub title="6.3 Uso del cashback">
+        <Sub title="6.3 Uso del CashBak">
           <p>
-            El cashback acumulado puede ser utilizado para futuras compras dentro de la plataforma, sujeto a las condiciones vigentes al momento de su uso. CashBak se reserva el derecho de modificar las condiciones de uso del cashback con aviso previo.
+            El CashBak acumulado puede ser utilizado para futuras compras dentro de la plataforma, sujeto a las condiciones vigentes al momento de su uso. CashBak se reserva el derecho de modificar las condiciones de uso del CashBak con aviso previo.
           </p>
         </Sub>
         <Sub title="6.4 Evento perdido">
           <p>
-            Si el evento deportivo seleccionado resulta desfavorable para el comprador, el estado del cashback asociado al pedido pasará automáticamente a <em>Evento perdido</em>. El comprador conserva el producto adquirido y el vendedor recibe el pago correspondiente con normalidad.
+            Si el evento deportivo seleccionado resulta desfavorable para el comprador, el estado del CashBak asociado al pedido pasará automáticamente a <em>Evento perdido</em>. El comprador conserva el producto adquirido y el vendedor recibe el pago correspondiente con normalidad.
           </p>
         </Sub>
       </Section>
@@ -218,7 +218,7 @@ export default function TerminosPage() {
         <ul className="list-disc pl-5 space-y-1">
           <li>El incumplimiento de los vendedores en la entrega de productos.</li>
           <li>La calidad, autenticidad o estado de los productos comercializados por vendedores independientes.</li>
-          <li>El resultado de eventos deportivos que determinen la entrega o no del cashback.</li>
+          <li>El resultado de eventos deportivos que determinen la entrega o no del CashBak.</li>
           <li>Interrupciones del servicio por causas de fuerza mayor, fallas técnicas de terceros o mantenciones programadas.</li>
           <li>El uso indebido de la plataforma por parte del usuario.</li>
         </ul>

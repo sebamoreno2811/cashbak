@@ -67,9 +67,14 @@ export default function OrdersPage() {
         orders.map((order) => (
           <Card key={order.id} className="p-4 mb-4 space-y-2">
             <div>
-                <p className="text-sm text-muted-foreground">
-                    Pedido #{order.id.slice(0, 8)} - {new Date(order.created_at).toLocaleDateString()}
-                </p>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                  #{order.id.slice(0, 8).toUpperCase()}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(order.created_at).toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric" })}
+                </span>
+              </div>
                 <p className="font-medium">Total: ${order.order_total.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
                 <p className="text-sm">Estado: {order.shipping_status}</p>
                 {(() => {

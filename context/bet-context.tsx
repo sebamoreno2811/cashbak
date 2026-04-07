@@ -13,6 +13,7 @@ export interface Bet {
   id: number
   name: string
   odd: number
+  sport: string
   category: string
   end_date: string
   is_winner: boolean | null

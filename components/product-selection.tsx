@@ -1,36 +1,33 @@
 "use client"
-import { useState } from "react"
-import { calculatecashbak } from "@/lib/cashbak-calculator"
 import BetSelector from "./bet-selector"
 import { useBetOption } from "@/hooks/use-bet-option"
+import { useProducts } from "@/context/product-context"
+import { calculateProductCashbak } from "@/lib/cashbak-calculator"
+import type { Bet } from "@/context/bet-context"
 
 export function ProductSelection() {
   const { selectedOption, setSelectedOption } = useBetOption()
-  const [product, setProduct] = useState<any>(null)
-  const [cashbak, setcashbak] = useState(0)
+  const { products } = useProducts()
 
-  const handleOptionChange = (value: string) => {
-    setSelectedOption(value)
-
-    // Update cashbak display
-    const cashbakDisplay = document.getElementById("cashbak-display")
-    if (cashbakDisplay) {
-      cashbakDisplay.textContent = "Calculando CashBak..."
-
-      // Get current slide
-      const sliderContainer = document.querySelector("[data-porcentaje]")
-      const slideCategory = sliderContainer
-        ? Number.parseInt(sliderContainer.getAttribute("data-porcentaje") || "1")
-        : 1
-
-      // Calculate cashbak after a small delay
-      
+  const getCashbackRange = (bet: Bet) => {
+    if (products.length === 0) return null
+    const values = products
+      .map((p) => calculateProductCashbak(p, bet.odd))
+      .filter((v) => v > 0)
+    if (values.length === 0) return null
+    return {
+      min: Math.min(...values),
+      max: Math.max(...values),
     }
   }
 
   return (
     <div>
-      <BetSelector value={selectedOption} onChange={handleOptionChange} />
+      <BetSelector
+        value={selectedOption}
+        onChange={setSelectedOption}
+        getCashbackRange={getCashbackRange}
+      />
     </div>
   )
 }

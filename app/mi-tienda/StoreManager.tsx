@@ -1025,7 +1025,7 @@ function ProductFormModal({
                   <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
                     <p className="text-xs text-emerald-800">
                       💡 Recibiendo <strong>${FMT(pricing.recMonto)}</strong> puedes ofrecer hasta{" "}
-                      <strong>{maxCashbackAtRec ?? 0}% de cashback</strong> con los eventos actuales.
+                      <strong>{maxCashbackAtRec ?? 0}% de CashBak</strong> con los eventos actuales.
                     </p>
                     <button
                       type="button"
@@ -1088,7 +1088,7 @@ function ProductFormModal({
                       {selectedBet
                         ? `Simulado con el evento "${selectedBet.name}".`
                         : "Selecciona un evento para simular."}{" "}
-                      El cashback varía según el evento activo.
+                      El CashBak varía según el evento activo.
                     </p>
                   </div>
                 </>

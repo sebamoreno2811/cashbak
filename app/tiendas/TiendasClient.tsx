@@ -48,7 +48,7 @@ export default function TiendasClient({ stores }: { stores: StoreItem[] }) {
         <div className="container mx-auto max-w-5xl text-center">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">Tiendas</h1>
           <p className="text-green-200 text-sm sm:text-base max-w-md mx-auto">
-            Compra en cualquiera de estas tiendas, elige tu evento y si se cumple, recuperas tu cashback.
+            Compra en cualquiera de estas tiendas, elige tu evento y si se cumple, recuperas tu CashBak.
           </p>
         </div>
       </div>

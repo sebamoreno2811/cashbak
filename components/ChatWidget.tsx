@@ -59,7 +59,7 @@ export default function ChatWidget() {
       if (messages.length === 0) {
         setMessages([{
           role: "assistant",
-          content: "¡Hola! Soy Baki, el asistente virtual de CashBak 👋\n\nEstoy aquí para ayudarte a entender cómo funciona la plataforma, el cashback, cómo usar tu cuenta y mucho más. ¿En qué te puedo ayudar?",
+          content: "¡Hola! Soy Baki, el asistente virtual de CashBak 👋\n\nEstoy aquí para ayudarte a entender cómo funciona la plataforma, el CashBak, cómo usar tu cuenta y mucho más. ¿En qué te puedo ayudar?",
         }])
       }
     }

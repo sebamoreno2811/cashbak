@@ -261,13 +261,13 @@ export default function AplicarPage() {
       <section className="py-14 bg-green-900 text-white text-center px-4">
         <h1 className="text-4xl font-bold mb-3">Abre tu tienda en CashBak</h1>
         <p className="text-green-200 text-lg max-w-xl mx-auto">
-          Completa el formulario y revisaremos tu solicitud. ¿Quieres entender cómo funciona el cashback primero?
+          Completa el formulario y revisaremos tu solicitud. ¿Quieres entender cómo funciona el CashBak primero?
         </p>
         <Link
           href="/sell"
           className="inline-block mt-6 px-5 py-2.5 rounded-md border border-white text-white hover:bg-white hover:text-green-900 font-semibold text-sm transition-colors"
         >
-          Ver simulador de cashback →
+          Ver simulador de CashBak →
         </Link>
       </section>
 
@@ -581,7 +581,7 @@ export default function AplicarPage() {
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          ¿Quieres simular el cashback antes?{" "}
+          ¿Quieres simular el CashBak antes?{" "}
           <Link href="/sell" className="text-green-700 font-semibold hover:underline">
             Ir al simulador
           </Link>

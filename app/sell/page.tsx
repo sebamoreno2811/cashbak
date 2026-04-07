@@ -104,7 +104,7 @@ export default function SellPage() {
       <section className="py-14 bg-green-900 text-white text-center px-4">
         <h1 className="text-4xl font-bold mb-3">Vende con nosotros</h1>
         <p className="text-green-200 text-lg max-w-xl mx-auto">
-          Simula cómo funcionaría vender tu producto en CashBak. Ingresa tu precio y costo y descubre cuánto cashback puedes ofrecer a tus clientes.
+          Simula cómo funcionaría vender tu producto en CashBak. Ingresa tu precio y costo y descubre cuánto CashBak puedes ofrecer a tus clientes.
         </p>
       </section>
 
@@ -139,7 +139,7 @@ export default function SellPage() {
                   onChange={(e) => setCosto(e.target.value)}
                   placeholder="Ej: 10000"
                 />
-                <p className="text-xs text-gray-400">Solo para mostrarte tu ganancia neta estimada. No afecta el cashback ni la comisión — ingresa tu costo real para que el cálculo sea preciso.</p>
+                <p className="text-xs text-gray-400">Solo para mostrarte tu ganancia neta estimada. No afecta el CashBak ni la comisión — ingresa tu costo real para que el cálculo sea preciso.</p>
               </div>
 
               <div className="space-y-3">
@@ -164,7 +164,7 @@ export default function SellPage() {
                 {recMonto && (
                   <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
                     <p className="text-xs text-emerald-800">
-                      💡 Recibiendo <strong>{formatCLP(recMonto)}</strong> por venta puedes ofrecer hasta <strong>{cashbackAtRec}% de cashback</strong> con los eventos disponibles hoy — muy atractivo para compradores.
+                      💡 Recibiendo <strong>{formatCLP(recMonto)}</strong> por venta puedes ofrecer hasta <strong>{cashbackAtRec}% de CashBak</strong> con los eventos disponibles hoy — muy atractivo para compradores.
                     </p>
                     <button
                       type="button"
@@ -219,7 +219,7 @@ export default function SellPage() {
               <>
                 {/* Cashback highlight */}
                 <div className="bg-emerald-600 text-white rounded-xl p-6 text-center shadow">
-                  <p className="text-emerald-100 text-sm mb-1">Cashback que ofreces a tus clientes</p>
+                  <p className="text-emerald-100 text-sm mb-1">CashBak que ofreces a tus clientes</p>
                   <p className="text-6xl font-bold">{resultado.cashbackPct}%</p>
                   <p className="text-emerald-100 text-sm mt-1">
                     {formatCLP(resultado.cashbackMonto)} de vuelta al cliente si se cumple el evento
@@ -263,7 +263,7 @@ export default function SellPage() {
                     <div className="flex justify-between items-start gap-3 py-2 border-b border-gray-100">
                       <div className="min-w-0">
                         <span className="text-gray-600">Seguro CashBak</span>
-                        <p className="text-xs text-gray-400">Prima que financia el cashback al cliente</p>
+                        <p className="text-xs text-gray-400">Prima que financia el CashBak al cliente</p>
                       </div>
                       <span className="font-semibold text-gray-500 shrink-0">{formatCLP(resultado.montoApuestaDisplay)}</span>
                     </div>
@@ -298,7 +298,7 @@ export default function SellPage() {
               <span className="text-2xl">🎯</span>
               <p className="font-semibold text-gray-800">Oferta más atractiva</p>
               <p className="text-sm text-gray-600">
-                Un cashback de hasta <strong className="text-emerald-700">{resultado.cashbackPct}%</strong> convierte visitantes indecisos en compradores. Pocos competidores pueden ofrecer algo similar.
+                Un CashBak de hasta <strong className="text-emerald-700">{resultado.cashbackPct}%</strong> convierte visitantes indecisos en compradores. Pocos competidores pueden ofrecer algo similar.
               </p>
             </div>
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex flex-col gap-2">
@@ -312,7 +312,7 @@ export default function SellPage() {
               <span className="text-2xl">🔁</span>
               <p className="font-semibold text-gray-800">Clientes que vuelven</p>
               <p className="text-sm text-gray-600">
-                El cashback crea una experiencia memorable. Los clientes que reciben dinero de vuelta tienen muchas más probabilidades de volver a comprar.
+                El CashBak crea una experiencia memorable. Los clientes que reciben dinero de vuelta tienen muchas más probabilidades de volver a comprar.
               </p>
             </div>
           </div>
@@ -345,12 +345,12 @@ export default function SellPage() {
               <div className="flex flex-col gap-2">
                 <span className="text-2xl">🏆</span>
                 <p className="font-semibold text-gray-800">Si el evento ocurre</p>
-                <p>El seguro se activa y el cliente recibe el cashback prometido. Tu ganancia no cambia.</p>
+                <p>El seguro se activa y el cliente recibe el CashBak prometido. Tu ganancia no cambia.</p>
               </div>
               <div className="flex flex-col gap-2">
                 <span className="text-2xl">🛡️</span>
                 <p className="font-semibold text-gray-800">Si no ocurre</p>
-                <p>No se paga cashback. La prima del seguro cubre los costos operativos. Tu ganancia tampoco cambia.</p>
+                <p>No se paga CashBak. La prima del seguro cubre los costos operativos. Tu ganancia tampoco cambia.</p>
               </div>
             </div>
           </CardContent>

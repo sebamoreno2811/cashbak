@@ -328,7 +328,14 @@ export default function ProductPage() {
             <p className="text-gray-700">{product.description}</p>
           </div>
 
-          <BetSelector value={selectedOption} onChange={handleOptionChange} />
+          <div className="mb-1">
+            <p className="text-sm font-semibold text-gray-800 mb-2">Selecciona el evento — si ocurre, recibes el CashBak indicado abajo:</p>
+            <BetSelector
+              value={selectedOption}
+              onChange={handleOptionChange}
+              getCashback={(bet) => product ? calculateProductCashbak(product, bet.odd, hasPrint) : 0}
+            />
+          </div>
 
           <div className="p-4 mt-4 border rounded-lg border-emerald-200 bg-emerald-50">
             <p className="text-lg font-semibold text-green-900">CashBak del: {cashbak.toLocaleString("es-CL", { maximumFractionDigits: 0 })}%</p>

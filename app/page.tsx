@@ -133,11 +133,11 @@ export default function Home() {
           <div className="bg-white rounded-2xl overflow-hidden shadow-lg">
             <div className="bg-emerald-600 px-5 py-4">
               <p className="text-white text-lg font-bold leading-tight">🏆 Elige tu evento deportivo</p>
-              <p className="text-emerald-100 text-sm mt-0.5">El cashback de cada producto varía según el evento que elijas</p>
+              <p className="text-emerald-100 text-sm mt-0.5">El CashBak de cada producto varía según el evento que elijas</p>
             </div>
             <div className="px-5 pt-5 pb-4">
               <p className="text-lg font-bold text-gray-900 mb-0.5">¿Qué evento eliges hoy?</p>
-              <p className="text-sm text-gray-500 mb-4">Selecciona uno y empieza a explorar los productos con su cashback.</p>
+              <p className="text-sm text-gray-500 mb-4">Selecciona uno y empieza a explorar los productos con su CashBak.</p>
               <ProductSelection />
             </div>
           </div>
@@ -153,7 +153,7 @@ export default function Home() {
               ⭐ Destacados
             </span>
             <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400">Mayor cashback disponible</span>
+            <span className="text-xs text-gray-400">Mayor CashBak disponible</span>
           </div>
           <CarouselRow
             items={featured}
