@@ -151,6 +151,14 @@ export async function bulkUpdateOrders(orderIds: string[], fields: {
   vendor_paid?: boolean
 }) {
   const supabase = await requireAdmin()
+
+  // Leer estados previos para detectar cambios reales
+  const { data: prevOrders } = await supabase
+    .from("orders")
+    .select("id, vendor_paid, cashback_status")
+    .in("id", orderIds)
+  const prevMap = Object.fromEntries((prevOrders ?? []).map((o: any) => [o.id, o]))
+
   const { error } = await supabase
     .from("orders")
     .update({ ...fields, updated_at: new Date().toISOString() })
@@ -158,11 +166,13 @@ export async function bulkUpdateOrders(orderIds: string[], fields: {
   if (error) return { error: error.message }
 
   if (fields.vendor_paid === true) {
-    await Promise.all(orderIds.map(id => sendVendorPaidEmail(supabase, id)))
+    const toNotify = orderIds.filter(id => prevMap[id]?.vendor_paid === false)
+    await Promise.all(toNotify.map(id => sendVendorPaidEmail(supabase, id)))
   }
 
   if (fields.cashback_status === "transferido") {
-    await Promise.all(orderIds.map(id => sendCashbackTransferredEmail(supabase, id)))
+    const toNotify = orderIds.filter(id => prevMap[id]?.cashback_status !== "transferido")
+    await Promise.all(toNotify.map(id => sendCashbackTransferredEmail(supabase, id)))
   }
 
   revalidatePath("/admin/pedidos")
@@ -177,17 +187,32 @@ export async function updateOrderStatuses(orderId: string, fields: {
   vendor_paid?: boolean
 }) {
   const supabase = await requireAdmin()
-  const { error } = await supabase
+
+  // Leer estado anterior para detectar cambio real
+  const { data: prev } = await supabase
     .from("orders")
-    .update({ ...fields, updated_at: new Date().toISOString() })
+    .select("vendor_paid, cashback_status")
     .eq("id", orderId)
+    .single()
+
+  const updatePayload = { ...fields, updated_at: new Date().toISOString() }
+  console.log(`[updateOrderStatuses] orderId=${orderId} payload=`, JSON.stringify(updatePayload))
+
+  const { error, data: updated } = await supabase
+    .from("orders")
+    .update(updatePayload)
+    .eq("id", orderId)
+    .select("id, vendor_paid")
+  console.log(`[updateOrderStatuses] result=`, JSON.stringify(updated), "error=", error?.message)
   if (error) return { error: error.message }
 
-  if (fields.vendor_paid === true) {
+  // Solo enviar email si vendor_paid cambió de false a true
+  if (fields.vendor_paid === true && prev?.vendor_paid === false) {
     await sendVendorPaidEmail(supabase, orderId)
   }
 
-  if (fields.cashback_status === "transferido") {
+  // Solo enviar email si cashback_status cambió a "transferido"
+  if (fields.cashback_status === "transferido" && prev?.cashback_status !== "transferido") {
     await sendCashbackTransferredEmail(supabase, orderId)
   }
 
