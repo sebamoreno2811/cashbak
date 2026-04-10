@@ -56,7 +56,7 @@ export default function OrdersPage() {
     )]
     if (betIds.length === 0) { setBetsLoading(false); return }
     const supabase = createClient()
-    supabase.from("bets").select("id, name, is_winner").in("id", betIds).then(({ data }) => {
+    supabase.from("bets").select("id, name, is_winner").in("id", betIds).then(({ data }: { data: { id: number; name: string; is_winner: boolean | null }[] | null }) => {
       const map: Record<number, { name: string; is_winner: boolean | null }> = {}
       for (const b of (data ?? []) as { id: number; name: string; is_winner: boolean | null }[]) {
         map[b.id] = { name: b.name, is_winner: b.is_winner }

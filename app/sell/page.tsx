@@ -279,7 +279,7 @@ export default function SellPage() {
                     <div className={`flex justify-between items-start gap-3 py-2 rounded-lg ${resultado.margenVendedorNeto < costoNum ? "px-2 bg-red-50 border border-red-200" : ""}`}>
                       <div className="min-w-0">
                         <span className={`text-sm ${resultado.margenVendedorNeto < costoNum ? "text-red-600 font-semibold" : "text-gray-500"}`}>Tu ganancia neta estimada</span>
-                        <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo declarado ({formatCLP(costoNum)})</p>
+                        <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo ({formatCLP(costoNum)}) y 2% Transbank ({formatCLP(resultado.tarifaProcesamiento)})</p>
                         {resultado.margenVendedorNeto < costoNum && <p className="text-xs text-red-500 mt-0.5">⚠️ Tu ingreso neto es menor que tu costo declarado. Estarías vendiendo a pérdida.</p>}
                       </div>
                       <span className={`font-semibold shrink-0 ${resultado.margenVendedorNeto < costoNum ? "text-red-600" : "text-gray-700"}`}>{formatCLP(resultado.gananciaNeta)}</span>

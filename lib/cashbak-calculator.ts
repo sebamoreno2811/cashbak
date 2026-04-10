@@ -104,7 +104,7 @@ export function calculateExternalCashbak(params: {
     margenVendedor: Math.round(margenVendedor),
     tarifaProcesamiento,
     margenVendedorNeto: Math.round(margenVendedor) - tarifaProcesamiento,
-    gananciaNeta: Math.round(margenVendedor - costo),  // ilustrativo
+    gananciaNeta: Math.round(margenVendedor - tarifaProcesamiento - costo),  // margen - 2% Transbank - costo
     margenVendedorMaxPct,
     margenVendedorMaxMonto: Math.round(margenVendedorMaxMonto),
     margenRecomendadoPct,
