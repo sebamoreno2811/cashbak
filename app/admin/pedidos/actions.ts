@@ -20,15 +20,25 @@ async function requireAdmin() {
 
 async function sendVendorPaidEmail(supabase: any, orderId: string) {
   try {
-    // Obtener items del pedido con info de tienda y monto neto
+    // Obtener items del pedido
     const { data: items } = await supabase
       .from("order_items")
-      .select("vendor_net_amount, quantity, products(store_id)")
+      .select("vendor_net_amount, quantity, product_id")
       .eq("order_id", orderId)
 
     if (!items || items.length === 0) return
 
-    const storeId = items[0]?.products?.store_id
+    // Buscar store_id desde el primer product_id
+    const productId = items[0]?.product_id
+    if (!productId) return
+
+    const { data: product } = await supabase
+      .from("products")
+      .select("store_id")
+      .eq("id", Number(productId))
+      .single()
+
+    const storeId = product?.store_id
     if (!storeId) return
 
     const vendorNetAmount = items.reduce((sum: number, i: any) => sum + (i.vendor_net_amount ?? 0) * (i.quantity ?? 1), 0)
