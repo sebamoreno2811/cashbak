@@ -174,7 +174,7 @@ export async function bulkUpdateOrders(orderIds: string[], fields: {
   if (error) return { error: error.message }
 
   if (fields.vendor_paid === true) {
-    const toNotify = orderIds.filter(id => prevMap[id]?.vendor_paid === false)
+    const toNotify = orderIds.filter(id => !prevMap[id]?.vendor_paid)
     await Promise.all(toNotify.map(id => sendVendorPaidEmail(supabase, id)))
   }
 
@@ -214,8 +214,8 @@ export async function updateOrderStatuses(orderId: string, fields: {
   console.log(`[updateOrderStatuses] result=`, JSON.stringify(updated), "error=", error?.message)
   if (error) return { error: error.message }
 
-  // Solo enviar email si vendor_paid cambió de false a true
-  if (fields.vendor_paid === true && prev?.vendor_paid === false) {
+  // Solo enviar email si vendor_paid cambió de false/null a true
+  if (fields.vendor_paid === true && !prev?.vendor_paid) {
     await sendVendorPaidEmail(supabase, orderId)
   }
 
