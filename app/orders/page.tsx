@@ -1,15 +1,15 @@
 "use client"
 
 import { useOrders } from "@/context/orders-context"
-import { useBets } from "@/context/bet-context"
 import { useProducts } from "@/context/product-context"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
 import { toSlug } from "@/lib/slug"
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { confirmOrderReceived } from "./actions"
 import { CheckCircle2, Loader2 } from "lucide-react"
+import { createClient } from "@/utils/supabase/client"
 
 function ConfirmButton({ orderId }: { orderId: string }) {
   const [confirmed, setConfirmed] = useState(false)
@@ -45,8 +45,26 @@ function ConfirmButton({ orderId }: { orderId: string }) {
 
 export default function OrdersPage() {
   const { orders, loading: ordersLoading } = useOrders()
-  const { bets, loading: betsLoading } = useBets()
   const { products, loading: productsLoading } = useProducts()
+  const [bets, setBets] = useState<Record<number, { name: string; is_winner: boolean | null }>>({})
+  const [betsLoading, setBetsLoading] = useState(true)
+
+  useEffect(() => {
+    if (ordersLoading) return
+    const betIds = [...new Set(
+      orders.flatMap(o => o.order_items.map(i => i.bet_option_id)).filter(Boolean)
+    )]
+    if (betIds.length === 0) { setBetsLoading(false); return }
+    const supabase = createClient()
+    supabase.from("bets").select("id, name, is_winner").in("id", betIds).then(({ data }) => {
+      const map: Record<number, { name: string; is_winner: boolean | null }> = {}
+      for (const b of (data ?? []) as { id: number; name: string; is_winner: boolean | null }[]) {
+        map[b.id] = { name: b.name, is_winner: b.is_winner }
+      }
+      setBets(map)
+      setBetsLoading(false)
+    })
+  }, [ordersLoading, orders])
 
   if (ordersLoading || betsLoading || productsLoading) {
     return (
@@ -78,28 +96,25 @@ export default function OrdersPage() {
                 <p className="font-medium">Total: ${order.order_total.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</p>
                 <p className="text-sm">Estado: {order.shipping_status}</p>
                 {(() => {
-                    const cashbackEstado = order.order_items.map((item) => {
-                    const bet = bets.find((b) => b.id === Number(item.bet_option_id))
-                    return bet?.is_winner
-                })
+                    const cashbackEstado = order.order_items.map((item) => bets[Number(item.bet_option_id)]?.is_winner ?? null)
 
-                if (cashbackEstado.includes(null)) {
-                    return <p className="text-sm">CashBak Final : <span className="font-semibold text-yellow-600">Pendiente</span></p>
-                }
-
-                const cashbackGanado = order.order_items.reduce((total, item) => {
-                    const bet = bets.find((b) => b.id === Number(item.bet_option_id))
-                    if (bet?.is_winner) {
-                    return total + ((item.cashback_percentage || 0) / 100) * item.price * item.quantity
+                    if (cashbackEstado.includes(null)) {
+                      return <p className="text-sm">CashBak Final: <span className="font-semibold text-yellow-600">Pendiente</span></p>
                     }
-                    return total
-                }, 0)
 
-                return (
-                    <p className="text-sm">
-                    CashBak Final: <span className="font-semibold text-green-600">${cashbackGanado.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
-                    </p>
-                )
+                    const cashbackGanado = order.order_items.reduce((total, item) => {
+                      const bet = bets[Number(item.bet_option_id)]
+                      if (bet?.is_winner) {
+                        return total + ((item.cashback_percentage || 0) / 100) * item.price * item.quantity
+                      }
+                      return total
+                    }, 0)
+
+                    return (
+                      <p className="text-sm">
+                        CashBak Final: <span className="font-semibold text-green-600">${cashbackGanado.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+                      </p>
+                    )
                 })()}
 
             </div>
@@ -115,7 +130,7 @@ export default function OrdersPage() {
             )}
             <div className="mt-2 space-y-1">
               {order.order_items.map((item, index) => {
-                const bet = bets.find((b) => b.id === Number(item.bet_option_id))
+                const bet = bets[Number(item.bet_option_id)]
                 const product = products.find((p) => p.id === Number(item.product_id))
 
                 let resultado = "Pendiente"
