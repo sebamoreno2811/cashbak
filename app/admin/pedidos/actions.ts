@@ -59,8 +59,8 @@ async function sendVendorPaidEmail(supabase: any, orderId: string) {
 
     const orderRef = orderId.slice(0, 8).toUpperCase()
 
-    console.log(`[sendVendorPaidEmail] Sending email to ${store.email} for order ${orderRef}`)
-    const emailResult = await resend.emails.send({
+    console.log(`[sendVendorPaidEmail] Sending email to ${store.email} from ${EMAIL_FROM} for order ${orderRef}`)
+    const { data: emailData, error: emailError } = await resend.emails.send({
       from: EMAIL_FROM,
       to: store.email,
       subject: `💰 Transferencia realizada — Pedido #${orderRef}`,
@@ -87,7 +87,8 @@ async function sendVendorPaidEmail(supabase: any, orderId: string) {
         </div>
       `,
     })
-    console.log(`[sendVendorPaidEmail] Resend result=`, JSON.stringify(emailResult))
+    console.log(`[sendVendorPaidEmail] Resend data=`, JSON.stringify(emailData), "error=", JSON.stringify(emailError))
+    if (emailError) throw new Error(`Resend error: ${JSON.stringify(emailError)}`)
   }
 }
 
@@ -212,9 +213,9 @@ export async function updateOrderStatuses(orderId: string, fields: {
   console.log(`[updateOrderStatuses] result=`, JSON.stringify(updated), "error=", error?.message)
   if (error) return { error: error.message }
 
-  // Solo enviar email si vendor_paid cambió de false/null a true
+  // Enviar email al vendedor cuando se marca como pagado
   let vendorEmailError: string | null = null
-  if (fields.vendor_paid === true && !prev?.vendor_paid) {
+  if (fields.vendor_paid === true) {
     try {
       await sendVendorPaidEmail(supabase, orderId)
     } catch (e: any) {
