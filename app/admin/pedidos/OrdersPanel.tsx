@@ -81,6 +81,12 @@ function OrderRow({ order, selected, onSelect }: { order: Order; selected: boole
       if (!res.error) {
         setSaved(true)
         setTimeout(() => setSaved(false), 2000)
+        if ((res as any).vendorEmailError) {
+          alert(`Email al vendedor falló: ${(res as any).vendorEmailError}`)
+        }
+        if ((res as any).prev_vendor_paid !== undefined) {
+          console.log("[debug] prev_vendor_paid=", (res as any).prev_vendor_paid, "vendorEmailError=", (res as any).vendorEmailError)
+        }
       }
     })
   }

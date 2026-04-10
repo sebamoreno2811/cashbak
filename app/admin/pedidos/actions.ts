@@ -20,7 +20,7 @@ async function requireAdmin() {
 
 async function sendVendorPaidEmail(supabase: any, orderId: string) {
   console.log(`[sendVendorPaidEmail] START orderId=${orderId}`)
-  try {
+  {
     // Obtener items del pedido
     const { data: items, error: itemsError } = await supabase
       .from("order_items")
@@ -88,8 +88,6 @@ async function sendVendorPaidEmail(supabase: any, orderId: string) {
       `,
     })
     console.log(`[sendVendorPaidEmail] Resend result=`, JSON.stringify(emailResult))
-  } catch (e) {
-    console.error(`[admin] Error enviando email de pago al vendedor (pedido ${orderId}):`, e)
   }
 }
 
@@ -215,8 +213,14 @@ export async function updateOrderStatuses(orderId: string, fields: {
   if (error) return { error: error.message }
 
   // Solo enviar email si vendor_paid cambió de false/null a true
+  let vendorEmailError: string | null = null
   if (fields.vendor_paid === true && !prev?.vendor_paid) {
-    await sendVendorPaidEmail(supabase, orderId)
+    try {
+      await sendVendorPaidEmail(supabase, orderId)
+    } catch (e: any) {
+      vendorEmailError = e?.message ?? String(e)
+      console.error("[updateOrderStatuses] vendorEmailError=", vendorEmailError)
+    }
   }
 
   // Solo enviar email si cashback_status cambió a "transferido"
@@ -225,5 +229,5 @@ export async function updateOrderStatuses(orderId: string, fields: {
   }
 
   revalidatePath("/admin/pedidos")
-  return { success: true }
+  return { success: true, prev_vendor_paid: prev?.vendor_paid, vendorEmailError }
 }
