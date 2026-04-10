@@ -19,41 +19,48 @@ async function requireAdmin() {
 }
 
 async function sendVendorPaidEmail(supabase: any, orderId: string) {
+  console.log(`[sendVendorPaidEmail] START orderId=${orderId}`)
   try {
     // Obtener items del pedido
-    const { data: items } = await supabase
+    const { data: items, error: itemsError } = await supabase
       .from("order_items")
       .select("vendor_net_amount, quantity, product_id")
       .eq("order_id", orderId)
 
-    if (!items || items.length === 0) return
+    console.log(`[sendVendorPaidEmail] items=`, JSON.stringify(items), "itemsError=", itemsError?.message)
+    if (!items || items.length === 0) { console.log("[sendVendorPaidEmail] EXIT: no items"); return }
 
     // Buscar store_id desde el primer product_id
     const productId = items[0]?.product_id
-    if (!productId) return
+    console.log(`[sendVendorPaidEmail] productId=`, productId, "type=", typeof productId)
+    if (!productId) { console.log("[sendVendorPaidEmail] EXIT: no productId"); return }
 
-    const { data: product } = await supabase
+    const { data: product, error: productError } = await supabase
       .from("products")
       .select("store_id")
       .eq("id", Number(productId))
       .single()
 
+    console.log(`[sendVendorPaidEmail] product=`, JSON.stringify(product), "productError=", productError?.message)
     const storeId = product?.store_id
-    if (!storeId) return
+    if (!storeId) { console.log("[sendVendorPaidEmail] EXIT: no storeId"); return }
 
     const vendorNetAmount = items.reduce((sum: number, i: any) => sum + (i.vendor_net_amount ?? 0) * (i.quantity ?? 1), 0)
+    console.log(`[sendVendorPaidEmail] storeId=${storeId} vendorNetAmount=${vendorNetAmount}`)
 
-    const { data: store } = await supabase
+    const { data: store, error: storeError } = await supabase
       .from("stores")
       .select("name, email")
       .eq("id", storeId)
       .single()
 
-    if (!store?.email) return
+    console.log(`[sendVendorPaidEmail] store=`, JSON.stringify(store), "storeError=", storeError?.message)
+    if (!store?.email) { console.log("[sendVendorPaidEmail] EXIT: no store email"); return }
 
     const orderRef = orderId.slice(0, 8).toUpperCase()
 
-    await resend.emails.send({
+    console.log(`[sendVendorPaidEmail] Sending email to ${store.email} for order ${orderRef}`)
+    const emailResult = await resend.emails.send({
       from: EMAIL_FROM,
       to: store.email,
       subject: `💰 Transferencia realizada — Pedido #${orderRef}`,
@@ -80,6 +87,7 @@ async function sendVendorPaidEmail(supabase: any, orderId: string) {
         </div>
       `,
     })
+    console.log(`[sendVendorPaidEmail] Resend result=`, JSON.stringify(emailResult))
   } catch (e) {
     console.error(`[admin] Error enviando email de pago al vendedor (pedido ${orderId}):`, e)
   }
