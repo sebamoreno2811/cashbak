@@ -13,7 +13,7 @@ export default async function SellerPedidosPage() {
   // Verificar que tiene tienda aprobada
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name")
+    .select("id, name, delivery_options")
     .eq("owner_id", user.id)
     .eq("status", "approved")
     .single()
@@ -117,7 +117,7 @@ export default async function SellerPedidosPage() {
         </div>
       </div>
 
-      <SellerOrdersPanel orders={merged} />
+      <SellerOrdersPanel orders={merged} deliveryOptions={store.delivery_options ?? []} />
     </div>
   )
 }

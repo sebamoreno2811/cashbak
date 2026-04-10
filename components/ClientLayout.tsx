@@ -249,7 +249,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <div>
               <h3 className="mb-4 text-xl font-bold">Contacto</h3>
               <p>cashbak.ops@gmail.com</p>
-              <p>IG: @cashbak.cl</p>
+              <a href="https://www.instagram.com/cashbak.cl/" target="_blank" rel="noopener noreferrer" className="hover:underline">IG: @cashbak.cl</a>
             </div>
           </div>
           <div className="pt-8 mt-8 text-center border-t border-gray-700">

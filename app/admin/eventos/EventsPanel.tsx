@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { markBetWinner, markBetLost, reactivateBet } from "./actions"
-import { Trophy, X, RotateCcw, Loader2, Calendar, TrendingUp } from "lucide-react"
+import { Trophy, X, RotateCcw, Loader2, Calendar, TrendingUp, Save } from "lucide-react"
 
 interface Bet {
   id: number
@@ -39,79 +39,120 @@ function StatusBadge({ status }: { status: FilterType }) {
 
 function BetRow({ bet }: { bet: Bet }) {
   const [isPending, startTransition] = useTransition()
+  const [pendingAction, setPendingAction] = useState<"ganado" | "perdido" | null>(null)
   const status = getStatus(bet)
 
-  // Activo solo si active=true Y aún no han pasado 3h desde end_date
   const isEffectivelyActive =
     bet.active && Date.now() < new Date(bet.end_date).getTime() + 3 * 60 * 60 * 1000
 
-  const act = (fn: () => Promise<{ error?: string; success?: boolean }>) => {
-    startTransition(async () => { await fn() })
+  const handleSave = () => {
+    if (!pendingAction) return
+    startTransition(async () => {
+      if (pendingAction === "ganado") await markBetWinner(bet.id)
+      else await markBetLost(bet.id)
+      setPendingAction(null)
+    })
+  }
+
+  const handleReactivate = () => {
+    startTransition(async () => { await reactivateBet(bet.id) })
   }
 
   const date = new Date(bet.end_date).toLocaleDateString("es-CL", {
     day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
   })
 
+  const displayStatus = pendingAction ?? status
+
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
-      status === "ganado" ? "bg-green-50 border-green-200" :
-      status === "perdido" ? "bg-red-50 border-red-200" :
+    <div className={`px-4 py-3 rounded-xl border transition-colors ${
+      displayStatus === "ganado" ? "bg-green-50 border-green-200" :
+      displayStatus === "perdido" ? "bg-red-50 border-red-200" :
       "bg-white border-gray-200"
     }`}>
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap mb-0.5">
-          <StatusBadge status={status} />
-          {!isEffectivelyActive && status === "pendiente" && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Listo para resolver</span>
-          )}
+      <div className="flex items-center gap-3">
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-0.5">
+            <StatusBadge status={displayStatus === "ganado" || displayStatus === "perdido" ? displayStatus : status} />
+            {pendingAction && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">Sin guardar</span>
+            )}
+            {!isEffectivelyActive && status === "pendiente" && !pendingAction && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Listo para resolver</span>
+            )}
+          </div>
+          <p className="text-sm font-semibold text-gray-800 leading-tight">{bet.name}</p>
+          <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+            <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" /> cuota {bet.odd}</span>
+            <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {date}</span>
+          </div>
         </div>
-        <p className="text-sm font-semibold text-gray-800 leading-tight">{bet.name}</p>
-        <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-          <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" /> cuota {bet.odd}</span>
-          <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {date}</span>
+
+        {/* Acciones */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+          ) : isEffectivelyActive && status === "pendiente" ? (
+            <span className="text-xs text-gray-400 italic">Evento en curso</span>
+          ) : (
+            <>
+              {status !== "ganado" && (
+                <button
+                  onClick={() => setPendingAction(pendingAction === "ganado" ? null : "ganado")}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    pendingAction === "ganado"
+                      ? "bg-green-900 text-white ring-2 ring-green-400"
+                      : "bg-green-100 text-green-800 hover:bg-green-200"
+                  }`}
+                >
+                  <Trophy className="w-3.5 h-3.5" /> Ganado
+                </button>
+              )}
+              {status !== "perdido" && (
+                <button
+                  onClick={() => setPendingAction(pendingAction === "perdido" ? null : "perdido")}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    pendingAction === "perdido"
+                      ? "bg-red-600 text-white ring-2 ring-red-400"
+                      : "bg-red-100 text-red-700 hover:bg-red-200"
+                  }`}
+                >
+                  <X className="w-3.5 h-3.5" /> Perdido
+                </button>
+              )}
+              {status !== "pendiente" && !pendingAction && (
+                <button
+                  onClick={handleReactivate}
+                  title="Reactivar evento"
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </>
+          )}
         </div>
       </div>
 
-      {/* Acciones */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        {isPending ? (
-          <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-        ) : isEffectivelyActive && status === "pendiente" ? (
-          <span className="text-xs text-gray-400 italic">Evento en curso</span>
-        ) : (
-          <>
-            {status !== "ganado" && (
-              <button
-                onClick={() => act(() => markBetWinner(bet.id))}
-                title="Marcar como ganado"
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-green-900 text-white hover:bg-green-800 transition-colors"
-              >
-                <Trophy className="w-3.5 h-3.5" /> Ganado
-              </button>
-            )}
-            {status !== "perdido" && (
-              <button
-                onClick={() => act(() => markBetLost(bet.id))}
-                title="Marcar como perdido"
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
-              >
-                <X className="w-3.5 h-3.5" /> Perdido
-              </button>
-            )}
-            {status !== "pendiente" && (
-              <button
-                onClick={() => act(() => reactivateBet(bet.id))}
-                title="Reactivar evento"
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </>
-        )}
-      </div>
+      {/* Botón guardar — solo aparece cuando hay selección pendiente */}
+      {pendingAction && !isPending && (
+        <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-200">
+          <button
+            onClick={() => setPendingAction(null)}
+            className="text-xs text-gray-400 hover:text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleSave}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-900 text-white hover:bg-green-800 transition-colors"
+          >
+            <Save className="w-3.5 h-3.5" />
+            Confirmar y guardar
+          </button>
+        </div>
+      )}
     </div>
   )
 }

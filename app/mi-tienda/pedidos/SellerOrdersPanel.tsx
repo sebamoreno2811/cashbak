@@ -24,6 +24,11 @@ interface Order {
   items: OrderItem[]
 }
 
+interface DeliveryOption {
+  name: string
+  type: "pickup" | "delivery"
+}
+
 const SHIPPING_STATUSES = [
   { value: "Preparando pedido", label: "Preparando pedido" },
   { value: "Listo para entrega", label: "Listo para entrega" },
@@ -42,7 +47,7 @@ const FILTER_OPTIONS = [
   ...SHIPPING_STATUSES,
 ]
 
-function OrderRow({ order }: { order: Order }) {
+function OrderRow({ order, deliveryOptions }: { order: Order; deliveryOptions: DeliveryOption[] }) {
   const [open, setOpen] = useState(false)
   const [shippingStatus, setShippingStatus] = useState(order.shipping_status ?? "")
   const [saved, setSaved] = useState(false)
@@ -63,6 +68,17 @@ function OrderRow({ order }: { order: Order }) {
   })
 
   const statusColor = SHIPPING_COLORS[shippingStatus] ?? "bg-gray-100 text-gray-600"
+
+  // Determinar tipo de entrega según el shipping_method de la orden
+  const chosenOption = deliveryOptions.find(o => o.name === order.shipping_method)
+  const isPickup = chosenOption?.type === "pickup"
+  const allowedStatuses = [
+    { value: "Preparando pedido", label: "Preparando pedido" },
+    ...(isPickup
+      ? [{ value: "Listo para entrega", label: "Listo para entrega" }]
+      : [{ value: "Enviado", label: "Enviado" }]
+    ),
+  ]
 
   return (
     <div className="border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm">
@@ -138,8 +154,7 @@ function OrderRow({ order }: { order: Order }) {
                 value={shippingStatus}
                 onChange={e => setShippingStatus(e.target.value)}
               >
-                <option value="">Sin estado</option>
-                {SHIPPING_STATUSES.map(s => (
+                {allowedStatuses.map(s => (
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
               </select>
@@ -162,7 +177,7 @@ function OrderRow({ order }: { order: Order }) {
   )
 }
 
-export default function SellerOrdersPanel({ orders }: { orders: Order[] }) {
+export default function SellerOrdersPanel({ orders, deliveryOptions }: { orders: Order[]; deliveryOptions: DeliveryOption[] }) {
   const [filter, setFilter] = useState("todos")
   const [search, setSearch] = useState("")
 
@@ -227,7 +242,7 @@ export default function SellerOrdersPanel({ orders }: { orders: Order[] }) {
         {filtered.length === 0 ? (
           <p className="text-center py-10 text-gray-400">No hay pedidos con este estado</p>
         ) : (
-          filtered.map(order => <OrderRow key={order.id} order={order} />)
+          filtered.map(order => <OrderRow key={order.id} order={order} deliveryOptions={deliveryOptions} />)
         )}
       </div>
     </div>

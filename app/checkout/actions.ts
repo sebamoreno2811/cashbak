@@ -88,6 +88,7 @@ export async function saveCheckoutData(
         order_status: "completed",
         payment_status: "paid",
         shipping_method: deliveryType,
+        shipping_status: "Preparando pedido",
       })
       .select("id")
       .single()
