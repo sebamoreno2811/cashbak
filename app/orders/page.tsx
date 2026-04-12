@@ -98,39 +98,34 @@ export default function OrdersPage() {
               {(() => {
                 const cashbackStatus = (order as any).cashback_status ?? "evento_pendiente"
 
-                if (cashbackStatus === "transferido") {
-                  const cashbackGanado = order.order_items.reduce((total, item) => {
-                    const bet = bets[Number(item.bet_option_id)]
-                    if (bet?.is_winner) return total + ((item.cashback_percentage || 0) / 100) * item.price * item.quantity
-                    return total
-                  }, 0)
-                  return <p className="text-sm">CashBak: <span className="font-semibold text-green-600">Transferido ✓ ${cashbackGanado.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span></p>
-                }
-
-                if (cashbackStatus === "transferencia_pendiente") {
-                  const cashbackGanado = order.order_items.reduce((total, item) => {
-                    const bet = bets[Number(item.bet_option_id)]
-                    if (bet?.is_winner) return total + ((item.cashback_percentage || 0) / 100) * item.price * item.quantity
-                    return total
-                  }, 0)
-                  return <p className="text-sm">CashBak: <span className="font-semibold text-emerald-600">¡Ganaste! ${cashbackGanado.toLocaleString("es-CL", { maximumFractionDigits: 0 })} — en camino</span></p>
-                }
-
-                if (cashbackStatus === "evento_perdido") {
-                  return <p className="text-sm">CashBak Final: <span className="font-semibold text-red-500">El evento no se cumplió</span></p>
-                }
-
-                // evento_pendiente
-                const cashbackEstado = order.order_items.map((item) => bets[Number(item.bet_option_id)]?.is_winner ?? null)
-                if (cashbackEstado.includes(null)) {
+                // Si algún evento sigue sin resolverse, siempre mostrar Pendiente
+                // independiente del cashback_status en la DB
+                const hayPendientes = order.order_items.some(
+                  (item) => (bets[Number(item.bet_option_id)]?.is_winner ?? null) === null
+                )
+                if (hayPendientes) {
                   return <p className="text-sm">CashBak Final: <span className="font-semibold text-yellow-600">Pendiente</span></p>
                 }
 
+                // Todos los eventos resueltos — usar cashback_status como fuente de verdad
                 const cashbackGanado = order.order_items.reduce((total, item) => {
                   const bet = bets[Number(item.bet_option_id)]
                   if (bet?.is_winner) return total + ((item.cashback_percentage || 0) / 100) * item.price * item.quantity
                   return total
                 }, 0)
+
+                if (cashbackStatus === "transferido") {
+                  return <p className="text-sm">CashBak: <span className="font-semibold text-green-600">Transferido ✓ ${cashbackGanado.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span></p>
+                }
+
+                if (cashbackStatus === "transferencia_pendiente") {
+                  return <p className="text-sm">CashBak: <span className="font-semibold text-emerald-600">¡Ganaste! ${cashbackGanado.toLocaleString("es-CL", { maximumFractionDigits: 0 })} — en camino</span></p>
+                }
+
+                if (cashbackStatus === "evento_perdido" || cashbackGanado === 0) {
+                  return <p className="text-sm">CashBak Final: <span className="font-semibold text-red-500">El evento no se cumplió</span></p>
+                }
+
                 return (
                   <p className="text-sm">
                     CashBak Final: <span className="font-semibold text-green-600">${cashbackGanado.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
