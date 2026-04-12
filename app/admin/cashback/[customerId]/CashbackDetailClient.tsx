@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { markCashbackTransferred, markAllCashbackTransferred } from "./actions"
-import { CheckCircle2, ChevronDown, ChevronUp, Loader2, Package, Trophy } from "lucide-react"
+import { CheckCircle2, ChevronDown, ChevronUp, Clock, Loader2, Package, Trophy } from "lucide-react"
 
 interface OrderItem {
   product_name: string
@@ -152,9 +152,11 @@ function OrderRow({ order, customerEmail }: { order: CashbackOrder; customerEmai
 export default function CashbackDetailClient({
   customer,
   orders,
+  ordersPending,
 }: {
   customer: CustomerInfo
   orders: CashbackOrder[]
+  ordersPending: CashbackOrder[]
 }) {
   const [allDone, setAllDone] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -241,6 +243,80 @@ export default function CashbackDetailClient({
           </>
         )}
       </div>
+
+      {/* Próximamente — eventos aún sin resolver */}
+      {ordersPending.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-semibold text-gray-800">Próximamente</h2>
+              <p className="text-xs text-gray-400">Tienen eventos pendientes — aún no se pueden transferir</p>
+            </div>
+            <span className="text-xs bg-yellow-100 text-yellow-700 font-semibold px-2 py-0.5 rounded-full">
+              {ordersPending.length} pedido{ordersPending.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+          <div className="space-y-3 opacity-70">
+            {ordersPending.map(order => {
+              const date = new Date(order.created_at).toLocaleDateString("es-CL", {
+                day: "2-digit", month: "short", year: "numeric",
+              })
+              return (
+                <div key={order.id} className="border border-dashed border-gray-300 bg-white rounded-xl overflow-hidden">
+                  <div className="px-5 py-3 flex items-center gap-4">
+                    <div className="flex-1 grid grid-cols-2 gap-2 items-center">
+                      <div>
+                        <p className="text-xs text-gray-400">Pedido</p>
+                        <p className="text-sm font-mono font-semibold text-gray-600">{order.id.slice(0, 8).toUpperCase()}</p>
+                        <p className="text-xs text-gray-400">{date}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-400">CashBak estimado</p>
+                        <p className="text-sm font-bold text-gray-500">
+                          {order.winning_cashback > 0 ? `$${order.winning_cashback.toLocaleString("es-CL")}` : "—"}
+                        </p>
+                        <p className="text-xs text-gray-400">Compra: ${order.order_total.toLocaleString("es-CL")}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-full px-2.5 py-1 shrink-0">
+                      <Clock className="w-3 h-3" />
+                      <span>Eventos pendientes</span>
+                    </div>
+                  </div>
+                  <div className="border-t border-gray-100 px-5 py-3">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                      <Package className="w-3.5 h-3.5" /> Productos y eventos
+                    </p>
+                    <div className="space-y-1.5">
+                      {order.items.map((item, i) => {
+                        const resultado = item.is_winner === true ? "Ganado" : item.is_winner === false ? "Perdido" : "Pendiente"
+                        return (
+                          <div key={i} className="bg-gray-50 rounded-lg px-3 py-2 text-sm">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <span className="font-medium text-gray-700">{item.product_name}</span>
+                                <span className="ml-2 text-xs text-gray-400">x{item.quantity}</span>
+                                <p className="text-xs text-gray-500 mt-0.5 truncate">Evento: {item.bet_name}</p>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${RESULT_COLORS[resultado]}`}>
+                                  {resultado}
+                                </span>
+                                <span className="text-xs font-bold text-emerald-700">{item.cashback_percentage}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

@@ -83,24 +83,33 @@ export default async function CashbackDetailPage({ params }: { params: Promise<{
     }
   }
 
-  const merged = (orders ?? [])
-    .map((o: any) => {
-      const items = itemsByOrder[o.id] ?? []
-      const winning_cashback = items
-        .filter((i: any) => i.is_winner === true)
-        .reduce((s: number, i: any) => s + Math.round(i.price * i.quantity * i.cashback_percentage / 100), 0)
-      return {
-        id: o.id,
-        order_total: o.order_total,
-        cashback_amount: o.cashback_amount,
-        winning_cashback,
-        cashback_transfer_note: o.cashback_transfer_note,
-        created_at: o.created_at,
-        bet_end_date: betEndDateByOrder[o.id] ?? null,
-        items,
-      }
-    })
-    .filter((o: any) => o.items.some((i: any) => i.is_winner === true))
+  const allMerged = (orders ?? []).map((o: any) => {
+    const items = itemsByOrder[o.id] ?? []
+    const winning_cashback = items
+      .filter((i: any) => i.is_winner === true)
+      .reduce((s: number, i: any) => s + Math.round(i.price * i.quantity * i.cashback_percentage / 100), 0)
+    return {
+      id: o.id,
+      order_total: o.order_total,
+      cashback_amount: o.cashback_amount,
+      winning_cashback,
+      cashback_transfer_note: o.cashback_transfer_note,
+      created_at: o.created_at,
+      bet_end_date: betEndDateByOrder[o.id] ?? null,
+      items,
+    }
+  })
+
+  // Listos: todos los eventos resueltos y al menos uno ganó
+  const merged = allMerged.filter((o: any) =>
+    o.items.some((i: any) => i.is_winner === true) &&
+    o.items.every((i: any) => i.is_winner !== null)
+  )
+
+  // Próximamente: algún evento aún pendiente (is_winner === null)
+  const mergedPending = allMerged.filter((o: any) =>
+    o.items.some((i: any) => i.is_winner === null)
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -131,6 +140,7 @@ export default async function CashbackDetailPage({ params }: { params: Promise<{
               account_number: bankAccount?.account_number ?? null,
             }}
             orders={merged}
+            ordersPending={mergedPending}
           />
         )}
       </div>
