@@ -14,10 +14,10 @@ export async function GET(req: Request) {
 
   const supabase = await createSupabaseClientWithoutCookies()
 
-  // Obtener order_items pendientes de apostar con evento activo y sin resultado
+  // Obtener order_items pendientes de apostar
   const { data: items } = await supabase
     .from("order_items")
-    .select("id, bet_option_id, bet_amount, quantity, bets(id, name, active, is_winner)")
+    .select("id, bet_option_id, bet_amount, quantity")
     .eq("bet_placed", false)
     .not("bet_option_id", "is", null)
 
@@ -25,10 +25,20 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, message: "Sin apuestas pendientes" })
   }
 
-  // Filtrar solo eventos activos sin resultado
+  // Obtener los bets activos sin resultado
+  const betIds = [...new Set(items.map((i: any) => i.bet_option_id))]
+  const { data: bets } = await supabase
+    .from("bets")
+    .select("id, name, active, is_winner")
+    .in("id", betIds)
+
+  const betMap: Record<string, { name: string; active: boolean; is_winner: boolean | null }> = {}
+  for (const b of bets ?? []) betMap[String(b.id)] = b
+
+  // Agrupar por evento solo si activo y sin resultado
   const byEvent: Record<string, { name: string; total: number; count: number }> = {}
   for (const item of items) {
-    const bet = Array.isArray(item.bets) ? item.bets[0] : item.bets
+    const bet = betMap[String(item.bet_option_id)]
     if (!bet || !bet.active || bet.is_winner !== null) continue
     const key = String(item.bet_option_id)
     if (!byEvent[key]) byEvent[key] = { name: bet.name, total: 0, count: 0 }
