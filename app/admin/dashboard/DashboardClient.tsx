@@ -152,11 +152,20 @@ function CashbackPendienteList({ orders }: { orders: Order[] }) {
   )
 }
 
+interface BetEventItem {
+  id: string
+  product_name: string
+  order_id: string
+  quantity: number
+  bet_amount: number
+}
+
 interface BetEvent {
   bet_option_id: number
   name: string
   total_amount: number
   item_ids: string[]
+  items: BetEventItem[]
 }
 
 // Estado por evento: null = sin iniciar, {ids, amount} = snapshot listo para confirmar, "done" = confirmado
@@ -164,6 +173,7 @@ type BetState = { ids: string[]; amount: number } | "done" | null
 
 function BetRow({ bet }: { bet: BetEvent }) {
   const [state, setState] = useState<BetState>(null)
+  const [expanded, setExpanded] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   if (state === "done") return null
@@ -185,50 +195,63 @@ function BetRow({ bet }: { bet: BetEvent }) {
   const handleCancelar = () => setState(null)
 
   return (
-    <div className={`px-5 py-3 flex items-center justify-between gap-4 transition-colors ${snapshot ? "bg-blue-50" : ""}`}>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-gray-800 truncate">{bet.name}</p>
-        {snapshot ? (
-          <p className="text-xs text-blue-600 font-medium">
-            Snapshot: {snapshot.ids.length} item{snapshot.ids.length !== 1 ? "s" : ""} bloqueados
-          </p>
-        ) : (
-          <p className="text-xs text-gray-400">{bet.item_ids.length} item{bet.item_ids.length !== 1 ? "s" : ""} pendientes</p>
-        )}
-      </div>
-      <div className="flex items-center gap-3 shrink-0">
-        <div className="text-right">
-          <p className="text-sm font-bold text-blue-700">
-            ${(snapshot ? snapshot.amount : Math.round(bet.total_amount)).toLocaleString("es-CL")}
-          </p>
-          <p className="text-xs text-gray-400">{snapshot ? "bloqueado" : "a apostar"}</p>
-        </div>
-        {!snapshot ? (
-          <button
-            onClick={handleIniciar}
-            className="text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors"
-          >
-            Iniciar apuesta
+    <div className={`transition-colors ${snapshot ? "bg-blue-50" : ""}`}>
+      <div className="px-5 py-3 flex items-center justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-gray-800 truncate">{bet.name}</p>
+          <button onClick={() => setExpanded(v => !v)} className="text-xs text-blue-600 hover:underline">
+            {expanded ? "Ocultar" : "Ver"} {bet.item_ids.length} item{bet.item_ids.length !== 1 ? "s" : ""}
+            {snapshot && <span className="ml-1 text-blue-700 font-semibold">(bloqueados)</span>}
           </button>
-        ) : (
-          <div className="flex gap-2">
-            <button
-              onClick={handleCancelar}
-              disabled={isPending}
-              className="text-xs border border-gray-300 text-gray-500 hover:bg-gray-100 font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleConfirmar}
-              disabled={isPending}
-              className="text-xs bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-            >
-              {isPending ? "Guardando..." : "Confirmar apostado"}
-            </button>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="text-right">
+            <p className="text-sm font-bold text-blue-700">
+              ${(snapshot ? snapshot.amount : Math.round(bet.total_amount)).toLocaleString("es-CL")}
+            </p>
+            <p className="text-xs text-gray-400">{snapshot ? "bloqueado" : "a apostar"}</p>
           </div>
-        )}
+          {!snapshot ? (
+            <button
+              onClick={handleIniciar}
+              className="text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Iniciar apuesta
+            </button>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={handleCancelar}
+                disabled={isPending}
+                className="text-xs border border-gray-300 text-gray-500 hover:bg-gray-100 font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmar}
+                disabled={isPending}
+                className="text-xs bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isPending ? "Guardando..." : "Confirmar apostado"}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+      {expanded && (
+        <div className="px-5 pb-3 space-y-1">
+          {bet.items.map(item => (
+            <div key={item.id} className="flex items-center justify-between text-xs bg-white border border-gray-100 rounded-lg px-3 py-2">
+              <div>
+                <span className="font-medium text-gray-700">{item.product_name}</span>
+                <span className="text-gray-400 ml-2">x{item.quantity}</span>
+                <span className="text-gray-300 ml-2">#{item.order_id.slice(0, 8).toUpperCase()}</span>
+              </div>
+              <span className="font-semibold text-blue-600">${Math.round(item.bet_amount).toLocaleString("es-CL")}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

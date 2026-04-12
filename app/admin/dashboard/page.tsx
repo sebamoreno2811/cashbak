@@ -140,17 +140,25 @@ export default async function AdminDashboardPage() {
   })
 
   // Apuestas por colocar: agrupa por bet_option_id, solo eventos activos y sin resultado
-  const betEventsMap: Record<string, { bet_option_id: number; name: string; total_amount: number; item_ids: string[] }> = {}
+  type BetEventItem = { id: string; product_name: string; order_id: string; quantity: number; bet_amount: number }
+  const betEventsMap: Record<string, { bet_option_id: number; name: string; total_amount: number; item_ids: string[]; items: BetEventItem[] }> = {}
   for (const item of orderItems ?? []) {
     if (!item.bet_option_id || item.bet_placed) continue
     const bet = betMap[String(item.bet_option_id)]
     if (!bet || !bet.active || bet.is_winner !== null) continue
     const key = String(item.bet_option_id)
     if (!betEventsMap[key]) {
-      betEventsMap[key] = { bet_option_id: item.bet_option_id, name: bet.name, total_amount: 0, item_ids: [] }
+      betEventsMap[key] = { bet_option_id: item.bet_option_id, name: bet.name, total_amount: 0, item_ids: [], items: [] }
     }
     betEventsMap[key].total_amount += (item.bet_amount ?? 0) * (item.quantity ?? 1)
     betEventsMap[key].item_ids.push(item.id)
+    betEventsMap[key].items.push({
+      id: item.id,
+      product_name: item.product_name ?? "Producto",
+      order_id: item.order_id,
+      quantity: item.quantity ?? 1,
+      bet_amount: (item.bet_amount ?? 0) * (item.quantity ?? 1),
+    })
   }
   const betEvents = Object.values(betEventsMap).sort((a, b) => b.total_amount - a.total_amount)
 
