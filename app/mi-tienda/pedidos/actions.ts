@@ -52,8 +52,8 @@ export async function updateShippingStatus(orderId: string, shipping_status: str
   // Enviar email al cliente cuando el estado es relevante
   if (shipping_status === "Listo para entrega" || shipping_status === "Enviado") {
     try {
-      // Obtener datos del pedido y cliente
-      const { data: order } = await supabase
+      // Obtener datos del pedido y cliente (admin client: vendedor ya no tiene RLS sobre orders)
+      const { data: order } = await admin
         .from("orders")
         .select("id, shipping_method, customer_id, customers(email, full_name)")
         .eq("id", orderId)
@@ -143,7 +143,7 @@ export async function updateShippingStatus(orderId: string, shipping_status: str
       await resend.emails.send({ from: EMAIL_FROM, to: customerEmail, subject, html })
 
       // Guardar timestamp de notificación al cliente
-      await supabase
+      await admin
         .from("orders")
         .update({ customer_notified_at: new Date().toISOString() })
         .eq("id", orderId)
