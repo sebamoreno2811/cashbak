@@ -18,6 +18,7 @@ interface CashbackOrder {
   order_total: number
   cashback_amount: number
   winning_cashback: number
+  possible_cashback: number
   cashback_transfer_note: string | null
   created_at: string
   bet_end_date: string | null
@@ -271,10 +272,15 @@ export default function CashbackDetailClient({
                         <p className="text-xs text-gray-400">{date}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-gray-400">CashBak estimado</p>
-                        <p className="text-sm font-bold text-gray-500">
+                        <p className="text-xs text-gray-400">Mínimo confirmado</p>
+                        <p className="text-sm font-bold text-gray-600">
                           {order.winning_cashback > 0 ? `$${order.winning_cashback.toLocaleString("es-CL")}` : "—"}
                         </p>
+                        {order.possible_cashback > 0 && (
+                          <p className="text-xs text-yellow-600 font-medium">
+                            + ${order.possible_cashback.toLocaleString("es-CL")} posible
+                          </p>
+                        )}
                         <p className="text-xs text-gray-400">Compra: ${order.order_total.toLocaleString("es-CL")}</p>
                       </div>
                     </div>

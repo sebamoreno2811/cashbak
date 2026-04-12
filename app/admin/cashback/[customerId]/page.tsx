@@ -88,11 +88,15 @@ export default async function CashbackDetailPage({ params }: { params: Promise<{
     const winning_cashback = items
       .filter((i: any) => i.is_winner === true)
       .reduce((s: number, i: any) => s + Math.round(i.price * i.quantity * i.cashback_percentage / 100), 0)
+    const possible_cashback = items
+      .filter((i: any) => i.is_winner === null)
+      .reduce((s: number, i: any) => s + Math.round(i.price * i.quantity * i.cashback_percentage / 100), 0)
     return {
       id: o.id,
       order_total: o.order_total,
       cashback_amount: o.cashback_amount,
       winning_cashback,
+      possible_cashback,
       cashback_transfer_note: o.cashback_transfer_note,
       created_at: o.created_at,
       bet_end_date: betEndDateByOrder[o.id] ?? null,
