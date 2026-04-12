@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { TrendingUp, ShoppingBag, Banknote, AlertCircle, Building2, X, DollarSign } from "lucide-react"
+import { useState, useMemo, useTransition } from "react"
+import { TrendingUp, ShoppingBag, Banknote, AlertCircle, Building2, X, DollarSign, Dices } from "lucide-react"
 import Link from "next/link"
+import { markBetsPlaced } from "./actions"
 
 interface OrderItem {
   product_name: string
@@ -151,7 +152,112 @@ function CashbackPendienteList({ orders }: { orders: Order[] }) {
   )
 }
 
-export default function DashboardClient({ orders, stores }: { orders: Order[]; stores: Store[] }) {
+interface BetEvent {
+  bet_option_id: number
+  name: string
+  total_amount: number
+  item_ids: string[]
+}
+
+// Estado por evento: null = sin iniciar, {ids, amount} = snapshot listo para confirmar, "done" = confirmado
+type BetState = { ids: string[]; amount: number } | "done" | null
+
+function BetRow({ bet }: { bet: BetEvent }) {
+  const [state, setState] = useState<BetState>(null)
+  const [isPending, startTransition] = useTransition()
+
+  if (state === "done") return null
+
+  const snapshot = state as { ids: string[]; amount: number } | null
+
+  const handleIniciar = () => {
+    setState({ ids: bet.item_ids, amount: Math.round(bet.total_amount) })
+  }
+
+  const handleConfirmar = () => {
+    if (!snapshot) return
+    startTransition(async () => {
+      await markBetsPlaced(snapshot.ids)
+      setState("done")
+    })
+  }
+
+  const handleCancelar = () => setState(null)
+
+  return (
+    <div className={`px-5 py-3 flex items-center justify-between gap-4 transition-colors ${snapshot ? "bg-blue-50" : ""}`}>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-gray-800 truncate">{bet.name}</p>
+        {snapshot ? (
+          <p className="text-xs text-blue-600 font-medium">
+            Snapshot: {snapshot.ids.length} item{snapshot.ids.length !== 1 ? "s" : ""} bloqueados
+          </p>
+        ) : (
+          <p className="text-xs text-gray-400">{bet.item_ids.length} item{bet.item_ids.length !== 1 ? "s" : ""} pendientes</p>
+        )}
+      </div>
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="text-right">
+          <p className="text-sm font-bold text-blue-700">
+            ${(snapshot ? snapshot.amount : Math.round(bet.total_amount)).toLocaleString("es-CL")}
+          </p>
+          <p className="text-xs text-gray-400">{snapshot ? "bloqueado" : "a apostar"}</p>
+        </div>
+        {!snapshot ? (
+          <button
+            onClick={handleIniciar}
+            className="text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Iniciar apuesta
+          </button>
+        ) : (
+          <div className="flex gap-2">
+            <button
+              onClick={handleCancelar}
+              disabled={isPending}
+              className="text-xs border border-gray-300 text-gray-500 hover:bg-gray-100 font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleConfirmar}
+              disabled={isPending}
+              className="text-xs bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {isPending ? "Guardando..." : "Confirmar apostado"}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function BetsPorColocarSection({ betEvents }: { betEvents: BetEvent[] }) {
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Dices className="w-4 h-4 text-blue-600" />
+          <h2 className="font-semibold text-gray-800">Apuestas por colocar</h2>
+          <span className="text-xs text-gray-400 font-normal">Eventos activos sin cubrir</span>
+        </div>
+        <span className="text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
+          {betEvents.length} eventos
+        </span>
+      </div>
+      {betEvents.length === 0 ? (
+        <p className="text-center py-10 text-sm text-gray-400">Sin apuestas pendientes ✓</p>
+      ) : (
+        <div className="divide-y divide-gray-50 max-h-[480px] overflow-y-auto">
+          {betEvents.map(b => <BetRow key={b.bet_option_id} bet={b} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function DashboardClient({ orders, stores, betEvents }: { orders: Order[]; stores: Store[]; betEvents: BetEvent[] }) {
   const [storeFilter, setStoreFilter] = useState("todos")
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
@@ -389,6 +495,9 @@ export default function DashboardClient({ orders, stores }: { orders: Order[]; s
             </div>
           )}
         </div>
+
+        {/* Apuestas por colocar */}
+        <BetsPorColocarSection betEvents={betEvents} />
 
         {/* Clientes con cashback pendiente */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">

@@ -27,7 +27,7 @@ export default async function AdminDashboardPage() {
   const orderIds = (orders ?? []).map((o: { id: string }) => o.id)
   const { data: orderItems } = await supabase
     .from("order_items")
-    .select("order_id, product_id, bet_option_id, vendor_net_amount, comision_cashbak, cashback_percentage, product_name, quantity, price")
+    .select("id, order_id, product_id, bet_option_id, vendor_net_amount, comision_cashbak, cashback_percentage, product_name, quantity, price, bet_amount, bet_placed")
     .in("order_id", orderIds.length > 0 ? orderIds : ["none"])
 
   // Productos para obtener store_id
@@ -37,14 +37,14 @@ export default async function AdminDashboardPage() {
     .select("id, store_id")
     .in("id", productIds.length > 0 ? productIds : ["none"])
 
-  // Bets para obtener end_date, nombre y resultado
+  // Bets para obtener end_date, nombre, resultado y si está activo
   const betIds = [...new Set((orderItems ?? []).map((i: { bet_option_id: string }) => i.bet_option_id).filter(Boolean))]
   const { data: bets } = await supabase
     .from("bets")
-    .select("id, end_date, name, is_winner")
+    .select("id, end_date, name, is_winner, active")
     .in("id", betIds.length > 0 ? betIds : [-1])
   const betMap = Object.fromEntries(
-    (bets ?? []).map((b: { id: number; end_date: string; name: string; is_winner: boolean | null }) => [String(b.id), b])
+    (bets ?? []).map((b: { id: number; end_date: string; name: string; is_winner: boolean | null; active: boolean }) => [String(b.id), b])
   )
   const betEndDateMap = Object.fromEntries(
     (bets ?? []).map((b: { id: number; end_date: string }) => [String(b.id), b.end_date])
@@ -139,6 +139,21 @@ export default async function AdminDashboardPage() {
     }
   })
 
+  // Apuestas por colocar: agrupa por bet_option_id, solo eventos activos y sin resultado
+  const betEventsMap: Record<string, { bet_option_id: number; name: string; total_amount: number; item_ids: string[] }> = {}
+  for (const item of orderItems ?? []) {
+    if (!item.bet_option_id || item.bet_placed) continue
+    const bet = betMap[String(item.bet_option_id)]
+    if (!bet || !bet.active || bet.is_winner !== null) continue
+    const key = String(item.bet_option_id)
+    if (!betEventsMap[key]) {
+      betEventsMap[key] = { bet_option_id: item.bet_option_id, name: bet.name, total_amount: 0, item_ids: [] }
+    }
+    betEventsMap[key].total_amount += (item.bet_amount ?? 0) * (item.quantity ?? 1)
+    betEventsMap[key].item_ids.push(item.id)
+  }
+  const betEvents = Object.values(betEventsMap).sort((a, b) => b.total_amount - a.total_amount)
+
   const storeList = (stores ?? []).map((s: { id: string; name: string }) => ({ id: s.id, name: s.name }))
 
   return (
@@ -154,7 +169,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <DashboardClient orders={merged} stores={storeList} />
+        <DashboardClient orders={merged} stores={storeList} betEvents={betEvents} />
       </div>
     </div>
   )
