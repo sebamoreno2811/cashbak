@@ -78,10 +78,8 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
     return () => subscription.unsubscribe()
   }, [supabase.auth])
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut()
-    } catch {}
+  const handleSignOut = () => {
+    supabase.auth.signOut().catch(() => {})
     window.location.href = "/"
   }
 

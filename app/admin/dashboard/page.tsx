@@ -2,7 +2,7 @@ import { createSupabaseClientWithCookies as createClient } from "@/utils/supabas
 import { redirect } from "next/navigation"
 import DashboardClient from "./DashboardClient"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, MessageSquare } from "lucide-react"
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
@@ -171,10 +171,17 @@ export default async function AdminDashboardPage() {
           <Link href="/admin/tiendas" className="text-gray-400 hover:text-gray-600 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-sm text-gray-500">Resumen operativo de CashBak</p>
           </div>
+          <Link
+            href="/admin/chat"
+            className="flex items-center gap-2 bg-green-900 hover:bg-green-800 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span className="hidden sm:inline">Consultar BD</span>
+          </Link>
         </div>
 
         <DashboardClient orders={merged} stores={storeList} betEvents={betEvents} />
