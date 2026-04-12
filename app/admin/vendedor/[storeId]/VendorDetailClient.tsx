@@ -17,6 +17,7 @@ interface VendorOrder {
   id: string
   order_total: number
   vendor_net_amount: number
+  shipping_cost: number
   created_at: string
   customer_name: string | null
   customer_email: string | null
@@ -33,10 +34,17 @@ const SHIPPING_COLORS: Record<string, string> = {
   "Entregado": "bg-green-100 text-green-800",
 }
 
+function getShippingCost(order: VendorOrder) {
+  return order.shipping_cost ?? 0
+}
+
 function OrderRow({ order, storeId }: { order: VendorOrder; storeId: string }) {
   const [open, setOpen] = useState(false)
   const [paid, setPaid] = useState(false)
   const [isPending, startTransition] = useTransition()
+
+  const shippingCost = getShippingCost(order)
+  const totalTransfer = order.vendor_net_amount + shippingCost
 
   const handlePaid = () => {
     startTransition(async () => {
@@ -77,7 +85,7 @@ function OrderRow({ order, storeId }: { order: VendorOrder; storeId: string }) {
           </div>
           <div className="text-right">
             <p className="text-xs text-gray-400">A transferir</p>
-            <p className="text-sm font-bold text-emerald-700">${order.vendor_net_amount.toLocaleString("es-CL")}</p>
+            <p className="text-sm font-bold text-emerald-700">${totalTransfer.toLocaleString("es-CL")}</p>
             <p className="text-xs text-gray-400">Compra: ${order.order_total.toLocaleString("es-CL")}</p>
           </div>
         </div>
@@ -116,9 +124,12 @@ function OrderRow({ order, storeId }: { order: VendorOrder; storeId: string }) {
               <p className="text-base font-bold text-gray-800">${order.order_total.toLocaleString("es-CL")}</p>
             </div>
             <div className="bg-emerald-50 rounded-lg px-4 py-3">
-              <p className="text-xs text-gray-400 mb-0.5">Margen vendedor (neto)</p>
-              <p className="text-base font-bold text-emerald-700">${order.vendor_net_amount.toLocaleString("es-CL")}</p>
-              <p className="text-[10px] text-gray-400">Ya descontado el 2% procesamiento</p>
+              <p className="text-xs text-gray-400 mb-0.5">Total a transferir</p>
+              <p className="text-base font-bold text-emerald-700">${totalTransfer.toLocaleString("es-CL")}</p>
+              <p className="text-[10px] text-gray-400">
+                Margen: ${order.vendor_net_amount.toLocaleString("es-CL")}
+                {shippingCost > 0 && ` + Envío: $${shippingCost.toLocaleString("es-CL")}`}
+              </p>
             </div>
           </div>
 
@@ -175,7 +186,7 @@ export default function VendorDetailClient({
     })
   }
 
-  const netTotal = ordersReady.reduce((s, o) => s + o.vendor_net_amount, 0)
+  const netTotal = ordersReady.reduce((s, o) => s + o.vendor_net_amount + getShippingCost(o), 0)
   const total = ordersReady.reduce((s, o) => s + o.order_total, 0)
 
   return (

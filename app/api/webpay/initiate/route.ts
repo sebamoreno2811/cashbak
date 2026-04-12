@@ -13,23 +13,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-    const { cartTotal, orderId } = await request.json()
+    const { orderId } = await request.json()
 
-    if (!cartTotal || !orderId) {
-      return NextResponse.json(
-        { error: "Se requiere el monto total y el ID de la orden" },
-        { status: 400 }
-      )
+    if (!orderId) {
+      return NextResponse.json({ error: "Se requiere el ID de la orden" }, { status: 400 })
     }
 
-    if (typeof cartTotal !== "number" || cartTotal <= 0) {
+    // Recalcular monto desde la DB — nunca confiar en el monto del cliente
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .select("order_total, customer_id")
+      .eq("id", orderId)
+      .single()
+
+    if (orderError || !order) {
+      return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 })
+    }
+
+    // Verificar que la orden pertenece al usuario autenticado
+    if (order.customer_id !== user.id) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+    }
+
+    const amount = Math.round(order.order_total)
+    if (amount <= 0) {
       return NextResponse.json({ error: "Monto inválido" }, { status: 400 })
     }
 
     // Limitar orderId a 26 chars (limite de Webpay)
     const buyOrder = String(orderId).substring(0, 26)
     const sessionId = `session-${crypto.randomUUID()}`
-    const amount = Math.round(cartTotal)
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
     const returnUrl = `${baseUrl}/api/webpay/commit`

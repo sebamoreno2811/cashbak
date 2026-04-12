@@ -125,6 +125,7 @@ export default function CheckoutPage() {
     const cartTotalStr = localStorage.getItem("checkout_cart_total")
     const cashbakTotalStr = localStorage.getItem("checkout_cashbak_total")
     const deliveryTypeStr = localStorage.getItem("checkout_delivery_type")
+    const shippingCostStr = localStorage.getItem("checkout_shipping_cost")
 
     if (formDataStr && cartItemsStr && cartTotalStr && cashbakTotalStr) {
       const storedFormData = JSON.parse(formDataStr)
@@ -132,8 +133,9 @@ export default function CheckoutPage() {
       const cartTotal = Number.parseFloat(cartTotalStr)
       const cashbakTotal = Number.parseFloat(cashbakTotalStr)
       const deliveryType = String(deliveryTypeStr)
+      const shippingCost = Number.parseFloat(shippingCostStr ?? "0") || 0
 
-      const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbakTotal, deliveryType)
+      const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbakTotal, deliveryType, shippingCost)
 
       if (result.success) {
         // Solo descontar stock una vez confirmada la compra exitosa
@@ -220,6 +222,7 @@ export default function CheckoutPage() {
       const cashbakTotal = getTotalcashbak()
       localStorage.setItem("checkout_cart_total", cartTotal.toString())
       localStorage.setItem("checkout_cashbak_total", cashbakTotal.toString())
+      localStorage.setItem("checkout_shipping_cost", shippingCost.toString())
       localStorage.setItem("checkout_order_id", encodedOrderId)
       localStorage.setItem("checkout_delivery_type", deliveryType?.toString() ?? "")
       if (deliveryOption) localStorage.setItem("checkout_delivery_option", JSON.stringify(deliveryOption))
@@ -230,7 +233,6 @@ export default function CheckoutPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          cartTotal,
           orderId: uniqueOrderId,
         }),
       })

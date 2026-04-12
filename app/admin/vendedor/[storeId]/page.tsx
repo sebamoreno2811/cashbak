@@ -42,7 +42,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
   // Órdenes sin pagar al vendedor
   const { data: orders } = await supabase
     .from("orders")
-    .select("id, order_total, created_at, customer_id, shipping_method, shipping_status, customer_confirmed")
+    .select("id, order_total, shipping_cost, created_at, customer_id, shipping_method, shipping_status, customer_confirmed")
     .in("id", orderIds.length > 0 ? orderIds : ["none"])
     .eq("vendor_paid", false)
     .order("created_at", { ascending: true })
@@ -64,12 +64,13 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
     itemsByOrder[item.order_id]!.push(item)
   }
 
-  type MergedOrder = { id: string; order_total: number; vendor_net_amount: number; created_at: string; shipping_method: string | null; shipping_status: string | null; customer_confirmed: boolean; customer_name: string | null; customer_email: string | null; items: { id: string; product_name: string; quantity: number; price: number; size: string | null; vendor_net_amount: number }[] }
+  type MergedOrder = { id: string; order_total: number; shipping_cost: number; vendor_net_amount: number; created_at: string; shipping_method: string | null; shipping_status: string | null; customer_confirmed: boolean; customer_name: string | null; customer_email: string | null; items: { id: string; product_name: string; quantity: number; price: number; size: string | null; vendor_net_amount: number }[] }
   const merged: MergedOrder[] = (orders ?? []).map((o: Record<string, unknown>) => {
     const c = customerMap[o.customer_id as string] as { full_name: string | null; email: string } | undefined
     return {
       id: o.id as string,
       order_total: o.order_total as number,
+      shipping_cost: (o.shipping_cost as number) ?? 0,
       vendor_net_amount: (itemsByOrder[o.id as string] ?? []).reduce((sum: number, i: any) => sum + (i.vendor_net_amount ?? 0) * (i.quantity ?? 1), 0),
       created_at: o.created_at as string,
       shipping_method: o.shipping_method as string | null,

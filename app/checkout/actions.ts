@@ -15,7 +15,8 @@ export async function saveCheckoutData(
   cartItems: any[],
   cartTotal: number,
   cashbakTotal: number,
-  deliveryType: string
+  deliveryType: string,
+  shippingCost: number = 0
 ) {
   try {
     const supabase = await createSupabaseClientWithCookies()
@@ -85,6 +86,7 @@ export async function saveCheckoutData(
         customer_id: customerId,
         order_total: cartTotal,
         cashback_amount: cashbakTotal,
+        shipping_cost: shippingCost,
         order_status: "completed",
         payment_status: "paid",
         shipping_method: deliveryType,
