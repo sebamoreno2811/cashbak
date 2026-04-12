@@ -1,0 +1,14 @@
+name: Pending Bets Reminder
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call pending bets endpoint
+        run: |
+          curl -s https://www.cashbak.cl/api/cron/pending-bets \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
