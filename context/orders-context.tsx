@@ -26,6 +26,7 @@ interface Order {
   order_status: string
   shipping_status: string
   payment_status: string
+  cashback_status: string
   customer_confirmed: boolean
   created_at: string
   order_items: OrderItem[]
@@ -69,7 +70,8 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
               bet_option_id,
               cashback_percentage,
               product_id,
-              product_name
+              product_name,
+              size
             )
           `)
           .eq("customer_id", user.id)
