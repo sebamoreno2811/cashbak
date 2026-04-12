@@ -1,6 +1,6 @@
 "use server"
 
-import { createSupabaseClientWithCookies as createClient, createSupabaseClientWithoutCookies } from "@/utils/supabase/server"
+import { createSupabaseClientWithCookies as createClient, createSupabaseClientWithoutCookies, createSupabaseAdminClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
 import { Resend } from "resend"
 
@@ -39,7 +39,9 @@ export async function updateShippingStatus(orderId: string, shipping_status: str
 
   if (shipping_status === "Entregado") return { error: "No autorizado" }
 
-  const { error } = await supabase
+  // Usar admin client para el update (la verificación de acceso ya se hizo arriba)
+  const admin = createSupabaseAdminClient()
+  const { error } = await admin
     .from("orders")
     .update({ shipping_status, updated_at: new Date().toISOString() })
     .eq("id", orderId)

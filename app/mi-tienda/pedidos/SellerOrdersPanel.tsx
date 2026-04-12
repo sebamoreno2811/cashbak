@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { updateShippingStatus } from "./actions"
-import { ChevronDown, ChevronUp, Loader2, Save, Package, Truck, CheckCircle2, Search, X } from "lucide-react"
+import { ChevronDown, ChevronUp, Loader2, Save, Package, Truck, CheckCircle2, Search, X, MapPin, User } from "lucide-react"
 
 interface OrderItem {
   id: string
@@ -20,6 +20,8 @@ interface Order {
   vendor_net_amount: number
   shipping_method: string | null
   shipping_status: string | null
+  customer_confirmed: boolean | null
+  shipping_address: string | null
   created_at: string
   items: OrderItem[]
 }
@@ -45,6 +47,7 @@ const SHIPPING_COLORS: Record<string, string> = {
 const FILTER_OPTIONS = [
   { value: "todos", label: "Todos" },
   ...SHIPPING_STATUSES,
+  { value: "Entregado", label: "Entregado" },
 ]
 
 function OrderRow({ order, deliveryOptions }: { order: Order; deliveryOptions: DeliveryOption[] }) {
@@ -139,14 +142,39 @@ function OrderRow({ order, deliveryOptions }: { order: Order; deliveryOptions: D
             </div>
           </div>
 
+          {/* Cliente */}
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <User className="w-3.5 h-3.5" /> Cliente
+            </p>
+            <div className="space-y-1 text-sm text-gray-600">
+              <p><span className="font-medium text-gray-700">{order.customer_name ?? "—"}</span></p>
+              <p className="text-xs text-gray-400">{order.customer_email}</p>
+              {order.customer_confirmed ? (
+                <div className="flex items-center gap-1.5 text-green-700 text-xs font-medium mt-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Recepción confirmada por el cliente
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 mt-1">Recepción aún no confirmada</p>
+              )}
+            </div>
+          </div>
+
           {/* Estado de envío */}
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
               <Truck className="w-3.5 h-3.5" /> Entrega
             </p>
-            <p className="text-sm text-gray-600 mb-3">
+            <p className="text-sm text-gray-600 mb-2">
               Método: <span className="font-medium">{order.shipping_method ?? "—"}</span>
             </p>
+            {!isPickup && order.shipping_address && (
+              <div className="flex items-start gap-1.5 text-sm text-gray-600 mb-3">
+                <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0 mt-0.5" />
+                <span>{order.shipping_address}</span>
+              </div>
+            )}
+
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Estado del pedido</label>
               <select
@@ -188,7 +216,7 @@ export default function SellerOrdersPanel({ orders, deliveryOptions }: { orders:
   })
 
   const counts = Object.fromEntries(
-    SHIPPING_STATUSES.map(s => [s.value, orders.filter(o => o.shipping_status === s.value).length])
+    [...SHIPPING_STATUSES, { value: "Entregado" }].map(s => [s.value, orders.filter(o => o.shipping_status === s.value).length])
   )
 
   return (

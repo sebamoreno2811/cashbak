@@ -1,4 +1,4 @@
-import { createSupabaseClientWithCookies as createClient } from "@/utils/supabase/server"
+import { createSupabaseClientWithCookies as createClient, createSupabaseAdminClient } from "@/utils/supabase/server"
 import { redirect } from "next/navigation"
 import OrdersPanel from "./OrdersPanel"
 import Link from "next/link"
@@ -18,8 +18,10 @@ export default async function AdminPedidosPage() {
 
   if (customer?.role !== "admin") redirect("/")
 
+  const admin = createSupabaseAdminClient()
+
   // Traer pedidos con items y cliente
-  const { data: orders } = await supabase
+  const { data: orders } = await admin
     .from("orders")
     .select(`
       id, customer_id, order_total, cashback_amount,
@@ -35,7 +37,7 @@ export default async function AdminPedidosPage() {
 
   // Traer info de clientes
   const customerIds = [...new Set((orders ?? []).map((o: { customer_id: string }) => o.customer_id))]
-  const { data: customers } = await supabase
+  const { data: customers } = await admin
     .from("customers")
     .select("id, full_name, email")
     .in("id", customerIds.length > 0 ? customerIds : ["none"])
