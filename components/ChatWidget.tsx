@@ -32,15 +32,30 @@ function renderMarkdown(text: string) {
 }
 
 function formatInline(text: string): React.ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g)
-  return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**"))
-      return <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>
-    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
-    if (linkMatch)
-      return <a key={i} href={linkMatch[2]} className="text-green-700 underline font-medium hover:text-green-900">{linkMatch[1]}</a>
-    return part
-  })
+  // Tokeniza: links primero, luego bold dentro de cada segmento no-link
+  const tokens = text.split(/(\[[^\]]+\]\([^)]+\))/g)
+  const result: React.ReactNode[] = []
+  let key = 0
+  for (const token of tokens) {
+    const linkMatch = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+    if (linkMatch) {
+      result.push(
+        <a key={key++} href={linkMatch[2]} target={linkMatch[2].startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" className="text-green-700 underline font-medium hover:text-green-900">
+          {linkMatch[1]}
+        </a>
+      )
+    } else {
+      // Procesar bold dentro de segmentos no-link
+      const boldParts = token.split(/(\*\*[^*]+\*\*)/g)
+      for (const bp of boldParts) {
+        if (bp.startsWith("**") && bp.endsWith("**"))
+          result.push(<strong key={key++} className="font-semibold text-gray-900">{bp.slice(2, -2)}</strong>)
+        else if (bp)
+          result.push(<span key={key++}>{bp}</span>)
+      }
+    }
+  }
+  return <>{result}</>
 }
 
 interface Message {

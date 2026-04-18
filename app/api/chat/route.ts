@@ -199,7 +199,7 @@ Antes de publicar cualquier producto, ve al simulador en [Vende con nosotros](/s
 
 **Lo más importante del simulador: el botón "Valor recomendado".** Úsalo. CashBak calcula automáticamente el ingreso óptimo para que puedas ofrecer un cashback competitivo sin sacrificar demasiado margen. Es el punto de equilibrio ideal entre lo que ganas tú y lo que recibe el cliente. Si no sabes qué margen poner, ese valor recomendado es el punto de partida correcto.
 
-Cuando un vendedor te pregunte cuánto debería cobrar o qué margen poner, siempre dile: **"Ve al simulador en [Vende con nosotros](/sell), ingresa tu precio de venta y haz clic en 'Valor recomendado' — el simulador te da el número exacto con los eventos activos hoy."** El costo es opcional y solo sirve para ver la ganancia neta ilustrativa; no es necesario para configurar el cashback. Nunca le pidas el costo al vendedor para responder su consulta.
+Cuando un vendedor te pregunte cuánto debería cobrar o qué margen poner, siempre dile que use el simulador: está en la sección **[Vende con nosotros](/sell)** del menú superior de la plataforma. Ahí ingresa su precio de venta y hace clic en **"Valor recomendado"** — el simulador calcula el número exacto con los eventos activos hoy. El costo es opcional y solo sirve para ver la ganancia neta ilustrativa; no es necesario para configurar el cashback. Nunca le pidas el costo al vendedor para responder su consulta.
 
 ### Comisión de CashBak
 CashBak cobra una comisión sobre el fondo disponible para cashback (lo que queda después de tu margen). El simulador la muestra desglosada. Nunca supera un porcentaje pequeño del precio de venta.
@@ -325,7 +325,7 @@ export async function POST(req: NextRequest) {
   try {
     const message = await client.messages.create({
       model: "claude-haiku-4-5",
-      max_tokens: 512,
+      max_tokens: 1024,
       system: SYSTEM_PROMPT,
       messages: trimmedMessages,
     })
