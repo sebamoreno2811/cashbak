@@ -89,7 +89,7 @@ export default function ProductPage() {
       .eq("product_id", product.id)
       .eq("orders.customer_id", user.id)
       .limit(1)
-      .then(({ data }) => {
+      .then(({ data }: { data: { id: string }[] | null }) => {
         setHasPurchased((data?.length ?? 0) > 0)
       })
   }, [user, product])
