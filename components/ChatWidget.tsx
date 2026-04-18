@@ -45,6 +45,13 @@ interface Message {
   content: string
 }
 
+const SUGGESTED_QUESTIONS = [
+  { label: "¿Cómo funciona el CashBak?", text: "¿Cómo funciona el CashBak?" },
+  { label: "¿Cuándo recibo mi cashback?", text: "¿Cuándo recibo mi cashback?" },
+  { label: "Soy vendedor — ¿cómo configuro bien mis productos?", text: "Soy vendedor y quiero saber cómo configurar bien mis productos para ofrecer un buen cashback y usar bien la plataforma." },
+  { label: "¿Cómo confirmo que recibí mi pedido?", text: "¿Cómo confirmo que recibí mi pedido?" },
+]
+
 export default function ChatWidget() {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
@@ -162,6 +169,42 @@ export default function ChatWidget() {
                 </div>
               </div>
             ))}
+
+            {/* Chips de preguntas sugeridas — solo mientras no hay mensajes del usuario */}
+            {messages.length === 1 && messages[0].role === "assistant" && (
+              <div className="flex flex-col gap-2 pt-1">
+                <p className="text-xs text-gray-400 text-center">o elige una pregunta</p>
+                {SUGGESTED_QUESTIONS.map((q) => (
+                  <button
+                    key={q.label}
+                    onClick={async () => {
+                      const newMessages: Message[] = [...messages, { role: "user", content: q.text }]
+                      setMessages(newMessages)
+                      setLoading(true)
+                      setMessages(prev => [...prev, { role: "assistant", content: "" }])
+                      try {
+                        const res = await fetch("/api/chat", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ messages: newMessages }),
+                        })
+                        const data = await res.json()
+                        setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: data.text ?? "No pude generar una respuesta." }])
+                      } catch {
+                        setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: "No pude conectarme. Intenta de nuevo." }])
+                      } finally {
+                        setLoading(false)
+                      }
+                    }}
+                    disabled={loading}
+                    className="text-left text-xs px-3 py-2 rounded-xl border border-green-200 bg-white text-green-900 hover:bg-green-50 hover:border-green-400 transition-colors font-medium disabled:opacity-40"
+                  >
+                    {q.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div ref={bottomRef} />
           </div>
 
@@ -198,7 +241,7 @@ export default function ChatWidget() {
         )}
         <button
           onClick={() => setOpen(v => !v)}
-          className="relative bg-green-900 hover:bg-green-800 text-white rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-2.5 px-4 py-3"
+          className="relative bg-green-900 hover:bg-green-800 text-white rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3 px-5 py-4"
           aria-label="Abrir chat de soporte"
         >
           {open ? (
@@ -206,12 +249,12 @@ export default function ChatWidget() {
           ) : (
             <>
               {/* Pulso de atención */}
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500" />
               </span>
-              <MessageCircle className="w-5 h-5" />
-              <span className="text-sm font-semibold">Baki</span>
+              <MessageCircle className="w-6 h-6" />
+              <span className="text-base font-semibold">Baki</span>
             </>
           )}
         </button>

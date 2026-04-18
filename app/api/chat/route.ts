@@ -196,7 +196,7 @@ Antes de publicar cualquier producto, ve al simulador en /sell. Ingresa el preci
 - El desglose completo: tu ingreso bruto, la tarifa Transbank, tu ingreso neto, la comisión de CashBak y el cashback al cliente
 - Los eventos activos hoy y el cashback que generaría cada uno
 
-**Lo más importante del simulador: el botón "Valor recomendado".** Úsalo. CashBak calcula automáticamente el ingreso óptimo para que puedas ofrecer un cashback atractivo (al menos 15%) sin sacrificar demasiado margen. Es el punto de equilibrio ideal entre lo que ganas tú y lo que recibe el cliente. Si no sabes qué margen poner, ese valor recomendado es el punto de partida correcto.
+**Lo más importante del simulador: el botón "Valor recomendado".** Úsalo. CashBak calcula automáticamente el ingreso óptimo para que puedas ofrecer un cashback competitivo sin sacrificar demasiado margen. Es el punto de equilibrio ideal entre lo que ganas tú y lo que recibe el cliente. Si no sabes qué margen poner, ese valor recomendado es el punto de partida correcto.
 
 Cuando un vendedor te pregunte cuánto debería cobrar o qué margen poner, siempre dile: **"Ve al simulador en /sell, ingresa tu precio y costo, y haz clic en 'Valor recomendado' — el simulador te da el número exacto con los eventos activos hoy."**
 
@@ -248,7 +248,7 @@ No controlas qué evento elige el comprador — ellos lo eligen libremente entre
 
 ## Consejos para maximizar ventas en CashBak
 
-1. **Ofrece al menos 15% de cashback:** es el umbral donde los compradores lo perciben como muy atractivo. Usa el simulador para encontrar el margen que lo permite sin afectar tu rentabilidad.
+1. **Usa el valor recomendado del simulador:** ve a /sell, ingresa tu precio y costo, y haz clic en "Valor recomendado". Ese número está calculado para que el cashback sea competitivo sin sacrificar tu margen.
 
 2. **Activa ambas opciones de entrega si puedes:** tener tanto envío a domicilio como retiro en tienda amplía tu alcance de compradores.
 
