@@ -3,8 +3,14 @@ import { Button } from "@/components/ui/button"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "¿Qué es CashBak?",
-  description: "Descubre cómo funciona CashBak: compra productos, elige un evento deportivo y recupera hasta el 100% de tu dinero si se cumple.",
+  title: "¿Qué es CashBak? — Cómo funciona el cashback en Chile",
+  description: "Descubre cómo funciona CashBak: compra productos en tiendas chilenas, elige un evento deportivo y recupera hasta el 100% de tu dinero si se cumple. El cashback más innovador de Chile.",
+  keywords: ["qué es cashback", "cómo funciona cashback Chile", "cashbak explicación", "recuperar dinero compras Chile"],
+  openGraph: {
+    title: "¿Qué es CashBak? Cómo funciona el cashback en Chile",
+    description: "Compra, elige tu evento deportivo y recupera hasta el 100% de tu dinero. Así funciona CashBak.",
+    url: "https://cashbak.cl/howto",
+  },
 }
 
 export default function cashbakInfoPage() {

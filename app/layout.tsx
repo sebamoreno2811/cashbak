@@ -24,12 +24,37 @@ export const metadata: Metadata = {
     default: "CashBak — Compra y recupera tu dinero",
     template: "%s | CashBak",
   },
-  description: "CashBak es el marketplace chileno donde compras en múltiples tiendas y recuperas parte de tu dinero si se cumple tu evento deportivo. Tecnología, cashback y variedad en un solo lugar.",
-  keywords: ["cashback Chile", "marketplace Chile", "tiendas online Chile", "cashbak", "compras con cashback", "recupera tu dinero", "marketplace deportivo", "variedad de tiendas", "tecnología ecommerce", "cashback deportivo", "compras online Chile", "plataforma de comercio"],
+  description: "CashBak es el marketplace chileno donde compras en múltiples tiendas y recuperas parte de tu dinero si se cumple tu evento deportivo. Cashback real en Chile.",
+  keywords: [
+    "cashback Chile",
+    "cashbak",
+    "marketplace Chile",
+    "tiendas online Chile",
+    "compras con cashback",
+    "recupera tu dinero",
+    "marketplace deportivo",
+    "cashback deportivo Chile",
+    "compras online Chile",
+    "plataforma de comercio Chile",
+    "ganar cashback Chile",
+    "ecommerce cashback",
+  ],
+  metadataBase: new URL("https://cashbak.cl"),
+  alternates: {
+    canonical: "https://cashbak.cl",
+  },
   openGraph: {
     siteName: "CashBak",
     locale: "es_CL",
     type: "website",
+    url: "https://cashbak.cl",
+    title: "CashBak — Compra y recupera tu dinero",
+    description: "Compra en tiendas chilenas y recupera hasta el 100% de tu dinero con cashback si se cumple tu evento deportivo.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CashBak — Cashback en Chile",
+    description: "Compra en tiendas chilenas y recupera tu dinero con cashback si se cumple tu evento deportivo.",
   },
   verification: {
     google: "RGA8T8bZSUjuiwnKbeDj72PjJtxeZINh2Wk1UGJBt8Y",
@@ -59,6 +84,24 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/img/logo_no_text.png" />
       </head>
       <body className={inter.className}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "CashBak",
+              url: "https://cashbak.cl",
+              logo: "https://cashbak.cl/img/logo_no_text.png",
+              sameAs: ["https://www.instagram.com/cashbak.cl"],
+              description: "CashBak es el marketplace chileno de cashback. Compra en tiendas chilenas y recupera hasta el 100% de tu dinero si se cumple tu evento deportivo.",
+              address: {
+                "@type": "PostalAddress",
+                addressCountry: "CL",
+              },
+            }),
+          }}
+        />
         <Analytics />
         <PostHogProvider>
         <ProductsProvider>

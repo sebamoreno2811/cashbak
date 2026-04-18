@@ -14,7 +14,10 @@
       "mcp__claude_ai_Supabase__list_projects",
       "Bash(find /Users/sebastianmoreno/Desktop/cashbak -path */supabase/* -type f)",
       "Bash(ls /Users/sebastianmoreno/Desktop/cashbak/app/admin/vendedor/[storeId]/)",
-      "Bash(grep -r \"redis\\\\|Redis\\\\|REDIS\\\\|upstash\\\\|Upstash\\\\|ioredis\\\\|kv\\\\b\" /Users/sebastianmoreno/Desktop/cashbak/package.json /Users/sebastianmoreno/Desktop/cashbak/.env*)"
+      "Bash(grep -r \"redis\\\\|Redis\\\\|REDIS\\\\|upstash\\\\|Upstash\\\\|ioredis\\\\|kv\\\\b\" /Users/sebastianmoreno/Desktop/cashbak/package.json /Users/sebastianmoreno/Desktop/cashbak/.env*)",
+      "Bash(cat /Users/sebastianmoreno/Desktop/cashbak/next.config.*)",
+      "Bash(ls /Users/sebastianmoreno/Desktop/cashbak/app/sitemap* /Users/sebastianmoreno/Desktop/cashbak/app/robots*)",
+      "Bash(ls /Users/sebastianmoreno/Desktop/cashbak/public/sitemap* /Users/sebastianmoreno/Desktop/cashbak/public/robots*)"
     ],
     "additionalDirectories": [
       "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]",

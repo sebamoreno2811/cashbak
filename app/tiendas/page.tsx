@@ -1,5 +1,17 @@
+import type { Metadata } from "next"
 import { createSupabaseClientWithCookies as createClient } from "@/utils/supabase/server"
 import TiendasClient from "./TiendasClient"
+
+export const metadata: Metadata = {
+  title: "Tiendas con CashBak en Chile",
+  description: "Explora las tiendas asociadas a CashBak. Compra en múltiples tiendas chilenas y recupera hasta el 100% de tu dinero con cashback si se cumple tu evento deportivo.",
+  keywords: ["tiendas cashback Chile", "tiendas online Chile", "compras con cashback", "cashbak tiendas", "marketplace Chile"],
+  openGraph: {
+    title: "Tiendas con CashBak en Chile",
+    description: "Compra en tiendas chilenas y gana cashback. Descubre todas las tiendas disponibles en CashBak.",
+    url: "https://cashbak.cl/tiendas",
+  },
+}
 
 interface StoreRow {
   id: string
