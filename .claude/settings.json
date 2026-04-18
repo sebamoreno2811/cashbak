@@ -17,7 +17,8 @@
       "Bash(grep -r \"redis\\\\|Redis\\\\|REDIS\\\\|upstash\\\\|Upstash\\\\|ioredis\\\\|kv\\\\b\" /Users/sebastianmoreno/Desktop/cashbak/package.json /Users/sebastianmoreno/Desktop/cashbak/.env*)",
       "Bash(cat /Users/sebastianmoreno/Desktop/cashbak/next.config.*)",
       "Bash(ls /Users/sebastianmoreno/Desktop/cashbak/app/sitemap* /Users/sebastianmoreno/Desktop/cashbak/app/robots*)",
-      "Bash(ls /Users/sebastianmoreno/Desktop/cashbak/public/sitemap* /Users/sebastianmoreno/Desktop/cashbak/public/robots*)"
+      "Bash(ls /Users/sebastianmoreno/Desktop/cashbak/public/sitemap* /Users/sebastianmoreno/Desktop/cashbak/public/robots*)",
+      "Bash(grep -n \"comment\\\\|star\\\\|insert\\\\|purchase\\\\|order\\\\|reseña\\\\|review\" /Users/sebastianmoreno/Desktop/cashbak/app/product/[id]/[slug]/page.tsx)"
     ],
     "additionalDirectories": [
       "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]",

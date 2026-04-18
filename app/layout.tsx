@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     description: "Compra en tiendas chilenas y recupera tu dinero con cashback si se cumple tu evento deportivo.",
   },
   verification: {
-    google: "RGA8T8bZSUjuiwnKbeDj72PjJtxeZINh2Wk1UGJBt8Y",
+    google: "d2-BXDwd0vOrs2jrkdfCzYC9c8qeE9-wW7aZsDkONv0",
   },
   icons: {
     icon: [

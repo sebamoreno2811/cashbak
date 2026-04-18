@@ -69,12 +69,30 @@ export default function ProductPage() {
   })
 
   const [hoverRating, setHoverRating] = useState<number | null>(null)
+  const [hasPurchased, setHasPurchased] = useState<boolean | null>(null)
 
   const productComments = comments.filter((c) => c.product_id === product?.id)
 
   const { user } = useSupabaseUser()
 
   const customer_active = customers.filter((c) => c.id === user?.id)
+
+  useEffect(() => {
+    if (!user || !product) {
+      setHasPurchased(null)
+      return
+    }
+    const supabase = createClient()
+    supabase
+      .from("order_items")
+      .select("id, orders!inner(customer_id)")
+      .eq("product_id", product.id)
+      .eq("orders.customer_id", user.id)
+      .limit(1)
+      .then(({ data }) => {
+        setHasPurchased((data?.length ?? 0) > 0)
+      })
+  }, [user, product])
 
   const { addItem, items } = useCart()
 
@@ -507,7 +525,13 @@ export default function ProductPage() {
       <div className="mt-12 space-y-8">
         <h2 className="text-2xl font-bold text-gray-900">Comentarios</h2>
 
-        {user ? (
+        {!user ? (
+          <p className="text-gray-500 text-sm">Debes iniciar sesión para dejar un comentario.</p>
+        ) : hasPurchased === null ? (
+          <p className="text-gray-400 text-sm">Verificando compra...</p>
+        ) : !hasPurchased ? (
+          <p className="text-gray-500 text-sm">Solo los compradores verificados pueden dejar una reseña.</p>
+        ) : (
           <form onSubmit={handleComment} className="space-y-4">
             <Label htmlFor="comment">Agrega tu comentario</Label>
             <textarea
@@ -544,8 +568,6 @@ export default function ProductPage() {
               {isLoading ? "Enviando..." : "Enviar comentario"}
             </Button>
           </form>
-        ) : (
-          <p className="text-gray-600">Debes iniciar sesión para dejar un comentario.</p>
         )}
 
         {commentsLoading ? (
