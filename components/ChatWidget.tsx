@@ -32,12 +32,15 @@ function renderMarkdown(text: string) {
 }
 
 function formatInline(text: string): React.ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g)
-  return parts.map((part, i) =>
-    part.startsWith("**") && part.endsWith("**")
-      ? <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>
-      : part
-  )
+  const parts = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g)
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**"))
+      return <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>
+    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+    if (linkMatch)
+      return <a key={i} href={linkMatch[2]} className="text-green-700 underline font-medium hover:text-green-900">{linkMatch[1]}</a>
+    return part
+  })
 }
 
 interface Message {

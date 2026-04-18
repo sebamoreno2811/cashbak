@@ -703,16 +703,14 @@ function ProductFormModal({
 
   const priceNum = Number(price) || 0
   const costNum = Number(cost) || 0
-  const valid = priceNum > costNum && costNum > 0
+  const valid = priceNum > 0
 
-  // Recomendación del slider
+  // Recomendación del slider (no necesita costo — se basa solo en el precio)
   const pricing = useMemo(() => {
     if (!valid) return null
     const recMonto = calcularRecomendado(priceNum)
-    const recFallbackMonto = Math.round(priceNum - 0.35 * (priceNum - costNum))
-    const actualRec = recMonto > costNum ? recMonto : (recFallbackMonto > costNum ? recFallbackMonto : null)
-    return { recMonto: actualRec }
-  }, [priceNum, costNum, valid])
+    return { recMonto: recMonto > 0 ? recMonto : null }
+  }, [priceNum, valid])
 
   // Máximo cashback posible con el monto recomendado y los eventos activos
   const maxCashbackAtRec = useMemo(() => {
@@ -720,13 +718,13 @@ function ProductFormModal({
     return bets.reduce((acc, bet) => {
       const r = calculateExternalCashbak({
         precioVenta: priceNum,
-        costo: costNum,
+        costo: 0,
         cuota: bet.odd,
         margenVendedorPct: pricing.recMonto! / priceNum,
       })
       return Math.max(acc, r.cashbackPct)
     }, 0)
-  }, [valid, pricing, bets, priceNum, costNum])
+  }, [valid, pricing, bets, priceNum])
 
   // Cuando cambia el precio y es producto nuevo, pre-selecciona el monto recomendado
   useEffect(() => {
@@ -744,7 +742,7 @@ function ProductFormModal({
     if (!valid) return null
     return calculateExternalCashbak({
       precioVenta: priceNum,
-      costo: costNum,
+      costo: costNum, // solo afecta ganancia neta ilustrativa; 0 si no se ingresó
       cuota,
       margenVendedorPct: priceNum > 0 ? gananciaCLP / priceNum : 0,
     })
@@ -954,16 +952,15 @@ function ProductFormModal({
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tu costo *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tu costo <span className="text-gray-400 font-normal">(opcional)</span></label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                 <input
-                  required
                   type="number"
-                  min="1"
+                  min="0"
                   value={cost}
                   onChange={(e) => setCost(e.target.value)}
-                  placeholder="10000"
+                  placeholder="Solo para ver tu ganancia neta"
                   className="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
                 />
               </div>
@@ -1074,16 +1071,18 @@ function ProductFormModal({
                       </div>
                       <span className="font-semibold text-gray-800 shrink-0">{sim.cashbackPct}% · ${FMT(sim.cashbackMonto)}</span>
                     </div>
-                    <div className={`flex justify-between text-sm py-1.5 rounded ${sim.margenVendedorNeto < costNum ? "px-2 bg-red-50 border border-red-200" : ""}`}>
-                      <div>
-                        <span className={sim.margenVendedorNeto < costNum ? "text-red-600 font-semibold" : "text-gray-500"}>Ganancia neta estimada</span>
-                        <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo y 2% Transbank</p>
-                        {sim.margenVendedorNeto < costNum && <p className="text-xs text-red-500">⚠️ Tu ingreso neto es menor que tu costo declarado. Estarías vendiendo a pérdida.</p>}
+                    {costNum > 0 && (
+                      <div className={`flex justify-between text-sm py-1.5 rounded ${sim.margenVendedorNeto < costNum ? "px-2 bg-red-50 border border-red-200" : ""}`}>
+                        <div>
+                          <span className={sim.margenVendedorNeto < costNum ? "text-red-600 font-semibold" : "text-gray-500"}>Ganancia neta estimada</span>
+                          <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo y 2% Transbank</p>
+                          {sim.margenVendedorNeto < costNum && <p className="text-xs text-red-500">⚠️ Tu ingreso neto es menor que tu costo declarado. Estarías vendiendo a pérdida.</p>}
+                        </div>
+                        <span className={`font-semibold ${sim.margenVendedorNeto < costNum ? "text-red-600" : "text-gray-600"}`}>
+                          {sim.gananciaNeta < 0 ? `-$${FMT(Math.abs(sim.gananciaNeta))}` : `$${FMT(sim.gananciaNeta)}`}
+                        </span>
                       </div>
-                      <span className={`font-semibold ${sim.margenVendedorNeto < costNum ? "text-red-600" : "text-gray-600"}`}>
-                        {sim.gananciaNeta < 0 ? `-$${FMT(Math.abs(sim.gananciaNeta))}` : `$${FMT(sim.gananciaNeta)}`}
-                      </span>
-                    </div>
+                    )}
                     <p className="text-xs text-gray-400 pt-1 border-t border-gray-100">
                       {selectedBet
                         ? `Simulado con el evento "${selectedBet.name}".`
@@ -1094,10 +1093,6 @@ function ProductFormModal({
                 </>
               )}
             </div>
-          ) : (priceNum > 0 || costNum > 0) ? (
-            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              El precio de venta debe ser mayor al costo.
-            </p>
           ) : null}
 
           {/* Stock */}

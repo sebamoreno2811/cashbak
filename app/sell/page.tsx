@@ -31,7 +31,7 @@ function selectVariedBets(bets: Bet[], maxCount = 4): Bet[] {
 
 export default function SellPage() {
   const [precioVenta, setPrecioVenta] = useState<string>("20000")
-  const [costo, setCosto] = useState<string>("10000")
+  const [costo, setCosto] = useState<string>("")
   const calcularRecomendado = (p: number) => Math.max(0, Math.round(p - (0.15 * p / 1.5) / 0.80))
   const [gananciaCLP, setGananciaCLP] = useState<number>(() => calcularRecomendado(20000))
   const [bets, setBets] = useState<Bet[]>([])
@@ -104,7 +104,7 @@ export default function SellPage() {
       <section className="py-14 bg-green-900 text-white text-center px-4">
         <h1 className="text-4xl font-bold mb-3">Vende con nosotros</h1>
         <p className="text-green-200 text-lg max-w-xl mx-auto">
-          Simula cómo funcionaría vender tu producto en CashBak. Ingresa tu precio y costo y descubre cuánto CashBak puedes ofrecer a tus clientes.
+          Simula cómo funcionaría vender tu producto en CashBak. Ingresa tu precio y descubre cuánto CashBak puedes ofrecer a tus clientes.
         </p>
       </section>
 
@@ -130,16 +130,16 @@ export default function SellPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="costo">Tu costo de producto (CLP) <span className="text-gray-400 font-normal">(ilustrativo)</span></Label>
+                <Label htmlFor="costo">Tu costo de producto (CLP) <span className="text-gray-400 font-normal">(opcional)</span></Label>
                 <Input
                   id="costo"
                   type="number"
-                  min={1}
+                  min={0}
                   value={costo}
                   onChange={(e) => setCosto(e.target.value)}
-                  placeholder="Ej: 10000"
+                  placeholder="Solo para ver tu ganancia neta estimada"
                 />
-                <p className="text-xs text-gray-400">Solo para mostrarte tu ganancia neta estimada. No afecta el CashBak ni la comisión — ingresa tu costo real para que el cálculo sea preciso.</p>
+                <p className="text-xs text-gray-400">No afecta el CashBak ni la comisión. Ingrésalo si quieres ver cuánto ganas después de costos.</p>
               </div>
 
               <div className="space-y-3">
@@ -276,14 +276,16 @@ export default function SellPage() {
                       <span className="font-semibold text-gray-500 shrink-0">{resultado.cashbackPct}%</span>
                     </div>
 
-                    <div className={`flex justify-between items-start gap-3 py-2 rounded-lg ${resultado.margenVendedorNeto < costoNum ? "px-2 bg-red-50 border border-red-200" : ""}`}>
-                      <div className="min-w-0">
-                        <span className={`text-sm ${resultado.margenVendedorNeto < costoNum ? "text-red-600 font-semibold" : "text-gray-500"}`}>Tu ganancia neta estimada</span>
-                        <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo ({formatCLP(costoNum)}) y 2% Transbank ({formatCLP(resultado.tarifaProcesamiento)})</p>
-                        {resultado.margenVendedorNeto < costoNum && <p className="text-xs text-red-500 mt-0.5">⚠️ Tu ingreso neto es menor que tu costo declarado. Estarías vendiendo a pérdida.</p>}
+                    {costoNum > 0 && (
+                      <div className={`flex justify-between items-start gap-3 py-2 rounded-lg ${resultado.margenVendedorNeto < costoNum ? "px-2 bg-red-50 border border-red-200" : ""}`}>
+                        <div className="min-w-0">
+                          <span className={`text-sm ${resultado.margenVendedorNeto < costoNum ? "text-red-600 font-semibold" : "text-gray-500"}`}>Tu ganancia neta estimada</span>
+                          <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo ({formatCLP(costoNum)}) y 2% Transbank ({formatCLP(resultado.tarifaProcesamiento)})</p>
+                          {resultado.margenVendedorNeto < costoNum && <p className="text-xs text-red-500 mt-0.5">⚠️ Tu ingreso neto es menor que tu costo declarado. Estarías vendiendo a pérdida.</p>}
+                        </div>
+                        <span className={`font-semibold shrink-0 ${resultado.margenVendedorNeto < costoNum ? "text-red-600" : "text-gray-700"}`}>{formatCLP(resultado.gananciaNeta)}</span>
                       </div>
-                      <span className={`font-semibold shrink-0 ${resultado.margenVendedorNeto < costoNum ? "text-red-600" : "text-gray-700"}`}>{formatCLP(resultado.gananciaNeta)}</span>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               </>
