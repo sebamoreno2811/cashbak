@@ -26,14 +26,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from("vendor_profiles")
     .select("user_id, store_name, updated_at")
 
-  const productUrls: MetadataRoute.Sitemap = (products ?? []).map((p) => ({
+  const productUrls: MetadataRoute.Sitemap = (products ?? []).map((p: { id: string; name: string; updated_at: string | null }) => ({
     url: `${BASE_URL}/product/${p.id}/${slugify(p.name)}`,
     lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
     changeFrequency: "weekly",
     priority: 0.8,
   }))
 
-  const vendorUrls: MetadataRoute.Sitemap = (vendors ?? []).map((v) => ({
+  const vendorUrls: MetadataRoute.Sitemap = (vendors ?? []).map((v: { user_id: string; updated_at: string | null }) => ({
     url: `${BASE_URL}/tiendas/${v.user_id}`,
     lastModified: v.updated_at ? new Date(v.updated_at) : new Date(),
     changeFrequency: "weekly",
