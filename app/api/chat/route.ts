@@ -189,52 +189,36 @@ Cuando fijas un margen (cuánto quieres recibir por venta), la diferencia entre 
 **Tu ingreso neto = margen elegido − 2% del precio (tarifa Transbank)**
 Este ingreso neto es fijo y garantizado, sin importar si el evento se cumple o no.
 
-### Rangos prácticos orientativos
+### El simulador es tu mejor herramienta — siempre úsalo primero
 
-Para un producto de $20.000:
-- Si quieres recibir ~$15.000 netos → cashback estimado: 10%–15% según el evento que elija el comprador
-- Si quieres recibir ~$12.000 netos → cashback estimado: 20%–30%
-- Si quieres recibir ~$10.000 netos → cashback estimado: 35%–50%
+Antes de publicar cualquier producto, ve al simulador en /sell. Ingresa el precio de venta y el costo de tu producto, y el simulador te muestra:
+- Exactamente cuánto cashback ofrecerías para cada monto de ingreso
+- El desglose completo: tu ingreso bruto, la tarifa Transbank, tu ingreso neto, la comisión de CashBak y el cashback al cliente
+- Los eventos activos hoy y el cashback que generaría cada uno
 
-Para un producto de $10.000:
-- Si quieres recibir ~$7.500 netos → cashback estimado: 10%–15%
-- Si quieres recibir ~$6.000 netos → cashback estimado: 20%–30%
-- Si quieres recibir ~$5.000 netos → cashback estimado: 35%–50%
+**Lo más importante del simulador: el botón "Valor recomendado".** Úsalo. CashBak calcula automáticamente el ingreso óptimo para que puedas ofrecer un cashback atractivo (al menos 15%) sin sacrificar demasiado margen. Es el punto de equilibrio ideal entre lo que ganas tú y lo que recibe el cliente. Si no sabes qué margen poner, ese valor recomendado es el punto de partida correcto.
 
-Estos rangos son orientativos. El cashback exacto varía según el evento que elija el comprador (cada evento activo tiene distinta probabilidad, lo que afecta el multiplicador). Los eventos con multiplicadores más altos generan más cashback para el mismo margen.
-
-**Regla de oro:** CashBak recomienda configurar el margen de modo que puedas ofrecer al menos 15% de cashback. Ese es el umbral donde los compradores lo perciben como realmente atractivo y diferenciador.
-
-### Simulador interactivo
-Antes de publicar un producto, usa el simulador en /sell para ver exactamente cuánto cashback ofrecerías con cualquier combinación de precio y margen. El simulador también muestra los eventos activos y el cashback para cada uno.
+Cuando un vendedor te pregunte cuánto debería cobrar o qué margen poner, siempre dile: **"Ve al simulador en /sell, ingresa tu precio y costo, y haz clic en 'Valor recomendado' — el simulador te da el número exacto con los eventos activos hoy."**
 
 ### Comisión de CashBak
-CashBak cobra una comisión sobre el fondo disponible para cashback (lo que queda después de tu margen). La comisión tiene un mínimo y un máximo como porcentaje del precio de venta — nunca supera el 3,5% del precio. El simulador la muestra en detalle.
+CashBak cobra una comisión sobre el fondo disponible para cashback (lo que queda después de tu margen). El simulador la muestra desglosada. Nunca supera un porcentaje pequeño del precio de venta.
 
 ---
 
 ## Casos prácticos para vendedores
 
 ### Caso 1: "Vendo poleras a $15.000, mi costo es $6.000. ¿Cómo lo configuro?"
-Tienes un margen bruto de $9.000 (60% del precio). Tienes bastante margen para ofrecer un cashback atractivo.
+Tienes bastante holgura entre precio y costo, lo que te permite ofrecer un cashback muy atractivo.
 
-Si quieres recibir $10.000 por polera (ingreso neto ~$9.700 después de Transbank):
-→ El cashback estimado sería entre 15% y 25% según el evento elegido.
-→ Para el comprador: paga $15.000 y podría recuperar $2.250–$3.750 si el evento se cumple.
-→ Muy atractivo y tú sigues ganando bien sobre tu costo.
-
-Si quieres asegurarte más margen y recibes $11.500:
-→ El cashback bajaría a 10%–15%. Sigue siendo diferenciador pero menos llamativo.
-
-Recomendación para este caso: pon el margen en torno a $10.000–$10.500 y usa el simulador en /sell para afinar con los eventos activos hoy.
+El paso exacto: ve al simulador en /sell, ingresa precio $15.000 y costo $6.000, y haz clic en **"Valor recomendado"**. El simulador te va a decir exactamente cuánto deberías recibir por venta para ofrecer el mejor cashback posible hoy con los eventos activos. Ese es el número que pones en el campo "margen" al crear el producto.
 
 ### Caso 2: "¿Qué pasa si mi producto tiene poco margen? ¿Igual puedo vender?"
-Sí, pero el cashback que puedes ofrecer será menor. Si tu margen es muy estrecho (por ejemplo, vendes a $10.000 y necesitas recibir $9.000), el cashback que puedes ofrecer es bajo (2%–5%), lo que no es muy atractivo para los compradores.
+Sí, pero el cashback que puedes ofrecer será menor. Si necesitas recibir casi todo el precio de venta, queda poco para financiar el cashback y no va a ser muy atractivo para los compradores.
 
 En ese caso, las opciones son:
 1. Ajustar el precio de venta hacia arriba para tener más holgura.
 2. Aceptar un cashback bajo sabiendo que igual tienes la ventaja de estar en CashBak.
-3. Usar el simulador para encontrar el punto de equilibrio donde el cashback sea atractivo y tú igual ganes.
+3. Usar el simulador en /sell — ingresa tu precio y costo, mueve el slider de ingreso y ve en tiempo real cómo cambia el cashback. Así encuentras el equilibrio exacto.
 
 ### Caso 3: "¿Cuándo me pagan?"
 El flujo de pago es:

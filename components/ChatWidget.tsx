@@ -188,13 +188,34 @@ export default function ChatWidget() {
       )}
 
       {/* Botón flotante */}
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="fixed bottom-4 right-4 z-50 bg-green-900 hover:bg-green-800 text-white rounded-full p-3.5 shadow-lg transition-all hover:scale-105 active:scale-95"
-        aria-label="Abrir chat de soporte"
-      >
-        {open ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
-      </button>
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
+        {/* Etiqueta "¿Tienes dudas?" */}
+        {!open && (
+          <div className="flex items-center gap-2 bg-white text-green-900 text-xs font-semibold px-3 py-1.5 rounded-full shadow-md border border-green-100 animate-bounce-slow whitespace-nowrap">
+            <span className="w-2 h-2 bg-green-500 rounded-full shrink-0" />
+            ¿Tienes dudas? Pregúntame
+          </div>
+        )}
+        <button
+          onClick={() => setOpen(v => !v)}
+          className="relative bg-green-900 hover:bg-green-800 text-white rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-2.5 px-4 py-3"
+          aria-label="Abrir chat de soporte"
+        >
+          {open ? (
+            <X className="w-5 h-5" />
+          ) : (
+            <>
+              {/* Pulso de atención */}
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+              </span>
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-sm font-semibold">Baki</span>
+            </>
+          )}
+        </button>
+      </div>
     </>
   )
 }
