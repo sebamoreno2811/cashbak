@@ -1,12 +1,21 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { NextRequest } from "next/server"
+import { Redis } from "@upstash/redis"
+import { Ratelimit } from "@upstash/ratelimit"
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-// Rate limiter en memoria (se resetea en cada cold start de Vercel, suficiente para protección básica)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-const RATE_LIMIT = 15     // mensajes por ventana
-const RATE_WINDOW = 60_000 // 1 minuto en ms
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+})
+
+// 15 mensajes por minuto por IP, persistente en Redis (sobrevive cold starts y múltiples instancias)
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(15, "1 m"),
+  prefix: "chat_rl",
+})
 
 const SYSTEM_PROMPT = `Eres Baki, el asistente virtual de CashBak, una plataforma de comercio electrónico chilena. Tu único rol es ayudar a compradores y vendedores a entender cómo funciona CashBak y cómo usar la plataforma. Cuando alguien te pregunte cómo te llamas, responde que eres Baki.
 
@@ -191,28 +200,14 @@ También puedes contactarte directamente con la tienda donde compraste si la con
 Responde siempre en español. Sé claro, amable y directo. Si algo está fuera de tu alcance o es muy específico, dilo sin rodeos y deriva a los canales de soporte indicando email e Instagram.`
 
 export async function POST(req: NextRequest) {
-  // Rate limiting por IP
+  // Rate limiting por IP usando Upstash Redis (persiste entre cold starts e instancias)
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-
-  if (entry && now < entry.resetAt) {
-    if (entry.count >= RATE_LIMIT) {
-      return new Response(
-        JSON.stringify({ error: "Demasiados mensajes. Espera un momento antes de continuar." }),
-        { status: 429, headers: { "Content-Type": "application/json" } }
-      )
-    }
-    entry.count++
-  } else {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW })
-  }
-
-  // Limpiar entradas viejas ocasionalmente
-  if (rateLimitMap.size > 1000) {
-    for (const [key, val] of rateLimitMap) {
-      if (now > val.resetAt) rateLimitMap.delete(key)
-    }
+  const { success } = await ratelimit.limit(ip)
+  if (!success) {
+    return new Response(
+      JSON.stringify({ error: "Demasiados mensajes. Espera un momento antes de continuar." }),
+      { status: 429, headers: { "Content-Type": "application/json" } }
+    )
   }
 
   let messages: Anthropic.MessageParam[]

@@ -13,7 +13,8 @@
       "Bash(xargs ls:*)",
       "mcp__claude_ai_Supabase__list_projects",
       "Bash(find /Users/sebastianmoreno/Desktop/cashbak -path */supabase/* -type f)",
-      "Bash(ls /Users/sebastianmoreno/Desktop/cashbak/app/admin/vendedor/[storeId]/)"
+      "Bash(ls /Users/sebastianmoreno/Desktop/cashbak/app/admin/vendedor/[storeId]/)",
+      "Bash(grep -r \"redis\\\\|Redis\\\\|REDIS\\\\|upstash\\\\|Upstash\\\\|ioredis\\\\|kv\\\\b\" /Users/sebastianmoreno/Desktop/cashbak/package.json /Users/sebastianmoreno/Desktop/cashbak/.env*)"
     ],
     "additionalDirectories": [
       "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]",
