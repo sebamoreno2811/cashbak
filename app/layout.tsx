@@ -75,6 +75,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
+        <meta name="google-site-verification" content="d2-BXDwd0vOrs2jrkdfCzYC9c8qeE9-wW7aZsDkONv0" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#14532d" />
         <meta name="mobile-web-app-capable" content="yes" />
