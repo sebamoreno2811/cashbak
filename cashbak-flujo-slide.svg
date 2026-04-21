@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" width="1080" height="1350">
+  <defs>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="4" result="off"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.18"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <marker id="arrowHead" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#10B981"/>
+    </marker>
+  </defs>
+
+  <!-- ===== FONDO ===== -->
+  <rect width="1080" height="1350" fill="#F7F3E8"/>
+
+  <!-- ===== HEADER: LOGO + TÍTULO ===== -->
+  <g transform="translate(80, 70)">
+    <!-- Ícono verde con $ y pelota -->
+    <rect x="0" y="0" width="80" height="80" rx="16" fill="#0C5C2E"/>
+    <text x="32" y="56" font-family="Arial Black, Helvetica, sans-serif" font-size="48" font-weight="900" text-anchor="middle" fill="#FFF8E8">$</text>
+    <!-- Pelota -->
+    <g transform="translate(50, 46)">
+      <circle cx="14" cy="14" r="14" fill="#FFF8E8"/>
+      <polygon points="14,4 21,9 19,17 9,17 7,9" fill="#0C5C2E"/>
+      <line x1="14" y1="4" x2="14" y2="0" stroke="#0C5C2E" stroke-width="1.5"/>
+    </g>
+    <text x="100" y="58" font-family="Arial Black, Helvetica, sans-serif" font-size="44" font-weight="900" fill="#111">CASHBAK</text>
+  </g>
+
+  <!-- Título -->
+  <text x="540" y="215" font-family="Arial Black, Helvetica, sans-serif" font-size="58" font-weight="900" text-anchor="middle" fill="#111">ASÍ FUNCIONA</text>
+  <line x1="395" y1="234" x2="685" y2="234" stroke="#0C5C2E" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- ===== TARJETA 1 · COMPRA (arriba-izquierda) ===== -->
+  <g filter="url(#cardShadow)">
+    <rect x="70" y="275" width="540" height="240" rx="24" fill="#FFFFFF" stroke="#E8E2D2" stroke-width="2"/>
+  </g>
+  <g>
+    <rect x="94" y="295" width="160" height="36" rx="18" fill="#0C5C2E"/>
+    <text x="174" y="320" font-family="Arial Black, Helvetica, sans-serif" font-size="19" font-weight="900" text-anchor="middle" fill="#FFF8E8">1. COMPRA</text>
+  </g>
+
+  <!-- Zapatilla (más chica y a la izquierda) -->
+  <g transform="translate(105, 365)">
+    <!-- Suela -->
+    <path d="M 5 95 Q 5 105 18 105 L 175 105 Q 195 105 195 95 L 195 82 L 5 82 Z" fill="#0C5C2E"/>
+    <!-- Cuerpo -->
+    <path d="M 25 82 L 25 58 Q 25 38 55 38 L 105 38 Q 122 38 135 47 L 165 65 Q 180 70 192 70 L 192 82 Z" fill="#FAFAFA" stroke="#111" stroke-width="2.5"/>
+    <!-- Líneas frontales -->
+    <path d="M 65 42 L 78 78" stroke="#0C5C2E" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 88 42 L 100 78" stroke="#0C5C2E" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 110 47 L 122 78" stroke="#0C5C2E" stroke-width="3" stroke-linecap="round"/>
+    <!-- Swoosh -->
+    <path d="M 145 60 Q 170 52 188 60" stroke="#0C5C2E" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <!-- Cordones -->
+    <circle cx="50" cy="55" r="2.5" fill="#111"/>
+    <circle cx="58" cy="52" r="2.5" fill="#111"/>
+  </g>
+
+  <!-- Texto producto a la derecha -->
+  <text x="335" y="425" font-family="Arial Black, Helvetica, sans-serif" font-size="26" font-weight="900" fill="#111">Zapatillas</text>
+  <text x="335" y="458" font-family="Arial Black, Helvetica, sans-serif" font-size="26" font-weight="900" fill="#111">Running</text>
+  <text x="335" y="500" font-family="Arial Black, Helvetica, sans-serif" font-size="34" font-weight="900" fill="#0C5C2E">$49.990</text>
+
+  <!-- ===== FLECHA 1 → 2 ===== -->
+  <path d="M 595 510 Q 720 540 720 605" stroke="#10B981" stroke-width="7" fill="none" stroke-linecap="round" marker-end="url(#arrowHead)"/>
+
+  <!-- ===== TARJETA 2 · EVENTO ASOCIADO (centro-derecha) ===== -->
+  <g filter="url(#cardShadow)">
+    <rect x="450" y="620" width="560" height="280" rx="24" fill="#FFFFFF" stroke="#E8E2D2" stroke-width="2"/>
+  </g>
+  <g>
+    <rect x="474" y="640" width="240" height="36" rx="18" fill="#0C5C2E"/>
+    <text x="594" y="665" font-family="Arial Black, Helvetica, sans-serif" font-size="18" font-weight="900" text-anchor="middle" fill="#FFF8E8">2. EVENTO ASOCIADO</text>
+  </g>
+
+  <!-- Bandera Francia -->
+  <g transform="translate(485, 705)">
+    <rect x="0" y="0" width="32" height="64" fill="#0055A4"/>
+    <rect x="32" y="0" width="32" height="64" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+    <rect x="64" y="0" width="32" height="64" fill="#EF4135"/>
+    <text x="115" y="46" font-family="Arial Black, Helvetica, sans-serif" font-size="36" font-weight="900" fill="#111">FRANCIA</text>
+  </g>
+
+  <!-- Trofeo -->
+  <g transform="translate(880, 695)">
+    <path d="M 15 5 L 65 5 L 60 35 Q 60 50 40 50 Q 20 50 20 35 Z" fill="#F5B800" stroke="#111" stroke-width="2"/>
+    <path d="M 15 8 Q -2 11 -2 22 Q -2 34 18 32" fill="none" stroke="#111" stroke-width="2"/>
+    <path d="M 65 8 Q 82 11 82 22 Q 82 34 62 32" fill="none" stroke="#111" stroke-width="2"/>
+    <rect x="33" y="50" width="14" height="10" fill="#F5B800" stroke="#111" stroke-width="2"/>
+    <rect x="20" y="60" width="40" height="10" rx="2" fill="#F5B800" stroke="#111" stroke-width="2"/>
+    <polygon points="40,18 43,26 51,26 45,31 47,39 40,34 33,39 35,31 29,26 37,26" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Evento texto -->
+  <text x="478" y="820" font-family="Arial Black, Helvetica, sans-serif" font-size="26" font-weight="900" fill="#111">Francia gana el Mundial</text>
+
+  <!-- Badge 70% CASHBAK -->
+  <g>
+    <rect x="478" y="845" width="220" height="38" rx="19" fill="#10B981"/>
+    <text x="588" y="872" font-family="Arial Black, Helvetica, sans-serif" font-size="20" font-weight="900" text-anchor="middle" fill="#FFFFFF">70% DE CASHBAK</text>
+  </g>
+
+  <!-- ===== FLECHA 2 → 3 ===== -->
+  <path d="M 470 905 Q 320 945 320 985" stroke="#10B981" stroke-width="7" fill="none" stroke-linecap="round" marker-end="url(#arrowHead)"/>
+
+  <!-- ===== TARJETA 3 · TRANSFERENCIA RECIBIDA (abajo) ===== -->
+  <g filter="url(#cardShadow)">
+    <rect x="90" y="1000" width="900" height="280" rx="24" fill="#FFFFFF" stroke="#E8E2D2" stroke-width="2"/>
+  </g>
+
+  <!-- Banner verde superior con esquinas superiores redondeadas -->
+  <path d="M 90 1024 Q 90 1000 114 1000 L 966 1000 Q 990 1000 990 1024 L 990 1064 L 90 1064 Z" fill="#0C5C2E"/>
+  <text x="540" y="1042" font-family="Arial Black, Helvetica, sans-serif" font-size="22" font-weight="900" text-anchor="middle" fill="#FFF8E8">¡FELICITACIONES! FRANCIA GANÓ EL MUNDIAL</text>
+
+  <!-- Confeti -->
+  <g>
+    <rect x="125" y="1015" width="10" height="3" fill="#F5B800" transform="rotate(25 130 1016)"/>
+    <rect x="930" y="1015" width="10" height="3" fill="#F5B800" transform="rotate(-25 935 1016)"/>
+    <circle cx="160" cy="1052" r="2.5" fill="#F5B800"/>
+    <circle cx="900" cy="1018" r="2.5" fill="#F5B800"/>
+    <rect x="200" y="1020" width="6" height="2" fill="#FFF8E8" transform="rotate(45 203 1021)"/>
+    <rect x="870" y="1050" width="6" height="2" fill="#FFF8E8" transform="rotate(-30 873 1051)"/>
+  </g>
+
+  <!-- Etiqueta TRANSFERENCIA RECIBIDA -->
+  <g>
+    <rect x="115" y="1090" width="305" height="36" rx="18" fill="#10B981"/>
+    <text x="267" y="1115" font-family="Arial Black, Helvetica, sans-serif" font-size="17" font-weight="900" text-anchor="middle" fill="#FFFFFF">3. TRANSFERENCIA RECIBIDA</text>
+  </g>
+
+  <!-- Check circle -->
+  <g transform="translate(125, 1155)">
+    <circle cx="55" cy="55" r="48" fill="#10B981"/>
+    <path d="M 32 56 L 50 73 L 80 38" stroke="#FFFFFF" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Monto hero -->
+  <text x="260" y="1185" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#6B7A6E">Monto abonado a tu cuenta</text>
+  <text x="260" y="1255" font-family="Arial Black, Helvetica, sans-serif" font-size="68" font-weight="900" fill="#10B981">+ $34.993</text>
+
+  <!-- Línea punteada ticket derecho -->
+  <line x1="780" y1="1130" x2="780" y2="1265" stroke="#CFCAB9" stroke-width="2" stroke-dasharray="6 6"/>
+  <text x="885" y="1170" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" text-anchor="middle" fill="#6B7A6E">ESTADO</text>
+  <text x="885" y="1208" font-family="Arial Black, Helvetica, sans-serif" font-size="24" font-weight="900" text-anchor="middle" fill="#0C5C2E">PAGADO</text>
+  <text x="885" y="1245" font-family="Arial, Helvetica, sans-serif" font-size="14" text-anchor="middle" fill="#6B7A6E">18-04-2026</text>
+
+  <!-- ===== FOOTER ===== -->
+  <rect x="0" y="1300" width="1080" height="50" fill="#0C5C2E"/>
+  <text x="540" y="1333" font-family="Arial Black, Helvetica, sans-serif" font-size="22" font-weight="900" text-anchor="middle" fill="#FFF8E8">@CASHBAK.CL</text>
+
+</svg>

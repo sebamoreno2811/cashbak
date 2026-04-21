@@ -42,7 +42,7 @@ export default function HowItWorks() {
       return [t1, t2, t3, t4, t5]
     }
     const timers = runCursor()
-    const cycle = setInterval(runCursor, 3000)
+    const cycle = setInterval(runCursor, 5000)
     return () => { timers.forEach(clearTimeout); clearInterval(cycle) }
   }, [])
 
@@ -120,7 +120,7 @@ export default function HowItWorks() {
               <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 h-36 flex items-center justify-center">
                 <span className="text-6xl select-none">👕</span>
                 <div className={`absolute top-3 left-3 text-white text-xs font-bold px-3 py-1 rounded-full transition-all duration-500 ${selected ? "bg-emerald-600 scale-105" : "bg-green-900/80"}`}>
-                  {selected ? `${SELECTED.cashback}% CashBak` : "hasta 62% CashBak"}
+                  {selected ? `${SELECTED.cashback}% CashBak` : "hasta 75% CashBak"}
                 </div>
               </div>
               <div className="px-4 py-3">

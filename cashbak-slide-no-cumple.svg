@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" width="1080" height="1350">
+  <defs>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="4" result="off"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.18"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- FONDO -->
+  <rect width="1080" height="1350" fill="#F7F3E8"/>
+
+  <!-- HEADER LOGO -->
+  <g transform="translate(80, 70)">
+    <rect x="0" y="0" width="80" height="80" rx="16" fill="#0C5C2E"/>
+    <text x="32" y="56" font-family="Arial Black, Helvetica, sans-serif" font-size="48" font-weight="900" text-anchor="middle" fill="#FFF8E8">$</text>
+    <g transform="translate(50, 46)">
+      <circle cx="14" cy="14" r="14" fill="#FFF8E8"/>
+      <polygon points="14,4 21,9 19,17 9,17 7,9" fill="#0C5C2E"/>
+    </g>
+    <text x="100" y="58" font-family="Arial Black, Helvetica, sans-serif" font-size="44" font-weight="900" fill="#111">CASHBAK</text>
+  </g>
+
+  <!-- TÍTULO -->
+  <text x="540" y="215" font-family="Arial Black, Helvetica, sans-serif" font-size="54" font-weight="900" text-anchor="middle" fill="#111">¿Y SI MI EVENTO</text>
+  <text x="540" y="275" font-family="Arial Black, Helvetica, sans-serif" font-size="54" font-weight="900" text-anchor="middle" fill="#111">NO SE CUMPLE?</text>
+  <line x1="395" y1="295" x2="685" y2="295" stroke="#0C5C2E" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- ===== TARJETA IZQUIERDA · SI ACIERTA ===== -->
+  <g filter="url(#cardShadow)">
+    <rect x="55" y="340" width="475" height="560" rx="28" fill="#0C5C2E"/>
+  </g>
+  <!-- Header tag -->
+  <rect x="90" y="370" width="180" height="40" rx="20" fill="#FFF8E8"/>
+  <text x="180" y="398" font-family="Arial Black, Helvetica, sans-serif" font-size="20" font-weight="900" text-anchor="middle" fill="#0C5C2E">SI ACIERTA</text>
+
+  <!-- Icono: paquete + moneda -->
+  <g transform="translate(140, 450)">
+    <!-- Caja cuerpo -->
+    <rect x="15" y="40" width="170" height="135" rx="6" fill="#FFF8E8" stroke="#0A4A24" stroke-width="3"/>
+    <!-- Tapa lateral izquierda (con perspectiva) -->
+    <path d="M 15 40 L 35 25 L 205 25 L 185 40 Z" fill="#FFE9C0" stroke="#0A4A24" stroke-width="2.5"/>
+    <!-- Lateral derecho -->
+    <path d="M 185 40 L 205 25 L 205 160 L 185 175 Z" fill="#F5DBA8" stroke="#0A4A24" stroke-width="2.5"/>
+    <!-- Cinta vertical -->
+    <rect x="93" y="25" width="14" height="150" fill="#EF4135" opacity="0.85"/>
+    <!-- Cinta horizontal -->
+    <rect x="15" y="95" width="170" height="14" fill="#EF4135" opacity="0.85"/>
+    <!-- Moneda flotante -->
+    <circle cx="170" cy="20" r="32" fill="#F5B800" stroke="#0A4A24" stroke-width="3"/>
+    <text x="170" y="32" font-family="Arial Black, sans-serif" font-size="34" font-weight="900" text-anchor="middle" fill="#0A4A24">$</text>
+  </g>
+
+  <!-- Resultado -->
+  <text x="292" y="700" font-family="Arial Black, sans-serif" font-size="32" font-weight="900" text-anchor="middle" fill="#FFF8E8">Tu pedido</text>
+  <text x="292" y="745" font-family="Arial Black, sans-serif" font-size="32" font-weight="900" text-anchor="middle" fill="#F5B800">+ CashBak</text>
+
+  <!-- Badge resultado -->
+  <rect x="110" y="820" width="365" height="50" rx="25" fill="#10B981"/>
+  <text x="292" y="854" font-family="Arial Black, sans-serif" font-size="22" font-weight="900" text-anchor="middle" fill="#FFFFFF">RECUPERAS TU DINERO</text>
+
+  <!-- ===== TARJETA DERECHA · SI NO ACIERTA ===== -->
+  <g filter="url(#cardShadow)">
+    <rect x="550" y="340" width="475" height="560" rx="28" fill="#FFFFFF" stroke="#0C5C2E" stroke-width="3"/>
+  </g>
+  <!-- Header tag -->
+  <rect x="585" y="370" width="230" height="40" rx="20" fill="#0C5C2E"/>
+  <text x="700" y="398" font-family="Arial Black, Helvetica, sans-serif" font-size="20" font-weight="900" text-anchor="middle" fill="#FFF8E8">SI NO ACIERTA</text>
+
+  <!-- Icono: solo paquete con check -->
+  <g transform="translate(640, 450)">
+    <!-- Caja cuerpo -->
+    <rect x="15" y="40" width="170" height="135" rx="6" fill="#F7F3E8" stroke="#0C5C2E" stroke-width="3"/>
+    <!-- Tapa con perspectiva -->
+    <path d="M 15 40 L 35 25 L 205 25 L 185 40 Z" fill="#EAE3D0" stroke="#0C5C2E" stroke-width="2.5"/>
+    <!-- Lateral derecho -->
+    <path d="M 185 40 L 205 25 L 205 160 L 185 175 Z" fill="#D9D2BD" stroke="#0C5C2E" stroke-width="2.5"/>
+    <!-- Cinta vertical -->
+    <rect x="93" y="25" width="14" height="150" fill="#EF4135" opacity="0.85"/>
+    <!-- Cinta horizontal -->
+    <rect x="15" y="95" width="170" height="14" fill="#EF4135" opacity="0.85"/>
+    <!-- Check verde flotante esquina -->
+    <circle cx="180" cy="170" r="34" fill="#10B981" stroke="#FFF8E8" stroke-width="4"/>
+    <path d="M 165 170 L 178 183 L 197 158" stroke="#FFFFFF" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Resultado -->
+  <text x="788" y="700" font-family="Arial Black, sans-serif" font-size="32" font-weight="900" text-anchor="middle" fill="#111">Tu pedido</text>
+  <text x="788" y="745" font-family="Arial Black, sans-serif" font-size="32" font-weight="900" text-anchor="middle" fill="#0C5C2E">completo ✓</text>
+
+  <!-- Badge resultado -->
+  <rect x="605" y="820" width="365" height="50" rx="25" fill="#0C5C2E"/>
+  <text x="788" y="854" font-family="Arial Black, sans-serif" font-size="22" font-weight="900" text-anchor="middle" fill="#FFF8E8">IGUAL RECIBES TU COMPRA</text>
+
+  <!-- ===== MENSAJE UNIFICADOR ===== -->
+  <g filter="url(#cardShadow)">
+    <rect x="70" y="950" width="940" height="200" rx="24" fill="#FFFFFF" stroke="#E8E2D2" stroke-width="2"/>
+  </g>
+
+  <!-- Check grande izquierda -->
+  <g transform="translate(110, 1010)">
+    <circle cx="40" cy="40" r="36" fill="#10B981"/>
+    <path d="M 22 42 L 35 54 L 58 28" stroke="#FFFFFF" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <text x="215" y="1035" font-family="Arial Black, sans-serif" font-size="26" font-weight="900" fill="#111">EN AMBOS CASOS:</text>
+  <text x="215" y="1085" font-family="Arial Black, sans-serif" font-size="38" font-weight="900" fill="#0C5C2E">Tu pedido SIEMPRE llega</text>
+  <text x="215" y="1120" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#6B7A6E">Funciona como cualquier ecommerce, con la chance de recuperar tu dinero.</text>
+
+  <!-- ===== BADGE "CERO RIESGO" ===== -->
+  <g transform="translate(365, 1195)">
+    <rect x="0" y="0" width="350" height="60" rx="30" fill="#0C5C2E"/>
+    <text x="175" y="40" font-family="Arial Black, sans-serif" font-size="26" font-weight="900" text-anchor="middle" fill="#F5B800">★ CERO RIESGO ★</text>
+  </g>
+
+  <!-- FOOTER -->
+  <rect x="0" y="1300" width="1080" height="50" fill="#0C5C2E"/>
+  <text x="540" y="1333" font-family="Arial Black, sans-serif" font-size="22" font-weight="900" text-anchor="middle" fill="#FFF8E8">@CASHBAK.CL</text>
+
+</svg>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" width="1080" height="1350">
+  <defs>
+    <filter id="ctaShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
+      <feOffset dx="0" dy="8" result="off"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.28"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5"/>
+      <feOffset dx="0" dy="3" result="off"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.15"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- FONDO verde de marca (último slide = brand moment) -->
+  <rect width="1080" height="1350" fill="#0C5C2E"/>
+
+  <!-- Detalle decorativo: pelota grande tenue esquina superior derecha -->
+  <g opacity="0.08">
+    <circle cx="950" cy="150" r="140" fill="#FFF8E8"/>
+    <polygon points="950,40 1010,85 990,165 910,165 890,85" fill="#0C5C2E"/>
+  </g>
+  <!-- Monedas decorativas esquina inferior izquierda -->
+  <g opacity="0.1">
+    <circle cx="80" cy="1220" r="55" fill="#F5B800"/>
+    <circle cx="170" cy="1280" r="40" fill="#F5B800"/>
+  </g>
+
+  <!-- ===== LOGO HERO CENTRADO ===== -->
+  <g transform="translate(430, 120)">
+    <rect x="0" y="0" width="110" height="110" rx="22" fill="#FFF8E8"/>
+    <text x="44" y="78" font-family="Arial Black, sans-serif" font-size="68" font-weight="900" text-anchor="middle" fill="#0C5C2E">$</text>
+    <!-- Pelota -->
+    <g transform="translate(70, 62)">
+      <circle cx="18" cy="18" r="18" fill="#0C5C2E"/>
+      <polygon points="18,6 28,13 25,24 11,24 8,13" fill="#FFF8E8"/>
+    </g>
+    <text x="130" y="77" font-family="Arial Black, sans-serif" font-size="60" font-weight="900" fill="#FFF8E8">CASHBAK</text>
+  </g>
+
+  <!-- Línea divisoria dorada -->
+  <line x1="440" y1="270" x2="640" y2="270" stroke="#F5B800" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- ===== MENSAJE HERO ===== -->
+  <text x="540" y="355" font-family="Arial Black, sans-serif" font-size="42" font-weight="900" text-anchor="middle" fill="#FFF8E8">TU PRÓXIMA COMPRA</text>
+  <text x="540" y="415" font-family="Arial Black, sans-serif" font-size="42" font-weight="900" text-anchor="middle" fill="#FFF8E8">PUEDE SALIR</text>
+  <!-- GRATIS gigante -->
+  <text x="540" y="580" font-family="Arial Black, sans-serif" font-size="180" font-weight="900" text-anchor="middle" fill="#F5B800" letter-spacing="4">GRATIS</text>
+
+  <!-- Asterisco pequeño abajo de GRATIS -->
+  <text x="540" y="635" font-family="Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle" fill="#F7F3E8" opacity="0.8">*si tu pronóstico acierta, recuperas hasta el 100%</text>
+
+  <!-- ===== CTA PRIMARIO ===== -->
+  <g filter="url(#ctaShadow)">
+    <rect x="100" y="720" width="880" height="140" rx="70" fill="#FFF8E8"/>
+  </g>
+  <text x="540" y="773" font-family="Arial Black, sans-serif" font-size="22" font-weight="700" text-anchor="middle" fill="#6B7A6E">EMPIEZA AHORA EN</text>
+  <text x="540" y="830" font-family="Arial Black, sans-serif" font-size="54" font-weight="900" text-anchor="middle" fill="#0C5C2E">CASHBAK.CL →</text>
+
+  <!-- ===== MINI CTAs / SOCIAL ACTIONS ===== -->
+  <text x="540" y="945" font-family="Arial Black, sans-serif" font-size="22" font-weight="900" text-anchor="middle" fill="#FFF8E8" letter-spacing="2">★  ¿TE GUSTÓ? AYÚDANOS  ★</text>
+
+  <!-- Tres acciones en fila -->
+  <!-- Acción 1: SIGUE -->
+  <g transform="translate(90, 985)">
+    <g filter="url(#softShadow)">
+      <rect x="0" y="0" width="280" height="150" rx="20" fill="#0A4A24"/>
+    </g>
+    <!-- Heart icon -->
+    <g transform="translate(115, 28)">
+      <path d="M 25 10 Q 25 0 15 0 Q 0 0 0 15 Q 0 30 25 45 Q 50 30 50 15 Q 50 0 35 0 Q 25 0 25 10 Z" fill="#EF4135"/>
+    </g>
+    <text x="140" y="110" font-family="Arial Black, sans-serif" font-size="18" font-weight="900" text-anchor="middle" fill="#FFF8E8">SÍGUENOS</text>
+    <text x="140" y="132" font-family="Arial, sans-serif" font-size="14" font-weight="700" text-anchor="middle" fill="#F5B800">@cashbak.cl</text>
+  </g>
+
+  <!-- Acción 2: GUARDA -->
+  <g transform="translate(400, 985)">
+    <g filter="url(#softShadow)">
+      <rect x="0" y="0" width="280" height="150" rx="20" fill="#0A4A24"/>
+    </g>
+    <!-- Bookmark icon -->
+    <g transform="translate(122, 28)">
+      <path d="M 5 0 L 35 0 L 35 55 L 20 45 L 5 55 Z" fill="#F5B800" stroke="#FFF8E8" stroke-width="2" stroke-linejoin="round"/>
+    </g>
+    <text x="140" y="110" font-family="Arial Black, sans-serif" font-size="18" font-weight="900" text-anchor="middle" fill="#FFF8E8">GUARDA</text>
+    <text x="140" y="132" font-family="Arial, sans-serif" font-size="14" font-weight="700" text-anchor="middle" fill="#F5B800">este post</text>
+  </g>
+
+  <!-- Acción 3: COMPARTE -->
+  <g transform="translate(710, 985)">
+    <g filter="url(#softShadow)">
+      <rect x="0" y="0" width="280" height="150" rx="20" fill="#0A4A24"/>
+    </g>
+    <!-- Send icon -->
+    <g transform="translate(115, 32)">
+      <path d="M 0 20 L 50 0 L 35 45 L 22 28 L 5 25 Z" fill="#10B981" stroke="#FFF8E8" stroke-width="2" stroke-linejoin="round"/>
+    </g>
+    <text x="140" y="110" font-family="Arial Black, sans-serif" font-size="18" font-weight="900" text-anchor="middle" fill="#FFF8E8">COMPARTE</text>
+    <text x="140" y="132" font-family="Arial, sans-serif" font-size="14" font-weight="700" text-anchor="middle" fill="#F5B800">con quien le sirva</text>
+  </g>
+
+  <!-- ===== SIGNATURE ECHO ===== -->
+  <text x="540" y="1195" font-family="Arial Black, sans-serif" font-size="24" font-weight="900" text-anchor="middle" fill="#FFF8E8" letter-spacing="2">COMPRA. ELIGE TU EVENTO. RECUPERA TU DINERO.</text>
+
+  <!-- ===== FOOTER ===== -->
+  <rect x="0" y="1295" width="1080" height="55" fill="#F5B800"/>
+  <text x="540" y="1331" font-family="Arial Black, sans-serif" font-size="24" font-weight="900" text-anchor="middle" fill="#0C5C2E">@CASHBAK.CL  ·  CASHBAK.CL</text>
+
+</svg>
