@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>Cashbak · La Tincada de la Semana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --green:#0F6B3A;
+    --emerald:#10B77F;
+    --navy:#0B1120;
+    --cream:#F7F4EC;
+    --offwhite:#F8FAFC;
+    --gray:#94A3B8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:#222;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .slide{
+    width:1080px;height:1080px;
+    position:relative;overflow:hidden;
+    display:flex;flex-direction:column;
+    margin:0 auto 30px;
+  }
+  .logo-mini{
+    position:absolute;bottom:40px;right:48px;
+    width:78px;height:auto;
+    border-radius:14px;
+    z-index:10;
+    box-shadow:0 0 0 2px rgba(255,255,255,.18);
+  }
+  .page-num{
+    position:absolute;bottom:44px;left:50%;transform:translateX(-50%);
+    font-size:20px;font-weight:500;letter-spacing:.1em;
+    opacity:.55;
+  }
+
+  /* ---------- SLIDE 1 · PORTADA ---------- */
+  .s1{background:var(--green);color:var(--offwhite);justify-content:center;align-items:center;padding:0 80px;text-align:center;}
+  .s1 .logo-mini{top:48px;left:48px;right:auto;}
+  .s1 .kicker{
+    font-size:32px;font-weight:700;letter-spacing:.24em;
+    text-transform:uppercase;opacity:.78;margin-bottom:32px;
+  }
+  .s1 h1{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-weight:900;
+    font-size:168px;line-height:.92;letter-spacing:-.04em;
+    text-transform:uppercase;
+  }
+  .s1 h1 span{color:var(--emerald);}
+  .s1 .dates{
+    margin-top:56px;padding:20px 44px;
+    border:3px solid rgba(255,255,255,.28);border-radius:999px;
+    font-size:30px;font-weight:700;letter-spacing:.15em;
+  }
+  .s1 .sub{
+    margin-top:40px;font-size:26px;font-weight:400;opacity:.78;
+  }
+  .s1 .chev{
+    position:absolute;bottom:80px;right:96px;
+    font-size:22px;font-weight:600;letter-spacing:.2em;
+    text-transform:uppercase;opacity:.7;
+  }
+  .s1 .chev::after{content:' →';}
+
+  /* ---------- SLIDES DE PARTIDO ---------- */
+  .match{padding:100px 80px 80px;}
+  .match .top{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:22px;
+  }
+  .match .league{
+    font-size:22px;font-weight:700;letter-spacing:.22em;
+    text-transform:uppercase;
+  }
+  .match .badge{
+    display:inline-block;padding:10px 22px;
+    border-radius:999px;font-size:22px;font-weight:700;
+    letter-spacing:.16em;text-transform:uppercase;
+  }
+  .match .when{
+    font-size:40px;font-weight:800;letter-spacing:-.01em;margin-bottom:36px;
+  }
+  .match .vs{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:40px 0 44px;gap:28px;
+  }
+  .team{
+    flex:1;text-align:center;
+  }
+  .team .abbr{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-weight:900;
+    font-size:136px;line-height:.92;letter-spacing:-.04em;
+    text-transform:uppercase;
+  }
+  .team .name{
+    margin-top:14px;font-size:26px;font-weight:600;
+    letter-spacing:.08em;text-transform:uppercase;opacity:.72;
+  }
+  .vs .vs-chip{
+    font-family:'JetBrains Mono','SF Mono',Menlo,Consolas,'Courier New',monospace;font-weight:700;font-size:56px;
+    letter-spacing:.02em;
+  }
+  .match .odds{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;
+    margin-top:20px;
+  }
+  .odd{
+    padding:26px 0;border-radius:18px;text-align:center;
+  }
+  .odd .lbl{font-size:22px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;opacity:.6;}
+  .odd .val{font-family:'JetBrains Mono','SF Mono',Menlo,Consolas,'Courier New',monospace;font-size:60px;font-weight:700;margin-top:6px;}
+  /* featured odd: se define por contexto para ganar specificity */
+  .cream .odd.featured,
+  .navy .odd.featured{
+    background:var(--emerald);color:var(--navy);
+    transform:scale(1.04);box-shadow:0 12px 28px rgba(16,183,127,.28);
+  }
+  .cream .odd.featured .lbl,
+  .navy .odd.featured .lbl{opacity:1;color:var(--navy);}
+  .cream .odd.featured .val,
+  .navy .odd.featured .val{color:var(--navy);}
+  .match .pick{
+    margin-top:40px;padding:34px 40px;border-radius:24px;
+    display:flex;align-items:center;gap:26px;
+  }
+  .match .pick .tag{
+    font-size:22px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;
+    padding:10px 18px;border-radius:10px;white-space:nowrap;
+  }
+  .match .pick .txt{
+    font-size:30px;font-weight:600;line-height:1.25;
+  }
+
+  /* Slide con fondo crema */
+  .cream{background:var(--cream);color:var(--navy);}
+  .cream .badge{background:var(--emerald);color:var(--navy);}
+  .cream .odd{background:rgba(11,17,32,.06);color:var(--navy);}
+  .cream .pick{background:var(--navy);color:var(--offwhite);}
+  .cream .pick .tag{background:var(--emerald);color:var(--navy);}
+
+  /* Slide con fondo navy */
+  .navy{background:var(--navy);color:var(--offwhite);}
+  .navy .badge{background:var(--emerald);color:var(--navy);}
+  .navy .odd{background:rgba(255,255,255,.08);color:var(--offwhite);}
+  .navy .pick{background:var(--emerald);color:var(--navy);}
+  .navy .pick .tag{background:var(--navy);color:var(--offwhite);}
+
+  /* ---------- SLIDE 6 · TINCADA HERO ---------- */
+  .s6{background:var(--emerald);color:var(--navy);justify-content:center;align-items:center;padding:0 90px;text-align:center;}
+  .s6 .kicker{
+    font-size:32px;font-weight:800;letter-spacing:.24em;
+    text-transform:uppercase;margin-bottom:22px;
+  }
+  .s6 h2{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-weight:900;font-size:120px;line-height:.9;
+    letter-spacing:-.04em;text-transform:uppercase;margin-bottom:50px;
+  }
+  .s6 .match-line{
+    font-size:44px;font-weight:700;margin-bottom:28px;
+  }
+  .s6 .winner{
+    display:inline-block;padding:44px 70px;border-radius:32px;
+    background:var(--navy);color:var(--emerald);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-weight:900;font-size:140px;line-height:.92;
+    letter-spacing:-.03em;text-transform:uppercase;
+  }
+  .s6 .cuota{
+    margin-top:42px;font-family:'JetBrains Mono','SF Mono',Menlo,Consolas,'Courier New',monospace;font-size:64px;font-weight:700;
+  }
+  .s6 .cuota::before{content:'cuota ';font-family:'Inter';font-weight:600;font-size:32px;opacity:.7;}
+  .s6 .why{
+    margin-top:36px;max-width:820px;font-size:26px;line-height:1.4;opacity:.85;
+  }
+
+  /* ---------- SLIDE 7 · CTA ---------- */
+  .s7{background:var(--green);color:var(--offwhite);justify-content:center;align-items:center;padding:0 80px;text-align:center;}
+  .s7 .brand{display:flex;align-items:center;gap:24px;margin-bottom:64px;}
+  .s7 .brand img{width:110px;height:110px;border-radius:22px;box-shadow:0 0 0 3px rgba(255,255,255,.2);}
+  .s7 .brand span{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+    font-weight:900;font-size:68px;letter-spacing:-.01em;color:#fff;
+  }
+  .s7 h2{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-weight:900;font-size:180px;line-height:.9;
+    letter-spacing:-.04em;text-transform:uppercase;
+  }
+  .s7 h2 span{display:block;color:var(--emerald);}
+  .s7 .handle{
+    margin-top:60px;font-size:44px;font-weight:700;letter-spacing:.04em;
+  }
+  .s7 .foot{
+    margin-top:28px;font-size:24px;font-weight:500;opacity:.72;letter-spacing:.02em;
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== SLIDE 1 · PORTADA ========== -->
+<section class="slide s1" id="s1">
+  <div class="kicker">Semana del 22 al 29 de abril</div>
+  <h1>La Tincada<br/><span>de la Semana</span></h1>
+  <div class="dates">4 Partidos · Cuotas · Pronóstico</div>
+  <div class="sub">Fútbol chileno + Champions League</div>
+  <div class="chev">Desliza</div>
+  <div class="page-num" style="color:#fff;">1 / 7</div>
+</section>
+
+<!-- ========== SLIDE 2 · U DE CHILE vs U CATÓLICA ========== -->
+<section class="slide match cream" id="s2">
+  <img class="logo-mini" src="./assets/logo_no_text.png" alt="Cashbak"/>
+  <div class="top">
+    <div class="league">Liga de Primera · Fecha 12</div>
+    <div class="badge">Clásico</div>
+  </div>
+  <div class="when">Sáb 25.04 · 18:00 · Estadio Nacional</div>
+
+  <div class="vs">
+    <div class="team"><div class="abbr">UCH</div><div class="name">U. de Chile</div></div>
+    <div class="vs-chip">vs</div>
+    <div class="team"><div class="abbr">UC</div><div class="name">U. Católica</div></div>
+  </div>
+
+  <div class="odds">
+    <div class="odd featured"><div class="lbl">Local (1)</div><div class="val">1.90</div></div>
+    <div class="odd"><div class="lbl">Empate (X)</div><div class="val">3.20</div></div>
+    <div class="odd"><div class="lbl">Visita (2)</div><div class="val">3.80</div></div>
+  </div>
+
+  <div class="pick">
+    <div class="tag">Tincada</div>
+    <div class="txt">Gana la U, jugando de local y con racha favorable en el Nacional.</div>
+  </div>
+  <div class="page-num">2 / 7</div>
+</section>
+
+<!-- ========== SLIDE 3 · U CONCE vs COLO-COLO ========== -->
+<section class="slide match navy" id="s3">
+  <img class="logo-mini on-dark" src="./assets/logo_no_text.png" alt="Cashbak"/>
+  <div class="top">
+    <div class="league">Liga de Primera · Fecha 12</div>
+    <div class="badge">Alta cuota</div>
+  </div>
+  <div class="when">Dom 26.04 · 15:00 · Ester Roa Rebolledo</div>
+
+  <div class="vs">
+    <div class="team"><div class="abbr">UDC</div><div class="name">U. de Concepción</div></div>
+    <div class="vs-chip">vs</div>
+    <div class="team"><div class="abbr">CC</div><div class="name">Colo-Colo</div></div>
+  </div>
+
+  <div class="odds">
+    <div class="odd"><div class="lbl">Local (1)</div><div class="val">4.50</div></div>
+    <div class="odd"><div class="lbl">Empate (X)</div><div class="val">3.50</div></div>
+    <div class="odd featured"><div class="lbl">Visita (2)</div><div class="val">1.65</div></div>
+  </div>
+
+  <div class="pick">
+    <div class="tag">Tincada</div>
+    <div class="txt">Gana Colo-Colo. Mejor plantel y el Cacique suele imponerse en Concepción.</div>
+  </div>
+  <div class="page-num" style="color:#F8FAFC;">3 / 7</div>
+</section>
+
+<!-- ========== SLIDE 4 · PSG vs BAYERN ========== -->
+<section class="slide match cream" id="s4">
+  <img class="logo-mini" src="./assets/logo_no_text.png" alt="Cashbak"/>
+  <div class="top">
+    <div class="league">UEFA Champions League · Semifinal IDA</div>
+    <div class="badge">Top match</div>
+  </div>
+  <div class="when">Mar 28.04 · 16:00 Chile · Parc des Princes</div>
+
+  <div class="vs">
+    <div class="team"><div class="abbr">PSG</div><div class="name">Paris SG</div></div>
+    <div class="vs-chip">vs</div>
+    <div class="team"><div class="abbr">BAY</div><div class="name">Bayern Munich</div></div>
+  </div>
+
+  <div class="odds">
+    <div class="odd featured"><div class="lbl">Local (1)</div><div class="val">2.10</div></div>
+    <div class="odd"><div class="lbl">Empate (X)</div><div class="val">3.60</div></div>
+    <div class="odd"><div class="lbl">Visita (2)</div><div class="val">3.20</div></div>
+  </div>
+
+  <div class="pick">
+    <div class="tag">Tincada</div>
+    <div class="txt">Gana PSG. Local, plantel descansado y en gran momento ofensivo.</div>
+  </div>
+  <div class="page-num">4 / 7</div>
+</section>
+
+<!-- ========== SLIDE 5 · ATLÉTICO vs ARSENAL ========== -->
+<section class="slide match navy" id="s5">
+  <img class="logo-mini on-dark" src="./assets/logo_no_text.png" alt="Cashbak"/>
+  <div class="top">
+    <div class="league">UEFA Champions League · Semifinal IDA</div>
+    <div class="badge">Top match</div>
+  </div>
+  <div class="when">Mié 29.04 · 16:00 Chile · Riyadh Air Metropolitano</div>
+
+  <div class="vs">
+    <div class="team"><div class="abbr">ATM</div><div class="name">Atlético de Madrid</div></div>
+    <div class="vs-chip">vs</div>
+    <div class="team"><div class="abbr">ARS</div><div class="name">Arsenal</div></div>
+  </div>
+
+  <div class="odds">
+    <div class="odd featured"><div class="lbl">Local (1)</div><div class="val">2.50</div></div>
+    <div class="odd"><div class="lbl">Empate (X)</div><div class="val">3.10</div></div>
+    <div class="odd"><div class="lbl">Visita (2)</div><div class="val">2.70</div></div>
+  </div>
+
+  <div class="pick">
+    <div class="tag">Tincada</div>
+    <div class="txt">Gana Atlético. El Metropolitano es fortaleza y Simeone conoce el libreto.</div>
+  </div>
+  <div class="page-num" style="color:#F8FAFC;">5 / 7</div>
+</section>
+
+<!-- ========== SLIDE 6 · TINCADA DESTACADA ========== -->
+<section class="slide s6" id="s6">
+  <div class="kicker">La tincada destacada</div>
+  <h2>Nuestro<br/>Pick</h2>
+  <div class="match-line">PSG vs Bayern Munich · Mar 28.04</div>
+  <div class="winner">Gana PSG</div>
+  <div class="cuota">x2.10</div>
+  <div class="why">Local en el Parc des Princes, descansados tras ganar la liga francesa hace dos fechas, y con un Bayern que llega con tres titulares sensibles entre algodones.</div>
+  <div class="page-num">6 / 7</div>
+</section>
+
+<!-- ========== SLIDE 7 · CTA ========== -->
+<section class="slide s7" id="s7">
+  <div class="brand">
+    <img src="./assets/logo_no_text.png" alt=""/>
+    <span>CASHBAK</span>
+  </div>
+  <h2>Síguenos<span>para más</span></h2>
+  <div class="handle">@cashbak.cl</div>
+  <div class="foot">Tincadas, calendario deportivo y más, cada semana.</div>
+  <div class="page-num" style="color:#fff;">7 / 7</div>
+</section>
+
+</body>
+</html>

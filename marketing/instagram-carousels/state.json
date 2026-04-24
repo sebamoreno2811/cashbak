@@ -1,0 +1,20 @@
+{
+  "_comment": "Estado del sistema de carruseles semanales de Instagram. Actualizar cada vez que se genera un nuevo post.",
+  "next_format": "calendario",
+  "last_run": {
+    "date": "2026-04-22",
+    "format": "tincada",
+    "output_dir": "outputs/2026-04-22-tincada"
+  },
+  "formats_rotation": ["tincada", "calendario"],
+  "schedule": {
+    "day_of_week": "thursday",
+    "hour": 16,
+    "timezone": "America/Santiago"
+  },
+  "data_source": {
+    "primary": "supabase.bets",
+    "fallback": "web_search",
+    "note": "La tabla bets debe tener eventos futuros cargados (active=true, end_date > NOW). Si no, cae a WebSearch."
+  }
+}

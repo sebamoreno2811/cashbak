@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState, useMemo } from "react"
-import { useRouter } from "next/navigation"
 import { useProducts } from "@/context/product-context"
 import { useBets } from "@/context/bet-context"
 import { useBetOption } from "@/hooks/use-bet-option"
@@ -109,7 +108,10 @@ export default function Home() {
   }, [sorted, categoryFilter, storeMap])
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main id="main" className="min-h-screen bg-gray-50">
+      {/* H1 principal — oculto visualmente, visible para lectores de pantalla */}
+      <h1 className="sr-only">CashBak — Marketplace chileno con CashBak deportivo</h1>
+
       {/* Header: logo */}
       <div className="bg-white border-b border-gray-100 px-4 pt-8 pb-6">
         <div className="container mx-auto max-w-4xl">
@@ -128,32 +130,34 @@ export default function Home() {
       <HowItWorks />
 
       {/* Selector de evento */}
-      <div className="bg-green-900 px-4 py-8">
+      <section aria-labelledby="bet-selector-title" className="bg-green-900 px-4 py-8">
         <div className="container mx-auto max-w-2xl">
           <div className="bg-white rounded-2xl overflow-hidden shadow-lg">
             <div className="bg-emerald-600 px-5 py-4">
-              <p className="text-white text-lg font-bold leading-tight">🏆 Elige tu evento deportivo</p>
-              <p className="text-emerald-100 text-sm mt-0.5">El CashBak de cada producto varía según el evento que elijas</p>
+              <h2 id="bet-selector-title" className="text-white text-lg font-bold leading-tight">
+                <span aria-hidden="true">🏆 </span>Elige tu evento deportivo
+              </h2>
+              <p className="text-white text-sm mt-0.5">El CashBak de cada producto varía según el evento que elijas</p>
             </div>
             <div className="px-5 pt-5 pb-4">
-              <p className="text-lg font-bold text-gray-900 mb-0.5">¿Qué evento eliges hoy?</p>
-              <p className="text-sm text-gray-500 mb-4">Selecciona uno y empieza a explorar los productos con su CashBak.</p>
-              <ProductSelection />
+              <p id="bet-selector-question" className="text-lg font-bold text-gray-900 mb-0.5">¿Qué evento eliges hoy?</p>
+              <p className="text-sm text-gray-600 mb-4">Selecciona uno y empieza a explorar los productos con su CashBak.</p>
+              <ProductSelection ariaLabelledBy="bet-selector-question" />
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
 
       {/* Destacados — carrusel */}
       {featured.length > 0 && (
-        <div className="pt-10 pb-4">
+        <section aria-labelledby="destacados-title" className="pt-10 pb-4">
           <div className="container mx-auto max-w-5xl px-8 mb-4 flex items-center gap-3">
-            <span className="bg-green-900 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wide">
-              ⭐ Destacados
-            </span>
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400">Mayor CashBak disponible</span>
+            <h2 id="destacados-title" className="bg-green-900 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wide">
+              <span aria-hidden="true">⭐ </span>Destacados
+            </h2>
+            <div className="flex-1 h-px bg-gray-200" aria-hidden="true" />
+            <span className="text-xs text-gray-600">Mayor CashBak disponible</span>
           </div>
           <CarouselRow
             items={featured}
@@ -161,25 +165,33 @@ export default function Home() {
             selectedBetOdd={selectedBet?.odd ?? null}
             storeMap={storeMap}
           />
-        </div>
+        </section>
       )}
 
       {/* Filtro de categorías */}
       {categories.length > 0 && (
-        <div className="bg-white border-y border-gray-100 px-4 py-3 mt-6">
+        <div
+          className="bg-white border-y border-gray-100 px-4 py-3 mt-6"
+          role="group"
+          aria-label="Filtrar productos por categoría"
+        >
           <div className="container mx-auto max-w-5xl overflow-x-auto scrollbar-hide">
             <div className="flex gap-2 min-w-max">
               <button
+                type="button"
                 onClick={() => setCategoryFilter(null)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap ${categoryFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
+                aria-pressed={categoryFilter === null}
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition whitespace-nowrap ${categoryFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-300 text-gray-700 bg-white hover:border-gray-500"}`}
               >
                 Todos
               </button>
               {categories.map(cat => (
                 <button
                   key={cat}
+                  type="button"
                   onClick={() => setCategoryFilter(categoryFilter === cat ? null : cat)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap ${categoryFilter === cat ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
+                  aria-pressed={categoryFilter === cat}
+                  className={`px-4 py-2 rounded-full text-sm font-medium border transition whitespace-nowrap ${categoryFilter === cat ? "bg-green-900 text-white border-green-900" : "border-gray-300 text-gray-700 bg-white hover:border-gray-500"}`}
                 >
                   {cat}
                 </button>
@@ -190,26 +202,27 @@ export default function Home() {
       )}
 
       {/* Grid de productos */}
-      <div className="container mx-auto max-w-5xl px-4 py-8">
+      <section aria-label="Lista de productos" className="container mx-auto max-w-5xl px-4 py-8">
         {gridProducts.length === 0 ? (
-          <div className="text-center text-gray-400 py-20">
-            <p className="text-4xl mb-4">📦</p>
+          <div className="text-center text-gray-600 py-20">
+            <p className="text-4xl mb-4" aria-hidden="true">📦</p>
             <p>No hay productos con estos filtros.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 list-none p-0 m-0">
             {gridProducts.map(product => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                bets={bets}
-                selectedBetOdd={selectedBet?.odd ?? null}
-                store={product.store_id ? storeMap[product.store_id] : undefined}
-              />
+              <li key={product.id}>
+                <ProductCard
+                  product={product}
+                  bets={bets}
+                  selectedBetOdd={selectedBet?.odd ?? null}
+                  store={product.store_id ? storeMap[product.store_id] : undefined}
+                />
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </div>
+      </section>
 
       {/* Ver más */}
       <div className="text-center pb-10">
@@ -238,8 +251,20 @@ function CarouselRow({
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const [autoScroll, setAutoScroll] = useState(false)
+  const [userPaused, setUserPaused] = useState(false)
   const pausedRef = useRef(false)
   const dragRef = useRef({ active: false, startX: 0, scrollLeft: 0 })
+
+  // Detectar prefers-reduced-motion para desactivar auto-scroll
+  const [prefersReduced, setPrefersReduced] = useState(false)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
+    setPrefersReduced(mq.matches)
+    const onChange = (e: MediaQueryListEvent) => setPrefersReduced(e.matches)
+    mq.addEventListener("change", onChange)
+    return () => mq.removeEventListener("change", onChange)
+  }, [])
 
   // Check if single set overflows the container
   useEffect(() => {
@@ -251,9 +276,9 @@ function CarouselRow({
     return () => window.removeEventListener("resize", check)
   }, [items])
 
-  // Auto-scroll via rAF
+  // Auto-scroll via rAF — se desactiva si el usuario lo pausó o si pide reducir motion
   useEffect(() => {
-    if (!autoScroll) return
+    if (!autoScroll || userPaused || prefersReduced) return
     const el = ref.current
     if (!el) return
     let rafId: number
@@ -268,7 +293,7 @@ function CarouselRow({
     }
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
-  }, [autoScroll])
+  }, [autoScroll, userPaused, prefersReduced])
 
   const onMouseDown = (e: React.MouseEvent) => {
     const el = ref.current
@@ -284,33 +309,73 @@ function CarouselRow({
   }
   const onMouseUp = () => { dragRef.current.active = false; pausedRef.current = false }
 
+  // Pausar al enfocar cualquier elemento dentro (WCAG 2.2.2 — teclado)
+  const onFocusCapture = () => { pausedRef.current = true }
+  const onBlurCapture = (e: React.FocusEvent) => {
+    const next = e.relatedTarget as Node | null
+    if (!ref.current || !next || !ref.current.contains(next)) {
+      pausedRef.current = false
+    }
+  }
+
+  // Navegación con flechas
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const el = ref.current
+    if (!el) return
+    if (e.key === "ArrowRight") { el.scrollLeft += 200; e.preventDefault() }
+    if (e.key === "ArrowLeft")  { el.scrollLeft -= 200; e.preventDefault() }
+    if (e.key === "Home")       { el.scrollLeft = 0; e.preventDefault() }
+    if (e.key === "End")        { el.scrollLeft = el.scrollWidth; e.preventDefault() }
+  }
+
   const doubled = [...items, ...items]
+  const showPauseButton = autoScroll && !prefersReduced
 
   return (
-    <div
-      ref={ref}
-      className="overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing select-none"
-      style={autoScroll ? {
-        maskImage: "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",
-        WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",
-      } : {}}
-      onMouseEnter={() => { if (!dragRef.current.active) pausedRef.current = true }}
-      onMouseLeave={() => { pausedRef.current = false; dragRef.current.active = false }}
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-    >
-      <div className="flex gap-4 py-2 w-max px-8">
-        {(autoScroll ? doubled : items).map((product, idx) => (
-          <div key={`${product.id}-${idx}`} className="w-48 shrink-0">
-            <ProductCard
-              product={product}
-              bets={bets}
-              selectedBetOdd={selectedBetOdd}
-              store={product.store_id ? storeMap[product.store_id] : undefined}
-            />
-          </div>
-        ))}
+    <div className="relative">
+      {showPauseButton && (
+        <div className="container mx-auto max-w-5xl px-8 mb-2 flex justify-end">
+          <button
+            type="button"
+            onClick={() => setUserPaused(p => !p)}
+            aria-pressed={userPaused}
+            className="text-xs font-semibold text-gray-700 hover:text-gray-900 bg-white border border-gray-300 hover:border-gray-500 rounded-full px-3 py-1.5 transition-colors"
+          >
+            {userPaused ? "▶ Reanudar" : "⏸ Pausar carrusel"}
+          </button>
+        </div>
+      )}
+      <div
+        ref={ref}
+        role="region"
+        aria-label="Carrusel de productos destacados. Usa las flechas izquierda y derecha para navegar."
+        tabIndex={0}
+        onKeyDown={onKeyDown}
+        className="overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing select-none"
+        style={autoScroll && !userPaused && !prefersReduced ? {
+          maskImage: "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",
+        } : {}}
+        onMouseEnter={() => { if (!dragRef.current.active) pausedRef.current = true }}
+        onMouseLeave={() => { pausedRef.current = false; dragRef.current.active = false }}
+        onFocusCapture={onFocusCapture}
+        onBlurCapture={onBlurCapture}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+      >
+        <div className="flex gap-4 py-2 w-max px-8">
+          {(autoScroll && !userPaused && !prefersReduced ? doubled : items).map((product, idx) => (
+            <div key={`${product.id}-${idx}`} className="w-48 shrink-0">
+              <ProductCard
+                product={product}
+                bets={bets}
+                selectedBetOdd={selectedBetOdd}
+                store={product.store_id ? storeMap[product.store_id] : undefined}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -327,29 +392,33 @@ function ProductCard({
   selectedBetOdd: number | null
   store: Store | undefined
 }) {
-  const router = useRouter()
   const maxCashbak = calculateMaxProductCashbak(product, bets)
   const selectedCashbak = selectedBetOdd ? calculateProductCashbak(product, selectedBetOdd) : 0
   const productHref = `/product/${product.id}/${toSlug(product.name)}`
+  const priceLabel = `$${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}`
 
+  // Accesibilidad: se usa el patrón "card con link de nombre que se expande".
+  // El <Link> de la tienda queda por encima (z-index) para que su click no
+  // sea interceptado por el link principal del producto.
   return (
-    <div onClick={() => router.push(productHref)} className="group cursor-pointer h-full">
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 h-full flex flex-col">
+    <article className="group relative h-full">
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-200 h-full flex flex-col">
         <div className="relative aspect-square overflow-hidden">
           <Image
             src={product.image || "/placeholder.svg"}
-            alt={product.name}
+            alt=""
+            aria-hidden="true"
             fill
             sizes="176px"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
           {maxCashbak > 0 && (
             <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
-              <div className="bg-green-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
+              <div className="bg-green-900 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                 hasta {maxCashbak}% CB
               </div>
               {selectedCashbak > 0 && (
-                <div className="bg-emerald-500/90 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                <div className="bg-emerald-700 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
                   {selectedCashbak}% seleccionado
                 </div>
               )}
@@ -358,25 +427,33 @@ function ProductCard({
           {store && (
             <Link
               href={`/tienda/${store.slug ?? store.id}`}
-              onClick={e => e.stopPropagation()}
-              className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 hover:bg-white transition-colors"
+              className="absolute bottom-2 left-2 z-10 flex items-center gap-1.5 bg-white backdrop-blur-sm rounded-full px-2 py-1 hover:bg-gray-50 transition-colors"
+              aria-label={`Ir a la tienda ${store.name}`}
             >
               {store.logo_url ? (
-                <Image src={store.logo_url} alt={store.name} width={14} height={14} className="rounded-full object-cover w-3.5 h-3.5" />
+                <Image src={store.logo_url} alt="" aria-hidden="true" width={14} height={14} className="rounded-full object-cover w-3.5 h-3.5" />
               ) : (
-                <Image src="/img/logo.png" alt="CashBak" width={14} height={14} className="rounded-full object-contain w-3.5 h-3.5" />
+                <Image src="/img/logo.png" alt="" aria-hidden="true" width={14} height={14} className="rounded-full object-contain w-3.5 h-3.5" />
               )}
-              <span className="text-[10px] font-semibold text-gray-700 leading-none">{store.name}</span>
+              <span className="text-xs font-semibold text-gray-800 leading-none">{store.name}</span>
             </Link>
           )}
         </div>
         <div className="p-3 flex flex-col flex-1">
-          <h3 className="text-xs font-semibold text-gray-800 leading-snug line-clamp-2 flex-1">{product.name}</h3>
-          <p className="font-bold text-gray-900 text-sm mt-2">
-            ${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}
+          <h3 className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 flex-1">
+            <Link
+              href={productHref}
+              className="outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-emerald-600 focus-visible:after:ring-offset-2 focus-visible:after:rounded-2xl"
+              aria-label={`${product.name}, precio ${priceLabel}${maxCashbak > 0 ? `, hasta ${maxCashbak}% de CashBak` : ""}`}
+            >
+              {product.name}
+            </Link>
+          </h3>
+          <p className="font-bold text-gray-900 text-sm mt-2" aria-hidden="true">
+            {priceLabel}
           </p>
         </div>
       </div>
-    </div>
+    </article>
   )
 }

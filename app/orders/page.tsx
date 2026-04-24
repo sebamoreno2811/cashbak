@@ -98,8 +98,6 @@ export default function OrdersPage() {
               {(() => {
                 const cashbackStatus = (order as any).cashback_status ?? "evento_pendiente"
 
-                // Si algún evento sigue sin resolverse, siempre mostrar Pendiente
-                // independiente del cashback_status en la DB
                 const hayPendientes = order.order_items.some(
                   (item) => (bets[Number(item.bet_option_id)]?.is_winner ?? null) === null
                 )
@@ -107,7 +105,6 @@ export default function OrdersPage() {
                   return <p className="text-sm">CashBak Final: <span className="font-semibold text-yellow-600">Pendiente</span></p>
                 }
 
-                // Todos los eventos resueltos — usar cashback_status como fuente de verdad
                 const cashbackGanado = order.order_items.reduce((total, item) => {
                   const bet = bets[Number(item.bet_option_id)]
                   if (bet?.is_winner) return total + ((item.cashback_percentage || 0) / 100) * item.price * item.quantity

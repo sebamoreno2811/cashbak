@@ -90,7 +90,7 @@ export default function HowItWorks() {
       {/* Header */}
       <div className="border-b border-gray-100 px-6 py-5">
         <div className="container mx-auto max-w-5xl">
-          <p className="text-base font-semibold text-gray-700 uppercase tracking-widest text-center">¿Cómo funciona?</p>
+          <h2 className="text-base font-semibold text-gray-700 uppercase tracking-widest text-center">¿Cómo funciona?</h2>
         </div>
       </div>
 
@@ -116,23 +116,23 @@ export default function HowItWorks() {
           <div className="w-full max-w-sm flex flex-col gap-4">
 
             {/* Mini product card */}
-            <div className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 text-gray-900">
+            <div className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-200 text-gray-900" aria-hidden="true">
               <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 h-36 flex items-center justify-center">
-                <span className="text-6xl select-none">👕</span>
-                <div className={`absolute top-3 left-3 text-white text-xs font-bold px-3 py-1 rounded-full transition-all duration-500 ${selected ? "bg-emerald-600 scale-105" : "bg-green-900/80"}`}>
+                <span className="text-6xl select-none" aria-hidden="true">👕</span>
+                <div className={`absolute top-3 left-3 text-white text-xs font-bold px-3 py-1 rounded-full transition-all duration-500 ${selected ? "bg-emerald-700 scale-105" : "bg-green-900"}`}>
                   {selected ? `${SELECTED.cashback}% CashBak` : "hasta 75% CashBak"}
                 </div>
               </div>
               <div className="px-4 py-3">
-                <p className="text-xs text-gray-400">Ropa deportiva</p>
+                <p className="text-xs text-gray-600">Ropa deportiva</p>
                 <p className="text-sm font-semibold">Polera Deportiva Oficial</p>
                 <p className="font-bold text-base mt-1">$29.990</p>
               </div>
             </div>
 
             {/* Event list with cursor */}
-            <div>
-              <p className="text-xs text-gray-400 font-medium mb-2 ml-1">Selecciona tu evento:</p>
+            <div aria-hidden="true">
+              <p className="text-xs text-gray-600 font-medium mb-2 ml-1">Selecciona tu evento:</p>
               <div className="relative bg-white rounded-xl border border-gray-200 shadow-sm overflow-visible">
 
                 {DEMO_OPTIONS.map((opt, i) => (
@@ -146,13 +146,13 @@ export default function HowItWorks() {
                         : "bg-white"
                     }`}
                   >
-                    <span className="text-base">{opt.emoji}</span>
+                    <span className="text-base" aria-hidden="true">{opt.emoji}</span>
                     <span className={`text-sm flex-1 leading-snug transition-colors duration-200 ${selected && i === 2 ? "font-bold text-green-900" : "text-gray-700"}`}>
                       {opt.name}
                     </span>
-                    <span className="text-xs text-gray-400 tabular-nums">{opt.cashback}%</span>
+                    <span className="text-xs text-gray-600 tabular-nums">{opt.cashback}%</span>
                     {selected && i === 2 && (
-                      <span className="text-emerald-600 text-sm font-bold">✓</span>
+                      <span className="text-emerald-700 text-sm font-bold" aria-hidden="true">✓</span>
                     )}
                   </div>
                 ))}
@@ -182,14 +182,14 @@ export default function HowItWorks() {
             </div>
 
             {/* Selected event confirmation */}
-            <div className={`bg-green-900 rounded-2xl px-5 py-4 text-white transition-all duration-500 ${selected ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"}`}>
-              <p className="text-emerald-400 text-[11px] font-bold uppercase tracking-widest mb-1.5">Evento seleccionado</p>
+            <div aria-hidden="true" className={`bg-green-900 rounded-2xl px-5 py-4 text-white transition-all duration-500 ${selected ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"}`}>
+              <p className="text-emerald-300 text-xs font-bold uppercase tracking-widest mb-1.5">Evento seleccionado</p>
               <p className="font-bold text-base leading-snug">{SELECTED.emoji} {SELECTED.name}</p>
               <div className="flex items-center gap-2 mt-3">
-                <span className="bg-emerald-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                <span className="bg-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full">
                   {SELECTED.cashback}% CashBak
                 </span>
-                <span className="text-green-300 text-sm">si se cumple</span>
+                <span className="text-green-200 text-sm">si se cumple</span>
               </div>
             </div>
 
@@ -201,41 +201,41 @@ export default function HowItWorks() {
       <div className="flex flex-col md:flex-row min-h-[520px]">
 
         <div className="md:w-1/2 bg-white flex items-center justify-center px-10 py-14 md:px-16 order-2 md:order-1">
-          <div className="w-full max-w-sm">
+          <div className="w-full max-w-sm" aria-hidden="true">
             <div className="bg-gray-900 rounded-2xl overflow-hidden shadow-xl text-white">
               <div className="px-5 py-3 bg-white/10 flex items-center justify-between">
-                <span className="text-[11px] text-green-300 font-semibold uppercase tracking-widest">Copa América · Grupo A</span>
-                {matchPhase === "upcoming" && <span className="text-[11px] text-gray-400">Próximamente</span>}
+                <span className="text-xs text-green-200 font-semibold uppercase tracking-widest">Copa América · Grupo A</span>
+                {matchPhase === "upcoming" && <span className="text-xs text-gray-300">Próximamente</span>}
                 {(matchPhase === "live" || matchPhase === "goal") && (
-                  <span className="inline-flex items-center gap-1 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  <span className="inline-flex items-center gap-1 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                     <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                     EN VIVO
                   </span>
                 )}
                 {matchPhase === "won" && (
-                  <span className="inline-flex items-center gap-1 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    ✓ FINALIZADO
+                  <span className="inline-flex items-center gap-1 bg-emerald-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    <span aria-hidden="true">✓ </span>FINALIZADO
                   </span>
                 )}
               </div>
               <div className="px-5 py-10 flex items-center justify-between">
                 <div className="text-center flex-1">
-                  <span className="text-5xl block mb-3">🇨🇱</span>
+                  <span className="text-5xl block mb-3" aria-hidden="true">🇨🇱</span>
                   <p className="font-bold text-lg">Chile</p>
                 </div>
                 <div className="text-center px-2">
-                  {matchPhase === "upcoming" && (<><p className="text-4xl font-bold text-white/30">vs</p><p className="text-green-400 text-xs mt-2">20:00 hrs</p></>)}
-                  {matchPhase === "live" && (<><p className="text-4xl font-bold tabular-nums">0 – 0</p><p className="text-gray-400 text-xs mt-2">37&apos;</p></>)}
-                  {matchPhase === "goal" && (<><p className="text-4xl font-bold tabular-nums">1 – 0</p><p className="text-emerald-400 text-xs font-bold mt-2 animate-pulse">⚽ ¡GOOOL! 64&apos;</p></>)}
-                  {matchPhase === "won" && (<><p className="text-4xl font-bold tabular-nums">1 – 0</p><p className="text-emerald-400 text-xs font-bold mt-2">¡Tu evento se cumplió!</p></>)}
+                  {matchPhase === "upcoming" && (<><p className="text-4xl font-bold text-white/70">vs</p><p className="text-green-300 text-xs mt-2">20:00 hrs</p></>)}
+                  {matchPhase === "live" && (<><p className="text-4xl font-bold tabular-nums">0 – 0</p><p className="text-gray-300 text-xs mt-2">37&apos;</p></>)}
+                  {matchPhase === "goal" && (<><p className="text-4xl font-bold tabular-nums">1 – 0</p><p className="text-emerald-300 text-xs font-bold mt-2 animate-pulse"><span aria-hidden="true">⚽ </span>¡GOOOL! 64&apos;</p></>)}
+                  {matchPhase === "won" && (<><p className="text-4xl font-bold tabular-nums">1 – 0</p><p className="text-emerald-300 text-xs font-bold mt-2">¡Tu evento se cumplió!</p></>)}
                 </div>
                 <div className="text-center flex-1">
-                  <span className="text-5xl block mb-3">🇦🇷</span>
+                  <span className="text-5xl block mb-3" aria-hidden="true">🇦🇷</span>
                   <p className="font-bold text-lg">Argentina</p>
                 </div>
               </div>
               <div className="px-5 py-3 bg-white/5 text-center">
-                <p className="text-gray-400 text-xs">Tu compra ya está registrada. Solo queda esperar.</p>
+                <p className="text-gray-300 text-xs">Tu compra ya está registrada. Solo queda esperar.</p>
               </div>
             </div>
           </div>
@@ -281,46 +281,48 @@ export default function HowItWorks() {
             {/* Waiting state */}
             <div
               style={{ gridArea: "1/1" }}
-              className={`bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-10 flex flex-col items-center gap-3 text-center transition-all duration-500 ${cashbackVisible ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"}`}
+              aria-hidden="true"
+              className={`bg-gray-50 border-2 border-dashed border-gray-300 rounded-2xl p-10 flex flex-col items-center gap-3 text-center transition-all duration-500 ${cashbackVisible ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"}`}
             >
-              <span className="text-5xl">⏳</span>
-              <p className="text-gray-500 text-base font-medium">Esperando resultado...</p>
-              <p className="text-gray-400 text-sm">Chile vs Argentina · En vivo</p>
+              <span className="text-5xl" aria-hidden="true">⏳</span>
+              <p className="text-gray-600 text-base font-medium">Esperando resultado...</p>
+              <p className="text-gray-600 text-sm">Chile vs Argentina · En vivo</p>
             </div>
 
             {/* Cashback card */}
             <div
               style={{ gridArea: "1/1" }}
-              className={`bg-white rounded-2xl p-6 shadow-2xl border border-gray-100 text-gray-900 transition-all duration-500 ${cashbackVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}`}
+              aria-hidden="true"
+              className={`bg-white rounded-2xl p-6 shadow-2xl border border-gray-200 text-gray-900 transition-all duration-500 ${cashbackVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}`}
             >
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-10 h-10 rounded-full bg-green-900 flex items-center justify-center shrink-0">
-                  <span className="text-lg">💸</span>
+                  <span className="text-lg" aria-hidden="true">💸</span>
                 </div>
                 <div>
                   <p className="text-sm font-bold text-green-900 leading-none">CashBak</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Transferencia recibida · ahora</p>
+                  <p className="text-xs text-gray-600 mt-0.5">Transferencia recibida · ahora</p>
                 </div>
-                <span className="ml-auto bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">✓ Recibido</span>
+                <span className="ml-auto bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full"><span aria-hidden="true">✓ </span>Recibido</span>
               </div>
-              <div className="text-center py-4 border-y border-gray-100">
-                <p className="text-5xl font-bold text-emerald-600 tabular-nums">
+              <div className="text-center py-4 border-y border-gray-200">
+                <p className="text-5xl font-bold text-emerald-700 tabular-nums">
                   ${cashbackAmount.toLocaleString("es-CL")}
                 </p>
-                <p className="text-sm text-gray-400 mt-2">{SELECTED.cashback}% de $29.990</p>
+                <p className="text-sm text-gray-600 mt-2">{SELECTED.cashback}% de $29.990</p>
               </div>
               <div className="pt-4 space-y-2">
-                <div className="flex justify-between text-sm text-gray-500">
+                <div className="flex justify-between text-sm text-gray-600">
                   <span>Polera Deportiva Oficial</span>
                   <span>$29.990</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold text-emerald-600">
+                <div className="flex justify-between text-sm font-bold text-emerald-700">
                   <span>CashBak ({SELECTED.cashback}%)</span>
                   <span>+${Math.round(PRODUCT_PRICE * SELECTED.cashback / 100).toLocaleString("es-CL")}</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-100">
+                <div className="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-200">
                   <span>CashBak recibido</span>
-                  <span className="text-emerald-600">${Math.round(PRODUCT_PRICE * SELECTED.cashback / 100).toLocaleString("es-CL")}</span>
+                  <span className="text-emerald-700">${Math.round(PRODUCT_PRICE * SELECTED.cashback / 100).toLocaleString("es-CL")}</span>
                 </div>
               </div>
             </div>

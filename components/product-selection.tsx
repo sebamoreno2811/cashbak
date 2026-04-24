@@ -5,7 +5,11 @@ import { useProducts } from "@/context/product-context"
 import { calculateProductCashbak } from "@/lib/cashbak-calculator"
 import type { Bet } from "@/context/bet-context"
 
-export function ProductSelection() {
+type ProductSelectionProps = {
+  ariaLabelledBy?: string
+}
+
+export function ProductSelection({ ariaLabelledBy }: ProductSelectionProps = {}) {
   const { selectedOption, setSelectedOption } = useBetOption()
   const { products } = useProducts()
 
@@ -26,6 +30,7 @@ export function ProductSelection() {
       <BetSelector
         value={selectedOption}
         onChange={setSelectedOption}
+        ariaLabelledBy={ariaLabelledBy}
         getCashbackRange={getCashbackRange}
       />
     </div>
