@@ -104,7 +104,7 @@ export default function HowToPage() {
               Cuando llega una venta te notificamos por email. Desde <strong>Mi Tienda → Pedidos</strong> puedes ver los detalles y actualizar el estado: Preparando → Listo para entrega → Enviado. Al marcar como Enviado, el comprador recibe un email automático.
             </Step>
             <Step number={4} title="Recibe tu pago">
-              Una vez que el comprador confirma la recepción (o se confirma automáticamente a los 5 días), CashBak transfiere el monto a tu cuenta bancaria registrada en <strong>Mi Tienda → Datos de pago</strong>.
+              Una vez que el comprador confirma la recepción (o se confirma automáticamente a los 10 días), CashBak transfiere el monto a tu cuenta bancaria registrada en <strong>Mi Tienda → Datos de pago</strong>.
             </Step>
           </div>
 
