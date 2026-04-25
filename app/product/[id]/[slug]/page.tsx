@@ -226,11 +226,6 @@ export default function ProductPage() {
 
   const handleGoToCart = () => router.push("/cart")
 
-  const getYouTubeEmbedUrl = (url: string) => {
-    const match = url.match(/(?:\?v=|\/embed\/|\.be\/)([\w-]{11})/)
-    return match ? `https://www.youtube.com/embed/${match[1]}` : ""
-  }
-
   if (loading) {
     return (
       <div className="container px-4 py-8 mx-auto">
@@ -460,22 +455,6 @@ export default function ProductPage() {
 
         </div>
       </div>
-
-      {product.video_url && (
-        <div className="mt-8 mb-6">
-          <h1 className="mb-4 text-3xl font-bold text-center text-gray-800">Mejores momentos de esta camiseta</h1>
-          <div className="overflow-hidden shadow-lg aspect-video rounded-xl">
-            <iframe
-              className="w-full h-full"
-              src={getYouTubeEmbedUrl(product.video_url)}
-              title="YouTube video"
-              style={{ border: 0 }}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
-          </div>
-        </div>
-      )}
 
       <div className="mt-12 space-y-8">
         <h2 className="text-2xl font-bold text-gray-900">Comentarios</h2>
