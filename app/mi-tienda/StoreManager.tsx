@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useRef, useEffect } from "react"
+import { formatRut } from "@/lib/rut"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
@@ -347,7 +348,7 @@ export default function StoreManager({
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
                   placeholder="12345678-9"
                   value={bank.rut}
-                  onChange={e => setBank(b => ({ ...b, rut: e.target.value }))}
+                  onChange={e => setBank(b => ({ ...b, rut: formatRut(e.target.value) }))}
                 />
               </div>
               <div>

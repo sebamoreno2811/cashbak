@@ -12,6 +12,7 @@ import { notifyStoreSubmitted } from "@/app/stores/actions"
 import type { DeliveryOption } from "@/types/delivery"
 import { Trash2, Plus } from "lucide-react"
 import AuthModal from "@/components/auth/auth-modal"
+import { formatRut } from "@/lib/rut"
 
 const CATEGORIES = [
   "Ropa y accesorios",
@@ -338,7 +339,7 @@ export default function AplicarPage() {
                   id="owner_rut"
                   required
                   value={ownerRut}
-                  onChange={(e) => setOwnerRut(e.target.value)}
+                  onChange={(e) => setOwnerRut(formatRut(e.target.value))}
                   placeholder="Ej: 12.345.678-9"
                   maxLength={12}
                   className={ownerRut && !validarRut(ownerRut) ? "border-red-400 focus-visible:ring-red-400" : ownerRut && validarRut(ownerRut) ? "border-green-500 focus-visible:ring-green-500" : ""}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { formatRut } from "@/lib/rut"
 import { createClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation"
 import { Loader2, CheckCircle, Banknote, User } from "lucide-react"
@@ -134,7 +135,7 @@ export default function PerfilPage() {
             <Input
               placeholder="12.345.678-9"
               value={form.rut}
-              onChange={e => setForm(f => ({ ...f, rut: e.target.value }))}
+              onChange={e => setForm(f => ({ ...f, rut: formatRut(e.target.value) }))}
             />
           </div>
 

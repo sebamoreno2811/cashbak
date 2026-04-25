@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { formatRut } from "@/lib/rut"
 
 const BANK_OPTIONS = [
   "Banco de Chile",
@@ -134,7 +135,7 @@ export default function BankForm({ onSuccess }: { onSuccess?: () => void }) {
           <Label>RUT</Label>
           <Input
             value={bankData.rut}
-            onChange={(e) => setBankData({ ...bankData, rut: e.target.value })}
+            onChange={(e) => setBankData({ ...bankData, rut: formatRut(e.target.value) })}
             required
           />
         </div>
