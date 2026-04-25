@@ -527,7 +527,7 @@ export default function AplicarPage() {
                       <button
                         key={s}
                         type="button"
-                        onClick={() => { setNewDeliverySubtype(s); setNewDeliveryCarrier("") }}
+                        onClick={() => { setNewDeliverySubtype(s); setNewDeliveryCarrier(""); setNewDeliveryPriceTBD(false); setNewDeliveryPrice("") }}
                         className={`flex flex-col items-center gap-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
                           newDeliverySubtype === s
                             ? "border-green-700 bg-green-50 text-green-900"
@@ -575,15 +575,17 @@ export default function AplicarPage() {
                         disabled={newDeliveryPriceTBD}
                         className="flex-1"
                       />
-                      <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={newDeliveryPriceTBD}
-                          onChange={e => { setNewDeliveryPriceTBD(e.target.checked); setNewDeliveryPrice("") }}
-                          className="rounded"
-                        />
-                        Por pagar
-                      </label>
+                      {newDeliverySubtype === "external" && (
+                        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={newDeliveryPriceTBD}
+                            onChange={e => { setNewDeliveryPriceTBD(e.target.checked); setNewDeliveryPrice("") }}
+                            className="rounded"
+                          />
+                          Por pagar
+                        </label>
+                      )}
                     </div>
                     {getDeliveryName() && (
                       <p className="text-xs text-gray-400">Se agregará como: <span className="font-medium text-gray-600">{getDeliveryName()}</span></p>
