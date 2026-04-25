@@ -100,13 +100,14 @@ export default function AplicarPage() {
 
   function addDeliveryOption() {
     if (!canAddDelivery()) return
+    const isPickup = newDeliveryType === "pickup"
     const opt: DeliveryOption = {
       id: crypto.randomUUID(),
       name: getDeliveryName(),
       type: newDeliveryType as "delivery" | "pickup",
-      price: newDeliveryPriceTBD ? 0 : (parseInt(newDeliveryPrice) || 0),
-      priceTBD: newDeliveryPriceTBD || undefined,
-      address: newDeliveryType === "pickup" ? newDeliveryAddress.trim() : undefined,
+      price: isPickup ? 0 : (newDeliveryPriceTBD ? 0 : (parseInt(newDeliveryPrice) || 0)),
+      priceTBD: isPickup ? undefined : (newDeliveryPriceTBD || undefined),
+      address: isPickup ? newDeliveryAddress.trim() : undefined,
     }
     setDeliveryOptions(prev => [...prev, opt])
     setNewDeliveryType("")
@@ -560,10 +561,10 @@ export default function AplicarPage() {
                   </div>
                 )}
 
-                {/* Precio (aparece cuando el tipo está completo) */}
-                {canAddDelivery() && (
+                {/* Precio (solo para envío) */}
+                {canAddDelivery() && newDeliveryType === "delivery" && (
                   <div className="space-y-2 pt-1">
-                    <p className="text-xs font-medium text-gray-500">Costo para el comprador</p>
+                    <p className="text-xs font-medium text-gray-500">Costo de envío para el comprador</p>
                     <div className="flex gap-2 items-center">
                       <Input
                         type="number"
@@ -588,6 +589,11 @@ export default function AplicarPage() {
                       <p className="text-xs text-gray-400">Se agregará como: <span className="font-medium text-gray-600">{getDeliveryName()}</span></p>
                     )}
                   </div>
+                )}
+
+                {/* Preview retiro (siempre gratis) */}
+                {canAddDelivery() && newDeliveryType === "pickup" && getDeliveryName() && (
+                  <p className="text-xs text-gray-400">Se agregará como: <span className="font-medium text-gray-600">{getDeliveryName()}</span> · <span className="text-emerald-600 font-medium">Gratis</span></p>
                 )}
 
                 <button
