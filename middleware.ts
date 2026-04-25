@@ -48,8 +48,8 @@ export async function middleware(request: NextRequest) {
         { status: 429 }
       )
     }
-  } else {
-    // Límite global para el resto
+  } else if (pathname.startsWith("/api/")) {
+    // Límite global solo para APIs (no para páginas normales)
     const { success } = await globalLimit.limit(ip)
     if (!success) {
       return NextResponse.json(

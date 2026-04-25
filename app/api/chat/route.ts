@@ -282,7 +282,7 @@ export async function POST(req: NextRequest) {
   if (!success) {
     return new Response(
       JSON.stringify({ error: "Demasiados mensajes. Espera un momento antes de continuar." }),
-      { status: 429, headers: { "Content-Type": "application/json" } }
+      { status: 429, headers: { "Content-Type": "application/json; charset=utf-8" } }
     )
   }
 
@@ -305,7 +305,7 @@ export async function POST(req: NextRequest) {
   } catch (e: any) {
     return new Response(JSON.stringify({ error: e?.message === "mensaje demasiado largo" ? "El mensaje es demasiado largo." : "Formato inválido" }), {
       status: 400,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json; charset=utf-8" },
     })
   }
 
@@ -326,13 +326,13 @@ export async function POST(req: NextRequest) {
       .join("")
 
     return new Response(JSON.stringify({ text }), {
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json; charset=utf-8" },
     })
   } catch (err: any) {
     console.error("[/api/chat] Anthropic error:", err?.status, err?.message, err?.error)
     return new Response(
       JSON.stringify({ error: `Anthropic error: ${err?.status} — ${err?.message}` }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json; charset=utf-8" } }
     )
   }
 }
