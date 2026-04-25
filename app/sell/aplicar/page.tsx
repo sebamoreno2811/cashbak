@@ -11,6 +11,7 @@ import Image from "next/image"
 import { notifyStoreSubmitted } from "@/app/stores/actions"
 import type { DeliveryOption } from "@/types/delivery"
 import { Trash2, Plus } from "lucide-react"
+import AuthModal from "@/components/auth/auth-modal"
 
 const CATEGORIES = [
   "Ropa y accesorios",
@@ -33,6 +34,7 @@ const CATEGORIES = [
 export default function AplicarPage() {
   const router = useRouter()
   const [authChecked, setAuthChecked] = useState<"loading" | "ok" | "no-auth">("loading")
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data }: { data: { user: { id: string } | null } }) => {
@@ -131,7 +133,8 @@ export default function AplicarPage() {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      router.push("/login?redirect=/sell/aplicar")
+      setIsAuthModalOpen(true)
+      setLoading(false)
       return
     }
 
@@ -223,15 +226,18 @@ export default function AplicarPage() {
         <p className="text-gray-500 text-sm mb-6">
           Crea una cuenta o inicia sesión para solicitar la apertura de tu tienda en CashBak.
         </p>
-        <div className="flex flex-col gap-3">
-          <Link href="/login" className="w-full py-2.5 bg-green-900 text-white rounded-xl font-semibold text-sm hover:bg-green-800 transition-colors">
-            Iniciar sesión
-          </Link>
-          <Link href="/signup" className="w-full py-2.5 border border-gray-200 text-gray-700 rounded-xl font-semibold text-sm hover:border-gray-400 transition-colors">
-            Crear cuenta
-          </Link>
-        </div>
+        <button
+          onClick={() => setIsAuthModalOpen(true)}
+          className="w-full py-2.5 bg-green-900 text-white rounded-xl font-semibold text-sm hover:bg-green-800 transition-colors"
+        >
+          Iniciar sesión / Crear cuenta
+        </button>
       </div>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={() => { setIsAuthModalOpen(false); setAuthChecked("ok") }}
+      />
     </div>
   )
 
