@@ -23,7 +23,7 @@ export default async function AdminTiendasPage() {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect("/login")
+  if (!user) redirect("/login?redirect=/admin/tiendas")
 
   // Verificar que es admin
   const { data: customer } = await supabase

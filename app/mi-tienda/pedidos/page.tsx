@@ -8,7 +8,7 @@ export default async function SellerPedidosPage() {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect("/login")
+  if (!user) redirect("/login?redirect=/mi-tienda/pedidos")
 
   // Verificar que tiene tienda aprobada
   const { data: store } = await supabase

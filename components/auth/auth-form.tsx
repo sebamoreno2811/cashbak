@@ -27,9 +27,10 @@ import {
 
 interface AuthFormProps {
   onSuccess?: () => void
+  redirectTo?: string
 }
 
-export default function AuthForm({ onSuccess }: AuthFormProps) {
+export default function AuthForm({ onSuccess, redirectTo = "/" }: AuthFormProps) {
   const supabase = createClient()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -45,11 +46,11 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       setError(null)
 
       // Asegúrate que redirect apunta a la ruta de callback del app router
-      const redirectTo = `${window.location.origin}/auth/callback?next=/`
+      const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo },
+        options: { redirectTo: callbackUrl },
       })
 
       if (error) {
