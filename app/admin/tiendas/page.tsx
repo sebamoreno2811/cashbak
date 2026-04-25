@@ -10,6 +10,9 @@ interface Store {
   category: string | null
   email: string | null
   whatsapp: string | null
+  instagram: string | null
+  facebook: string | null
+  tiktok: string | null
   status: "pending" | "approved" | "rejected"
   reject_reason: string | null
   created_at: string
@@ -106,6 +109,21 @@ function StoreCard({ store, showActions = false }: { store: Store; showActions?:
             )}
             {store.whatsapp && (
               <p className="text-xs text-gray-400">WhatsApp: {store.whatsapp}</p>
+            )}
+            {store.instagram && (
+              <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener noreferrer" className="text-xs text-pink-600 hover:underline font-medium">
+                @{store.instagram} (IG)
+              </a>
+            )}
+            {store.facebook && (
+              <a href={`https://facebook.com/${store.facebook}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium">
+                fb/{store.facebook}
+              </a>
+            )}
+            {store.tiktok && (
+              <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-700 hover:underline font-medium">
+                @{store.tiktok} (TT)
+              </a>
             )}
           </div>
           <p className="text-xs text-gray-400 mt-1">
