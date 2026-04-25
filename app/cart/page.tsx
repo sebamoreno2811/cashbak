@@ -257,7 +257,7 @@ export default function CartPage() {
                                 getCashback={(bet) => product ? calculateProductCashbak(product, bet.odd) : 0}
                               />
                             </div>
-                            <div className=”flex items-center mt-2 text-sm text-emerald-600”>
+                            <div className="flex items-center mt-2 text-sm text-emerald-600">
                               <span>CashBak: {(item.cashbakPercentage ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}%</span>
                             </div>
                             <div className="items-center hidden mt-2 text-sm md:flex text-emerald-600">
