@@ -121,13 +121,10 @@ const MARGEN_TIENDA_OFICIAL = 0.25  // margen neto por defecto para productos de
 export function calculateProductCashbak(
   product: Product,
   cuota: number,
-  hasPrint = false
 ): number {
   if (cuota <= 0) return 0
-  const price = hasPrint ? product.price + 2990 : product.price
-  const cost = hasPrint ? product.cost + 2500 : product.cost
   const margenVendedorPct = product.margin_pct ?? MARGEN_TIENDA_OFICIAL
-  const result = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct })
+  const result = calculateExternalCashbak({ precioVenta: product.price, costo: product.cost, cuota, margenVendedorPct })
   return result.cashbackPct
 }
 
@@ -137,13 +134,12 @@ export function calculateProductCashbak(
 export function calculateMaxProductCashbak(
   product: Product,
   bets: Bet[],
-  hasPrint = false
 ): number {
   const active = getAllBettingOptions(bets)
   if (active.length === 0) return 0
   return Math.max(...active.map(id => {
     const bet = bets.find(b => b.id === id)
-    return bet ? calculateProductCashbak(product, bet.odd, hasPrint) : 0
+    return bet ? calculateProductCashbak(product, bet.odd) : 0
   }))
 }
 
@@ -160,8 +156,8 @@ function getPricesAndCostsByCategory(category: number, products: Product[] = [])
   return { price: product.price, cost: product.cost }
 }
 
-function descuentoSegunCuota(cuota: number, precioVenta: number, precioCompra: number, hasPrint: boolean = false): number {
-  const margen = hasPrint ?  (precioCompra * 0.4) / (precioCompra + 2500) : 0.4;
+function descuentoSegunCuota(cuota: number, precioVenta: number, precioCompra: number): number {
+  const margen = 0.4
   const resultado2 = (cuota / precioVenta) * (precioVenta - precioCompra - (margen * precioCompra))
   return Math.min(1, Math.max(0, resultado2))
 }
@@ -171,7 +167,6 @@ export function calculatecashbak(
   category: number,
   products: Product[] = [],
   bets: Bet[] = [],
-  hasPrint: boolean = false
 ): number {
   const bet = bets.find((b) => b.id === option)
   const cuota = bet?.odd ?? 0
@@ -179,34 +174,20 @@ export function calculatecashbak(
   const priceAndCost = getPricesAndCostsByCategory(category, products)
   if (!priceAndCost) return 0
 
-  let { price, cost } = priceAndCost
-
-  if (hasPrint) {
-    price += 2990
-    cost += 2500
-  }
-
-  const cashbak = descuentoSegunCuota(cuota, price, cost, hasPrint)
+  const { price, cost } = priceAndCost
+  const cashbak = descuentoSegunCuota(cuota, price, cost)
   return Math.floor(cashbak * 100)
 }
 
-
-export function calcularMontoApostar(option: number, category: number, products: Product[] = [], bets: Bet[] = [], hasPrint: boolean = false): number {
+export function calcularMontoApostar(option: number, category: number, products: Product[] = [], bets: Bet[] = []): number {
   const bet = bets.find((b) => b.id === option)
   const cuota = bet?.odd ?? 0
 
   const priceAndCost = getPricesAndCostsByCategory(category, products)
   if (!priceAndCost) return 0
 
-  let { price, cost } = priceAndCost
-
-  if (hasPrint) {
-    price += 2990
-    cost += 2500
-  }
-
-  const cashbak = descuentoSegunCuota(cuota, price, cost, hasPrint)
-
+  const { price, cost } = priceAndCost
+  const cashbak = descuentoSegunCuota(cuota, price, cost)
   return ((cashbak) * price) / cuota
 }
 

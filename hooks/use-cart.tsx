@@ -13,7 +13,7 @@ import type { Product } from "@/types/product"
 import type { DeliveryOption } from "@/types/delivery"
 export type { DeliveryOption }
 import { useProducts } from "@/context/product-context"
-import { useBets } from "@/context/bet-context" // <-- ✅ importa el contexto de apuestas
+import { useBets } from "@/context/bet-context"
 
 export type CartItem = {
   productId: number
@@ -25,19 +25,17 @@ export type CartItem = {
   tarifa_procesamiento: number
   vendor_net_amount: number
   size: string
-  hasPrint: boolean
 }
 
 export type Delivery = string | null
 
 type CartContextType = {
   items: CartItem[]
-  addItem: (productId: number, quantity: number, betOptionId: string, size: string, hasPrint: boolean) => Promise<void>
+  addItem: (productId: number, quantity: number, betOptionId: string, size: string) => Promise<void>
   removeItem: (index: number) => void
   updateItemQuantity: (index: number, quantity: number) => void
   updateItemBetOption: (index: number, betOptionId: string) => Promise<void>
   updateItemSize: (index: number, size: string) => void
-  updateItemHasPrint: (index: number, hasPrint: boolean) => void
   clearCart: () => void
   getItemsCount: () => number
   getCartTotal: (shippingCost: number) => number
@@ -57,7 +55,6 @@ type CartContextType = {
     vendor_net_amount: number
     tarifa_procesamiento: number
     size: string
-    hasPrint: boolean
   }
 }
 
@@ -65,7 +62,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { products, loading, error } = useProducts()
-  const { bets, loading: betsLoading, error: betsError } = useBets() // <-- ✅ usa el hook aquí
+  const { bets, loading: betsLoading, error: betsError } = useBets()
   const [deliveryOption, setDeliveryOption] = useState<DeliveryOption | null>(null)
   const deliveryType: Delivery = deliveryOption?.name ?? null
   const shippingCost = deliveryOption?.price ?? 0
@@ -84,7 +81,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Cuando cargan los productos, limpia items huérfanos (producto eliminado o inválido)
   useEffect(() => {
     if (loading || products.length === 0) return
     setItems(prev => {
@@ -102,23 +98,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     quantity: number,
     betOptionId: string,
     size: string,
-    hasPrint: boolean
   ) => {
     const product = products.find((p) => p.id === productId)
     if (!product) return
 
     const bet = bets.find(b => b.id === Number.parseFloat(betOptionId))
     const cuota = bet?.odd ?? 0
-    const price = hasPrint ? product.price + 2990 : product.price
-    const cost = hasPrint ? product.cost + 2500 : product.cost
-    const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.25 })
+    const sim = calculateExternalCashbak({ precioVenta: product.price, costo: product.cost, cuota, margenVendedorPct: product.margin_pct ?? 0.25 })
 
     const existingItemIndex = items.findIndex(
       (item) =>
         item.productId === productId &&
         item.betOptionId === betOptionId &&
-        item.size === size &&
-        item.hasPrint === hasPrint
+        item.size === size
     )
 
     posthog.capture("producto_agregado_carrito", {
@@ -146,7 +138,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
           tarifa_procesamiento: sim.tarifaProcesamiento,
           vendor_net_amount: sim.margenVendedorNeto,
           size,
-          hasPrint
         },
       ])
     }
@@ -161,9 +152,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (product) {
       const bet = bets.find(b => b.id === Number.parseFloat(betOptionId))
       const cuota = bet?.odd ?? 0
-      const price = item.hasPrint ? product.price + 2990 : product.price
-      const cost = item.hasPrint ? product.cost + 2500 : product.cost
-      const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.25 })
+      const sim = calculateExternalCashbak({ precioVenta: product.price, costo: product.cost, cuota, margenVendedorPct: product.margin_pct ?? 0.25 })
       item.cashbakPercentage = sim.cashbackPct
       item.bet_amount = sim.montoApuesta
       item.comision_cashbak = sim.comisionPlataforma
@@ -178,8 +167,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(items.filter((_, i) => i !== index))
   }
 
-
-
   const updateItemQuantity = (index: number, quantity: number) => {
     if (quantity < 1) return
     const updatedItems = [...items]
@@ -190,28 +177,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateItemSize = (index: number, newSize: string) => {
     const updatedItems = [...items]
     updatedItems[index].size = newSize
-    setItems(updatedItems)
-  }
-
-  const updateItemHasPrint = (index: number, hasPrint: boolean) => {
-    const updatedItems = [...items]
-    updatedItems[index].hasPrint = hasPrint
-    const item = updatedItems[index]
-
-    const product = products.find((p) => p.id === item.productId)
-    if (product) {
-      const bet = bets.find(b => b.id === Number.parseFloat(item.betOptionId))
-      const cuota = bet?.odd ?? 0
-      const price = item.hasPrint ? product.price + 2990 : product.price
-      const cost = item.hasPrint ? product.cost + 2500 : product.cost
-      const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota, margenVendedorPct: product.margin_pct ?? 0.25 })
-      item.cashbakPercentage = sim.cashbackPct
-      item.bet_amount = sim.montoApuesta
-      item.comision_cashbak = sim.comisionPlataforma
-      item.tarifa_procesamiento = sim.tarifaProcesamiento
-      item.vendor_net_amount = sim.margenVendedorNeto
-    }
-
     setItems(updatedItems)
   }
 
@@ -226,16 +191,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const getCartTotal = (shippingCost: number) => {
     return items.reduce((total, item) => {
       const product = products.find((p) => p.id === item.productId)
-      return total + ((product?.price || 0) + (item.hasPrint ? 2990 : 0)) * item.quantity
+      return total + (product?.price || 0) * item.quantity
     }, 0) + shippingCost
   }
 
   const calcItemCashbak = (item: CartItem, product: Product): { pct: number; montoApuesta: number; comision_cashbak: number; vendor_net_amount: number; tarifa_procesamiento: number } => {
     const bet = bets.find(b => b.id.toString() === item.betOptionId)
     if (!bet) return { pct: 0, montoApuesta: 0, comision_cashbak: 0, vendor_net_amount: 0, tarifa_procesamiento: 0 }
-    const price = item.hasPrint ? product.price + 2990 : product.price
-    const cost = item.hasPrint ? product.cost + 2500 : product.cost
-    const sim = calculateExternalCashbak({ precioVenta: price, costo: cost, cuota: bet.odd, margenVendedorPct: product.margin_pct ?? 0.25 })
+    const sim = calculateExternalCashbak({ precioVenta: product.price, costo: product.cost, cuota: bet.odd, margenVendedorPct: product.margin_pct ?? 0.25 })
     return {
       pct: sim.cashbackPct,
       montoApuesta: sim.montoApuesta,
@@ -250,7 +213,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const product = products.find((p) => p.id === item.productId)
       if (!product) return total
       const { pct } = calcItemCashbak(item, product)
-      const subtotal = (product.price + (item.hasPrint ? 2990 : 0)) * item.quantity
+      const subtotal = product.price * item.quantity
       return total + (subtotal * pct) / 100
     }, 0)
   }
@@ -258,7 +221,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const getItemDetails = (item: CartItem) => {
     const product = products.find((p) => p.id === item.productId)
     const bet = bets.find((b) => b.id.toString() === item.betOptionId)
-    const subtotal = ((product?.price || 0) + (item.hasPrint ? 2990 : 0)) * item.quantity
+    const subtotal = (product?.price || 0) * item.quantity
     const { pct: cashbakPercentage, montoApuesta, comision_cashbak, vendor_net_amount, tarifa_procesamiento } = product
       ? calcItemCashbak(item, product)
       : { pct: 0, montoApuesta: 0, comision_cashbak: 0, vendor_net_amount: 0, tarifa_procesamiento: 0 }
@@ -275,11 +238,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       vendor_net_amount,
       tarifa_procesamiento,
       size: item.size,
-      hasPrint: item.hasPrint,
     }
   }
 
-  // Mostrar carga combinada de productos o apuestas
   if (loading || betsLoading)
     return (
       <div className="flex items-center justify-center py-20">
@@ -299,7 +260,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateItemQuantity,
         updateItemBetOption,
         updateItemSize,
-        updateItemHasPrint,
         clearCart,
         getItemsCount,
         getCartTotal,

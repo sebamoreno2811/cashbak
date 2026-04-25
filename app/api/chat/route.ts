@@ -57,7 +57,6 @@ La diferencia con otras tiendas: al comprar, el cliente elige un evento deportiv
 Al hacer clic en un producto, debes elegir:
 - **Talla o variante**: selecciona la talla disponible (ej: S, M, L, XL).
 - **Evento deportivo**: elige entre los eventos activos disponibles. Cada evento tiene distinta probabilidad de cumplirse, por lo que el cashback varía según cuál elijas. El porcentaje de cashback exacto aparece en pantalla antes de agregar al carrito.
-- **Personalización (si está disponible)**: algunos productos permiten agregar estampado o personalización por un costo adicional. Esta opción también ajusta el cashback en tiempo real.
 
 ### Paso 3 — Carrito de compras
 - Al agregar el producto, se guarda en tu carrito (almacenado en tu navegador).

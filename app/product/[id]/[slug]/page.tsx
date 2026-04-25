@@ -14,7 +14,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useProducts } from "@/context/product-context"
 import type { Product } from "@/types/product"
 import { useBets } from "@/context/bet-context"
-import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
 import Link from "next/link"
@@ -51,7 +50,6 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
   const [imgIndex, setImgIndex] = useState(0)
-  const [hasPrint, setHasPrint] = useState(false)
   const stockKeys = product ? Object.keys(product.stock ?? {}) : []
   const isSingleSize = stockKeys.length === 1 && stockKeys[0] === "Única"
   const availableSizes = isSingleSize ? [] : ["S", "M", "L", "XL"]
@@ -105,7 +103,6 @@ export default function ProductPage() {
         })
       }
       setProduct(foundProduct ?? null)
-      setHasPrint(foundProduct?.hasPrint ?? false)
       if (foundProduct) {
         const keys = Object.keys(foundProduct.stock ?? {})
         const single = keys.length === 1 && keys[0] === "Única"
@@ -125,7 +122,7 @@ export default function ProductPage() {
   useEffect(() => {
     if (product) {
       const bet = bets.find(b => b.id === Number.parseFloat(selectedOption))
-      setcashbak(bet ? calculateProductCashbak(product, bet.odd, hasPrint) : 0)
+      setcashbak(bet ? calculateProductCashbak(product, bet.odd) : 0)
     }
   }, [product, selectedOption, products])
 
@@ -148,7 +145,7 @@ export default function ProductPage() {
     setSelectedOption(value)
     if (product) {
       const bet = bets.find(b => b.id === Number.parseFloat(value))
-      setcashbak(bet ? calculateProductCashbak(product, bet.odd, hasPrint) : 0)
+      setcashbak(bet ? calculateProductCashbak(product, bet.odd) : 0)
     }
   }
 
@@ -166,7 +163,7 @@ export default function ProductPage() {
       return
     }
 
-    addItem(product.id, quantity, selectedOption, size, hasPrint)
+    addItem(product.id, quantity, selectedOption, size)
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 1500)
 
@@ -338,7 +335,7 @@ export default function ProductPage() {
           )}
           <h1 className="mb-4 text-3xl font-bold">{product.name}</h1>
           <p className="mb-6 text-xl font-semibold">
-            ${ (product.price + (hasPrint ? 2990 : 0)).toLocaleString("es-CL", { maximumFractionDigits: 0 }) }
+            ${ product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 }) }
           </p>
 
           <div className="mb-6">
@@ -351,14 +348,14 @@ export default function ProductPage() {
             <BetSelector
               value={selectedOption}
               onChange={handleOptionChange}
-              getCashback={(bet) => product ? calculateProductCashbak(product, bet.odd, hasPrint) : 0}
+              getCashback={(bet) => product ? calculateProductCashbak(product, bet.odd) : 0}
             />
           </div>
 
           <div className="p-4 mt-4 border rounded-lg border-emerald-200 bg-emerald-50">
             <p className="text-lg font-semibold text-green-900">CashBak del: {cashbak.toLocaleString("es-CL", { maximumFractionDigits: 0 })}%</p>
             <p className="mt-1 text-sm text-green-800">
-              Recibirás ${(((product.price + (hasPrint ? 2990 : 0)) * cashbak) / 100).toLocaleString("es-CL", { maximumFractionDigits: 0 })} de vuelta, en caso de que se cumpla el evento seleccionado.
+              Recibirás ${((product.price * cashbak) / 100).toLocaleString("es-CL", { maximumFractionDigits: 0 })} de vuelta, en caso de que se cumpla el evento seleccionado.
             </p>
           </div>
 
@@ -415,48 +412,6 @@ export default function ProductPage() {
             </div>
             )}
           </div>
-
-          {product.hasPrint !== null && (
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-4">
-              <label htmlFor="hasPrintSwitch" className="text-sm text-gray-700">
-                ¿Agregar estampado?
-              </label>
-              <Switch
-                id="hasPrintSwitch"
-                checked={hasPrint}
-                disabled={hasPrint === product?.hasPrint}
-                onCheckedChange={(val) => {
-                  setHasPrint(val)
-                  if (product) {
-                    const bet = bets.find(b => b.id === Number.parseFloat(selectedOption))
-                    setcashbak(bet ? calculateProductCashbak(product, bet.odd, val) : 0)
-                  }
-                }}
-                className="data-[state=checked]:bg-green-900"
-              />
-            </div>
-
-            {hasPrint === product?.hasPrint && (
-              <p className="ml-8 text-sm text-gray-500">
-                Solo disponible esta opción de momento
-              </p>
-            )}
-
-            {hasPrint && hasPrint !== product?.hasPrint && (
-              <p className="ml-8 text-sm text-gray-500">
-                (+ $2.990, sujeto a CashBak!)
-              </p>
-            )}
-
-            {hasPrint && product?.print_text && (
-              <p className="ml-8 text-sm text-gray-600">
-                Estampado:{" "}
-                <span className="font-semibold text-gray-800">"{product.print_text}"</span>
-              </p>
-            )}
-          </div>
-          )}
 
           <Button
             className={`flex-1 ${addedToCart ? "bg-emerald-600 rounded-md border-2 border-black" : "bg-green-900 ounded-md border-2 border-black hover:bg-green-700 hover:shadow-lg"}`}

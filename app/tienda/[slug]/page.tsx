@@ -39,7 +39,7 @@ export default async function TiendaPage({ params }: { params: Promise<{ slug: s
 
   const { data: products } = await supabase
     .from("products")
-    .select("id, name, price, cost, description, image, category, category_name, category_names, brand, stock, video_url, hasPrint, print_text, margin_pct, net_margin, store_id")
+    .select("id, name, price, cost, description, image, category, category_name, category_names, brand, stock, video_url, margin_pct, net_margin, store_id")
     .eq("store_id", store.id)
     .order("id", { ascending: false })
 

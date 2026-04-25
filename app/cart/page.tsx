@@ -34,9 +34,6 @@ import useSupabaseUser from "@/hooks/use-supabase-user"
 import AuthModal from "@/components/auth/auth-modal"
 import ShippingDetailsForm from "@/components/shipping-modal"
 import { useShipping } from "@/context/shipping-context"
-import { Switch } from "@/components/ui/switch"
-
-
 export default function CartPage() {
   const router = useRouter()
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -46,7 +43,6 @@ export default function CartPage() {
     updateItemQuantity,
     updateItemBetOption,
     updateItemSize,
-    updateItemHasPrint,
     getCartTotal,
     getTotalcashbak,
     getItemDetails,
@@ -261,24 +257,7 @@ export default function CartPage() {
                                 getCashback={(bet) => product ? calculateProductCashbak(product, bet.odd) : 0}
                               />
                             </div>
-                            <div>
-                              <Switch
-                                checked={item.hasPrint}
-                                disabled={item.hasPrint === product?.hasPrint}
-                                onCheckedChange={(checked) => {
-                                  updateItemHasPrint(index, checked)
-                                }}
-                                className="data-[state=checked]:bg-green-900"
-                              />
-                            </div>
-                            <div className="flex items-center mt-2 text-sm text-emerald-600">
-                              {item.hasPrint && product?.print_text && (
-                                  <label className="text-sm text-gray-600">
-                                Estampado: <span className="font-semibold text-gray-800">“{product.print_text}”</span>
-                                  </label>
-                                )}
-                            </div>
-                            <div className="flex items-center mt-2 text-sm text-emerald-600">
+                            <div className=”flex items-center mt-2 text-sm text-emerald-600”>
                               <span>CashBak: {(item.cashbakPercentage ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}%</span>
                             </div>
                             <div className="items-center hidden mt-2 text-sm md:flex text-emerald-600">
@@ -294,7 +273,7 @@ export default function CartPage() {
                             <div className="mt-4 space-y-1 text-sm text-gray-700 md:hidden">
                               <div className="flex justify-between">
                                 <span>Precio:</span>
-                                <span>${(product.price + (item.hasPrint ? 2990 : 0)).toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                                <span>${product.price.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                               </div>
                                <div className="flex justify-between text-emerald-600">
                                 <span>CashBak potencial:</span>
@@ -310,7 +289,7 @@ export default function CartPage() {
 
                         {/* Precio */}
                         <div className="hidden md:flex md:col-span-2 md:items-center md:justify-center">
-                          <span className="text-sm font-medium text-gray-800">${(product.price + (item.hasPrint ? 2990 : 0)).toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                          <span className="text-sm font-medium text-gray-800">${(product?.price ?? 0).toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                         </div>
 
                         {/* Cantidad y Talla */}
