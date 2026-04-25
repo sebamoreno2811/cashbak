@@ -457,20 +457,25 @@ export default function AplicarPage() {
             <CardContent className="pt-6 space-y-5">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">Métodos de entrega *</h2>
-                <p className="text-sm text-gray-400">Agrega al menos uno. Podrás modificarlos después desde tu panel.</p>
+                <p className="text-sm text-gray-400">
+                  Agrega uno o más métodos. El comprador elegirá cuál prefiere al momento de pagar.
+                </p>
               </div>
 
               {/* Opciones agregadas */}
               {deliveryOptions.length > 0 && (
                 <div className="space-y-2">
-                  {deliveryOptions.map(opt => (
-                    <div key={opt.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm">
-                      <div>
-                        <span className="font-medium">{opt.name}</span>
-                        <span className="ml-2 text-gray-400">{opt.type === "delivery" ? "Envío" : "Retiro"}</span>
-                        <span className="ml-2 text-gray-500">
-                          {opt.priceTBD ? "Por pagar" : opt.price === 0 ? "Gratis" : `$${opt.price.toLocaleString("es-CL")}`}
-                        </span>
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Métodos configurados ({deliveryOptions.length})</p>
+                  {deliveryOptions.map((opt, i) => (
+                    <div key={opt.id} className="flex items-center justify-between px-3 py-2.5 bg-emerald-50 rounded-lg border border-emerald-200 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{opt.type === "delivery" ? "🚚" : "🏪"}</span>
+                        <div>
+                          <span className="font-medium text-gray-800">{opt.name}</span>
+                          <span className="ml-2 text-emerald-700 font-semibold">
+                            {opt.priceTBD ? "Por pagar" : opt.price === 0 ? "Gratis" : `$${opt.price.toLocaleString("es-CL")}`}
+                          </span>
+                        </div>
                       </div>
                       <button type="button" onClick={() => setDeliveryOptions(prev => prev.filter(o => o.id !== opt.id))}>
                         <Trash2 className="w-4 h-4 text-red-400 hover:text-red-600" />
@@ -481,8 +486,10 @@ export default function AplicarPage() {
               )}
 
               {/* Agregar nueva opción */}
-              <div className="space-y-4 border border-gray-200 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-600">Agregar método</p>
+              <div className="space-y-4 border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                <p className="text-sm font-semibold text-gray-700">
+                  {deliveryOptions.length === 0 ? "Configura tu primer método" : "+ Agregar otro método"}
+                </p>
 
                 {/* Paso 1: tipo */}
                 <div className="grid grid-cols-2 gap-2">
@@ -587,9 +594,9 @@ export default function AplicarPage() {
                   type="button"
                   onClick={addDeliveryOption}
                   disabled={!canAddDelivery()}
-                  className="flex items-center gap-1 text-sm text-green-700 font-semibold hover:text-green-900 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-green-900 text-white text-sm font-semibold hover:bg-green-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <Plus className="w-4 h-4" /> Agregar método
+                  <Plus className="w-4 h-4" /> Confirmar y agregar método
                 </button>
               </div>
             </CardContent>
