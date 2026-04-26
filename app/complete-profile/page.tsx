@@ -12,7 +12,7 @@ export default async function CompleteProfilePage({ searchParams }: { searchPara
 
   if (sessionError || !session?.user) {
     // no session -> enviar a login
-    redirect("/login");
+    redirect("/login?redirect=/complete-profile");
   }
 
   const user = session.user;

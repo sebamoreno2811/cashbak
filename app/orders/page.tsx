@@ -10,6 +10,7 @@ import { useState, useTransition, useEffect } from "react"
 import { confirmOrderReceived } from "./actions"
 import { CheckCircle2, Loader2 } from "lucide-react"
 import { createClient } from "@/utils/supabase/client"
+import { useRouter } from "next/navigation"
 
 function ConfirmButton({ orderId }: { orderId: string }) {
   const [confirmed, setConfirmed] = useState(false)
@@ -44,10 +45,19 @@ function ConfirmButton({ orderId }: { orderId: string }) {
 }
 
 export default function OrdersPage() {
+  const router = useRouter()
   const { orders, loading: ordersLoading } = useOrders()
   const { products, loading: productsLoading } = useProducts()
   const [bets, setBets] = useState<Record<number, { name: string; is_winner: boolean | null }>>({})
   const [betsLoading, setBetsLoading] = useState(true)
+
+  useEffect(() => {
+    const supabase = createClient()
+    void (async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) router.replace("/login?redirect=/orders")
+    })()
+  }, [router])
 
   useEffect(() => {
     if (ordersLoading) return

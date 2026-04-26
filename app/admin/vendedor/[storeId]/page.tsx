@@ -8,7 +8,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ s
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect("/")
+  if (!user) redirect("/login?redirect=/admin/tiendas")
 
   const { data: me } = await supabase.from("customers").select("role").eq("id", user.id).single()
   if (me?.role !== "admin") redirect("/")

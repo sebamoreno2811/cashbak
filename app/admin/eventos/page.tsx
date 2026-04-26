@@ -8,7 +8,7 @@ export default async function AdminEventosPage() {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect("/")
+  if (!user) redirect("/login?redirect=/admin/eventos")
 
   const { data: customer } = await supabase
     .from("customers")
