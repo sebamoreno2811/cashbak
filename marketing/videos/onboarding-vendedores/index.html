@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Onboarding Vendedores — CashBak</title>
+</head>
+<body>
+
+<div id="root" data-composition-id="onboarding-vendedores" data-width="1920" data-height="1080" data-start="0" data-duration="18.5" data-track-index="0">
+
+  <style>
+    [data-composition-id="onboarding-vendedores"] {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: #ffffff;
+      background: radial-gradient(ellipse at center, #14532d 0%, #0a2f19 100%);
+    }
+
+    [data-composition-id="onboarding-vendedores"] .glow-orb {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 1100px;
+      height: 1100px;
+      margin-left: -550px;
+      margin-top: -550px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.05) 45%, transparent 70%);
+      pointer-events: none;
+      filter: blur(40px);
+      z-index: 1;
+    }
+
+    [data-composition-id="onboarding-vendedores"] .brand {
+      position: absolute;
+      top: 60px;
+      left: 80px;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.6px;
+      color: #ffffff;
+      z-index: 50;
+    }
+    [data-composition-id="onboarding-vendedores"] .brand .b-accent {
+      color: #f59e0b;
+    }
+
+    [data-composition-id="onboarding-vendedores"] .scene {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      z-index: 10;
+    }
+    /* Initial visibility: only scene 1 visible at t=0 */
+    [data-composition-id="onboarding-vendedores"] #scene-1 { opacity: 1; }
+    [data-composition-id="onboarding-vendedores"] #scene-2,
+    [data-composition-id="onboarding-vendedores"] #scene-3,
+    [data-composition-id="onboarding-vendedores"] #scene-4 { opacity: 0; }
+
+    [data-composition-id="onboarding-vendedores"] .scene-content {
+      width: 100%;
+      height: 100%;
+      padding: 160px 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 28px;
+      box-sizing: border-box;
+    }
+
+    [data-composition-id="onboarding-vendedores"] .label {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #f59e0b;
+    }
+
+    [data-composition-id="onboarding-vendedores"] .headline {
+      font-size: 130px;
+      font-weight: 800;
+      line-height: 1.02;
+      letter-spacing: -3px;
+      max-width: 1500px;
+      color: #ffffff;
+    }
+    [data-composition-id="onboarding-vendedores"] .headline .em-em {
+      color: #10b981;
+    }
+    [data-composition-id="onboarding-vendedores"] .headline .em-am {
+      color: #f59e0b;
+    }
+
+    [data-composition-id="onboarding-vendedores"] .subline {
+      font-size: 38px;
+      font-weight: 400;
+      line-height: 1.35;
+      color: #d1fae5;
+      max-width: 1400px;
+    }
+
+    /* Scene 2: price card */
+    [data-composition-id="onboarding-vendedores"] .price-card {
+      margin-top: 32px;
+      display: flex;
+      gap: 32px;
+      max-width: 1100px;
+    }
+    [data-composition-id="onboarding-vendedores"] .price-cell {
+      flex: 1;
+      padding: 40px 44px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(16, 185, 129, 0.25);
+    }
+    [data-composition-id="onboarding-vendedores"] .price-cell .price-label {
+      font-size: 22px;
+      color: #6ee7b7;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+    [data-composition-id="onboarding-vendedores"] .price-cell .price-value {
+      font-size: 76px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -2px;
+      color: #ffffff;
+      line-height: 1;
+    }
+    [data-composition-id="onboarding-vendedores"] .price-cell.highlight {
+      border-color: rgba(245, 158, 11, 0.5);
+      background: rgba(245, 158, 11, 0.08);
+    }
+    [data-composition-id="onboarding-vendedores"] .price-cell.highlight .price-label {
+      color: #fcd34d;
+    }
+    [data-composition-id="onboarding-vendedores"] .price-cell.highlight .price-value {
+      color: #f59e0b;
+    }
+
+    /* Scene 3: product card */
+    [data-composition-id="onboarding-vendedores"] .product-card {
+      margin-top: 36px;
+      width: 720px;
+      padding: 56px 64px;
+      background: #ffffff;
+      color: #1f2937;
+      border-radius: 36px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      position: relative;
+    }
+    [data-composition-id="onboarding-vendedores"] .product-card .product-name {
+      font-size: 34px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: #1f2937;
+    }
+    [data-composition-id="onboarding-vendedores"] .product-card .product-price {
+      font-size: 64px;
+      font-weight: 800;
+      color: #059669;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      letter-spacing: -1.5px;
+    }
+    [data-composition-id="onboarding-vendedores"] .product-badge {
+      position: absolute;
+      top: -34px;
+      right: -36px;
+      background: #f59e0b;
+      color: #14532d;
+      padding: 18px 32px;
+      border-radius: 999px;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      box-shadow: 0 16px 36px rgba(245, 158, 11, 0.5);
+      transform-origin: center;
+    }
+
+    /* Scene 4: CTA */
+    [data-composition-id="onboarding-vendedores"] .scene-cta .scene-content {
+      align-items: center;
+      text-align: center;
+    }
+    [data-composition-id="onboarding-vendedores"] .scene-cta .headline,
+    [data-composition-id="onboarding-vendedores"] .scene-cta .subline {
+      text-align: center;
+    }
+    [data-composition-id="onboarding-vendedores"] .cta-button {
+      margin-top: 48px;
+      display: inline-block;
+      padding: 32px 60px;
+      background: #059669;
+      color: #ffffff;
+      border-radius: 999px;
+      font-size: 46px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      box-shadow: 0 20px 50px rgba(5, 150, 105, 0.55);
+    }
+
+    /* Transition wipe overlay — initial state offscreen-left */
+    [data-composition-id="onboarding-vendedores"] .wipe {
+      position: absolute;
+      top: -10%;
+      left: 0;
+      width: 100%;
+      height: 120%;
+      background: #14532d;
+      transform: translateX(-120%) skewX(-10deg);
+      z-index: 100;
+      pointer-events: none;
+    }
+  </style>
+
+  <div class="glow-orb"></div>
+  <div class="brand">CashBak<span class="b-accent">·</span></div>
+
+  <!-- Scene 1: Hook -->
+  <div class="scene" id="scene-1">
+    <div class="scene-content">
+      <div class="label" id="s1-label">Para vendedores</div>
+      <div class="headline" id="s1-headline">Un <span class="em-am">beneficio extra</span> en cada compra.</div>
+      <div class="subline" id="s1-subline">Más clientes para tu tienda.</div>
+    </div>
+  </div>
+
+  <!-- Scene 2: Ingreso fijo -->
+  <div class="scene" id="scene-2">
+    <div class="scene-content">
+      <div class="label" id="s2-label">Tu ingreso es fijo</div>
+      <div class="headline" id="s2-headline">Cobras <span class="em-am">lo mismo</span>, siempre.</div>
+      <div class="subline" id="s2-subline">Defines precio y margen una vez. Lo que cobras no cambia, se cumpla o no el evento del cliente.</div>
+      <div class="price-card">
+        <div class="price-cell" id="s2-cell-1">
+          <div class="price-label">Precio venta</div>
+          <div class="price-value">$49.990</div>
+        </div>
+        <div class="price-cell highlight" id="s2-cell-2">
+          <div class="price-label">Tu margen</div>
+          <div class="price-value">$34.990</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 3: Productos atractivos -->
+  <div class="scene" id="scene-3">
+    <div class="scene-content">
+      <div class="label" id="s3-label">Para tu cliente</div>
+      <div class="headline" id="s3-headline">Tus productos, <span class="em-am">irresistibles</span>.</div>
+      <div class="subline" id="s3-subline">El cliente compra y elige un evento deportivo. Si se cumple, recupera hasta el 100% en CashBak. Si no, igual recibe su producto.</div>
+      <div class="product-card" id="s3-card">
+        <div class="product-name">Audífonos Pro X</div>
+        <div class="product-price">$49.990</div>
+        <div class="product-badge" id="s3-badge">CashBak hasta 100%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 4: CTA -->
+  <div class="scene scene-cta" id="scene-4">
+    <div class="scene-content">
+      <div class="label" id="s4-label">Empieza hoy</div>
+      <div class="headline" id="s4-headline">Crea tu tienda en <span class="em-am">CashBak</span>.</div>
+      <div class="subline" id="s4-subline">Sube tu catálogo. Define tus márgenes. Listo.</div>
+      <div class="cta-button" id="s4-cta">cashbak.cl/sell</div>
+    </div>
+  </div>
+
+  <!-- Transition wipe -->
+  <div class="wipe" id="wipe"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
+
+    // ---- Initial state: scene 1 visible, others hidden, wipe offscreen left ----
+    tl.set("#scene-1", { opacity: 1 }, 0);
+    tl.set("#scene-2", { opacity: 0 }, 0);
+    tl.set("#scene-3", { opacity: 0 }, 0);
+    tl.set("#scene-4", { opacity: 0 }, 0);
+    tl.set("#wipe", { x: "-120%" }, 0);
+
+    // ---- Persistent decoratives (brand + glow) ----
+    tl.from(".glow-orb", { opacity: 0, scale: 0.8, duration: 1.2, ease: "power2.out" }, 0);
+    tl.from(".brand", { opacity: 0, y: -20, duration: 0.6, ease: "power3.out" }, 0.15);
+
+    // ============================================================
+    // SCENE 1: 0.0s - 3.5s
+    // ============================================================
+    tl.from("#s1-label", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 0.3);
+    tl.from("#s1-headline", { y: 70, opacity: 0, duration: 0.85, ease: "expo.out" }, 0.5);
+    tl.from("#s1-subline", { y: 30, opacity: 0, duration: 0.6, ease: "power2.out" }, 1.0);
+
+    // ---- Transition 1: 3.5s - 4.2s ----
+    tl.to("#wipe", { x: "120%", duration: 0.7, ease: "power3.inOut" }, 3.5);
+    tl.set("#scene-1", { opacity: 0 }, 3.85);
+    tl.set("#scene-2", { opacity: 1 }, 3.85);
+
+    // ============================================================
+    // SCENE 2: 4.2s - 8.5s
+    // ============================================================
+    tl.from("#s2-label", { x: -40, opacity: 0, duration: 0.5, ease: "power3.out" }, 4.3);
+    tl.from("#s2-headline", { y: 60, opacity: 0, duration: 0.75, ease: "expo.out" }, 4.5);
+    tl.from("#s2-subline", { y: 30, opacity: 0, duration: 0.55, ease: "power2.out" }, 4.95);
+    tl.from("#s2-cell-1", { y: 60, opacity: 0, duration: 0.6, ease: "back.out(1.4)" }, 5.35);
+    tl.from("#s2-cell-2", { y: 60, opacity: 0, duration: 0.6, ease: "back.out(1.4)" }, 5.55);
+
+    // ---- Transition 2: 8.5s - 9.2s ----
+    tl.set("#wipe", { x: "-120%" }, 8.5);
+    tl.to("#wipe", { x: "120%", duration: 0.7, ease: "power3.inOut" }, 8.5);
+    tl.set("#scene-2", { opacity: 0 }, 8.85);
+    tl.set("#scene-3", { opacity: 1 }, 8.85);
+
+    // ============================================================
+    // SCENE 3: 9.2s - 13.5s
+    // ============================================================
+    tl.from("#s3-label", { x: -40, opacity: 0, duration: 0.5, ease: "power3.out" }, 9.3);
+    tl.from("#s3-headline", { y: 60, opacity: 0, duration: 0.75, ease: "expo.out" }, 9.5);
+    tl.from("#s3-subline", { y: 30, opacity: 0, duration: 0.55, ease: "power2.out" }, 9.95);
+    tl.from("#s3-card", { y: 90, opacity: 0, scale: 0.92, duration: 0.7, ease: "power3.out" }, 10.35);
+    tl.from("#s3-badge", { scale: 0, rotation: -25, opacity: 0, duration: 0.65, ease: "back.out(2.2)" }, 10.85);
+
+    // ---- Transition 3: 13.5s - 14.2s ----
+    tl.set("#wipe", { x: "-120%" }, 13.5);
+    tl.to("#wipe", { x: "120%", duration: 0.7, ease: "power3.inOut" }, 13.5);
+    tl.set("#scene-3", { opacity: 0 }, 13.85);
+    tl.set("#scene-4", { opacity: 1 }, 13.85);
+
+    // ============================================================
+    // SCENE 4: 14.2s - 18.5s (final)
+    // ============================================================
+    tl.from("#s4-label", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 14.3);
+    tl.from("#s4-headline", { y: 70, opacity: 0, duration: 0.85, ease: "expo.out" }, 14.55);
+    tl.from("#s4-subline", { y: 30, opacity: 0, duration: 0.55, ease: "power2.out" }, 15.05);
+    tl.from("#s4-cta", { scale: 0.7, opacity: 0, duration: 0.65, ease: "back.out(1.6)" }, 15.5);
+
+    // Subtle final breath — pulse the CTA once (allowed: it's the final scene)
+    tl.to("#s4-cta", { scale: 1.04, duration: 0.5, ease: "power2.inOut", yoyo: true, repeat: 1 }, 16.5);
+
+    window.__timelines["onboarding-vendedores"] = tl;
+  </script>
+
+</div>
+
+</body>
+</html>

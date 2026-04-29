@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { width: 1920px; height: 1080px; overflow: hidden; font-family: "Inter", system-ui, sans-serif; color: #111827; }
+      .stage {
+        width: 1920px; height: 1080px; position: relative;
+        background: radial-gradient(circle at 70% 30%, #ffffff 0%, #f3f4f6 80%);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .pill {
+        position: absolute; top: 48px; left: 48px;
+        background: #10b981; color: #fff;
+        padding: 14px 26px; border-radius: 999px;
+        font-weight: 800; font-size: 22px;
+        box-shadow: 0 12px 28px rgba(5,150,105,0.35);
+        z-index: 10;
+      }
+      .pill .num { background: #fff; color: #10b981; padding: 2px 10px; border-radius: 999px; margin-right: 10px; }
+
+      .row { display: flex; gap: 64px; padding: 0 96px; align-items: center; transform-origin: 50% 50%; }
+
+      /* Calculator card */
+      .calc {
+        width: 760px; background: #fff; border: 1px solid #e5e7eb;
+        border-radius: 18px; padding: 36px;
+        box-shadow: 0 20px 60px rgba(17,24,39,0.10);
+        display: flex; flex-direction: column; gap: 22px;
+      }
+      .calc h2 {
+        font-weight: 800; font-size: 26px; color: #111827;
+      }
+      .priceRow { display: flex; align-items: baseline; gap: 10px; }
+      .priceRow .label { font-size: 16px; color: #6b7280; font-weight: 600; }
+      .priceRow .val { font-weight: 800; font-size: 40px; color: #111827; font-variant-numeric: tabular-nums; }
+
+      .sliderBlock { display: flex; flex-direction: column; gap: 14px; }
+      .sliderHeader { display: flex; justify-content: space-between; align-items: baseline; }
+      .sliderHeader .left { font-weight: 700; font-size: 18px; color: #111827; }
+      .sliderHeader .right { font-weight: 800; font-size: 28px; color: #10b981; font-variant-numeric: tabular-nums; }
+
+      .track {
+        position: relative; height: 10px; background: #e5e7eb; border-radius: 999px;
+      }
+      .fill {
+        position: absolute; left: 0; top: 0; bottom: 0;
+        background: #10b981; border-radius: 999px;
+        width: 92%;
+      }
+      .thumb {
+        position: absolute; top: 50%; transform: translate(-50%, -50%);
+        width: 26px; height: 26px; border-radius: 50%;
+        background: #fff; border: 3px solid #10b981;
+        box-shadow: 0 4px 12px rgba(5,150,105,0.4);
+        left: 92%;
+      }
+
+      .breakdown {
+        background: #f9fafb; border: 1px solid #e5e7eb;
+        border-radius: 12px; padding: 20px;
+        display: flex; flex-direction: column; gap: 10px;
+      }
+      .brow { display: flex; justify-content: space-between; align-items: center; font-size: 17px; }
+      .brow .name { color: #4b5563; }
+      .brow .num { font-weight: 700; color: #111827; font-variant-numeric: tabular-nums; }
+      /* neutral gray for the deductions — NOT red, framed as inversion not loss */
+      .brow .num.neutral { color: #6b7280; }
+      .brow .name.invest { color: #047857; font-weight: 700; }
+      .brow .name.invest .arrow { color: #10b981; margin-right: 6px; font-weight: 800; }
+      .brow.divider { border-top: 1px dashed #d1d5db; padding-top: 12px; margin-top: 4px; }
+      .brow.total .name { font-weight: 800; font-size: 18px; color: #111827; }
+      .brow.total .num { font-weight: 900; font-size: 28px; color: #10b981; }
+
+      /* Right side: customer card preview */
+      .preview {
+        width: 460px;
+        display: flex; flex-direction: column; gap: 18px;
+        align-items: center;
+      }
+      .pcard {
+        width: 420px; background: #fff;
+        border: 1px solid #e5e7eb; border-radius: 18px;
+        padding: 20px; display: flex; flex-direction: column; gap: 12px;
+        box-shadow: 0 14px 36px rgba(17,24,39,0.10); position: relative;
+      }
+      .pcard .img {
+        height: 240px; border-radius: 14px;
+        background: #f9fafb;
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden;
+      }
+      .pcard .img img { max-width: 90%; max-height: 90%; object-fit: contain; }
+      .pcard .name { font-weight: 700; font-size: 22px; }
+      .pcard .price { font-weight: 800; font-size: 28px; color: #111827; }
+
+      /* The big CashBak hasta badge — overlaps the card, hero element */
+      .megaBadge {
+        position: absolute; top: -22px; right: -22px;
+        background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+        color: #fff;
+        padding: 16px 24px; border-radius: 24px;
+        font-weight: 900;
+        line-height: 1.05;
+        box-shadow: 0 14px 36px rgba(5,150,105,0.55);
+        text-align: center;
+        min-width: 200px;
+        transform-origin: 100% 0%;
+      }
+      .megaBadge .label { display: block; font-size: 13px; font-weight: 700; opacity: 0.9; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+      .megaBadge .value { display: block; font-weight: 900; }
+      .megaBadge .value .num { font-size: 44px; }
+      .megaBadge .value .pct { font-size: 28px; }
+
+      .badgeHalo {
+        position: absolute; top: -22px; right: -22px;
+        width: 200px; height: 88px; border-radius: 24px;
+        border: 4px solid rgba(16,185,129,0.6);
+        opacity: 0; pointer-events: none;
+      }
+
+      .quote {
+        position: relative;
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid rgba(16,185,129,0.35);
+        border-radius: 18px;
+        padding: 22px 28px;
+        font-weight: 700; font-size: 22px; color: #065f46;
+        text-align: center; line-height: 1.35;
+        width: 100%; max-width: 420px;
+        box-shadow: 0 16px 36px rgba(16,185,129,0.18);
+        opacity: 0;
+      }
+      .quote .accent {
+        color: #10b981;
+        font-weight: 900;
+        background: rgba(16,185,129,0.12);
+        padding: 1px 8px;
+        border-radius: 6px;
+      }
+      .quote::before {
+        content: "";
+        position: absolute; left: 28px; top: -8px;
+        width: 36px; height: 4px; border-radius: 999px;
+        background: #10b981;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="paso3" data-start="0" data-width="1920" data-height="1080">
+      <div class="stage">
+        <div class="pill"><span class="num">3</span>de 3 — Define tu ingreso</div>
+
+        <div class="row" id="p3-row">
+          <div class="calc" id="p3-calc">
+            <h2>Define tu ingreso por venta</h2>
+
+            <div class="priceRow">
+              <span class="label">Precio de venta</span>
+              <span class="val">$24.990</span>
+            </div>
+
+            <div class="sliderBlock">
+              <div class="sliderHeader">
+                <span class="left">Tu ingreso fijo</span>
+                <span class="right" id="p3-ingreso">$23.500</span>
+              </div>
+              <div class="track">
+                <div class="fill" id="p3-fill"></div>
+                <div class="thumb" id="p3-thumb"></div>
+              </div>
+            </div>
+
+            <div class="breakdown">
+              <div class="brow">
+                <span class="name">Precio de venta</span>
+                <span class="num">$24.990</span>
+              </div>
+              <div class="brow">
+                <span class="name invest"><span class="arrow">→</span>Aporte al CashBak</span>
+                <span class="num neutral" id="p3-aporte">−$1.242</span>
+              </div>
+              <div class="brow">
+                <span class="name">Comisión plataforma</span>
+                <span class="num neutral" id="p3-comision">−$248</span>
+              </div>
+              <div class="brow divider total">
+                <span class="name">Tu ingreso</span>
+                <span class="num" id="p3-total">$23.500</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview">
+            <div class="pcard" id="p3-pcard">
+              <span class="badgeHalo" id="p3-halo"></span>
+              <div class="megaBadge" id="p3-badge">
+                <span class="label">CashBak hasta</span>
+                <span class="value"><span class="num" id="p3-badgeNum">40</span><span class="pct">%</span></span>
+              </div>
+              <div class="img"><img src="../assets/pelota-basket-1.webp" alt="Pelota de Basket" /></div>
+              <div class="name">Pelota de Basket Pro</div>
+              <div class="price">$24.990</div>
+            </div>
+            <div class="quote" id="p3-quote">
+              Tu ingreso queda <span class="accent">fijo</span>.<br/>
+              Lo recibes igual, gane o pierda el cliente.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // FLUID ENTRANCE — picks up the upward lift from slide 5's ingreso block.
+      // Calc card and preview enter from slightly below with a soft fade (no abrupt zoom).
+      gsap.set("#p3-calc",    { y: 30, opacity: 0 });
+      gsap.set("#p3-pcard",   { y: 30, opacity: 0 });
+      gsap.set("#p3-quote",   { y: 14, opacity: 0 });
+      tl.to("#p3-calc",  { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0);
+      tl.to("#p3-pcard", { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.12);
+      tl.from(".pill", { x: -30, opacity: 0, duration: 0.4 }, 0.3);
+
+      // Badge entrance pop (initial 40%)
+      tl.fromTo("#p3-badge",
+        { scale: 0.6, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.6)" }, 0.7);
+
+      // Quote appears EARLY — anchors the message ("ingreso fijo") from the start
+      tl.to("#p3-quote", { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 1.4);
+
+      // Animate slider DOWN — less ingreso → más fondo → más CashBak hasta
+      // Slider 92% → 60% over 3.0s (reads clearly)
+      tl.to("#p3-fill",  { width: "60%", duration: 3.0, ease: "power2.inOut" }, 2.8);
+      tl.to("#p3-thumb", { left: "60%",  duration: 3.0, ease: "power2.inOut" }, 2.8);
+
+      // Animated counters — driven from a single "ingreso" value.
+      // Math: deducción_total = precio − ingreso. Aporte y comisión se reparten desde ahí
+      // según una proporción interna (no expuesta en el copy externo).
+      const PRECIO = 24990;
+      const ingresoEl  = () => document.getElementById("p3-ingreso");
+      const totalEl    = () => document.getElementById("p3-total");
+      const aporteEl   = () => document.getElementById("p3-aporte");
+      const comisionEl = () => document.getElementById("p3-comision");
+      const badgeNumEl = () => document.getElementById("p3-badgeNum");
+
+      const counter = { ingreso: 23500, cashback: 40 };
+      tl.to(counter, {
+        ingreso: 22000,
+        cashback: 85,
+        duration: 3.0,
+        ease: "power2.inOut",
+        onUpdate: () => {
+          const fmt = (n) => "$" + Math.round(n).toLocaleString("es-CL");
+          const ingreso = counter.ingreso;
+          const deduccion = PRECIO - ingreso;     // total que sale del precio
+          const comision  = deduccion / 6;        // se reparte internamente
+          const aporte    = deduccion - comision; // el resto va al fondo
+          ingresoEl().textContent  = fmt(ingreso);
+          totalEl().textContent    = fmt(ingreso);
+          aporteEl().textContent   = "−" + fmt(aporte);
+          comisionEl().textContent = "−" + fmt(comision);
+          badgeNumEl().textContent = Math.round(counter.cashback);
+        },
+      }, 2.8);
+
+      // Badge GROWS noticeably while % rises — emphasizes "hasta 85%"
+      tl.to("#p3-badge", { scale: 1.18, duration: 3.0, ease: "power2.inOut" }, 2.8);
+
+      // Subtle pulse on quote as the % rises — reinforces "ingreso fijo" while cashback grows
+      tl.to("#p3-quote", { scale: 1.03, duration: 0.4, yoyo: true, repeat: 1, ease: "sine.inOut" }, 4.0);
+
+      // Repeating halo pulses while % climbs (continuous visual reward)
+      tl.fromTo("#p3-halo",
+        { opacity: 0.7, scale: 1 },
+        { opacity: 0, scale: 1.5, duration: 1.0, ease: "power2.out", repeat: 2 }, 3.0);
+
+      // Final emphasis pulse when reaching 85%
+      tl.to("#p3-badge", { scale: 1.28, duration: 0.35, ease: "back.out(1.8)" }, 5.8);
+      tl.to("#p3-badge", { scale: 1.18, duration: 0.35, ease: "power2.inOut" }, 6.15);
+
+      tl.fromTo("#p3-pcard",
+        { boxShadow: "0 14px 36px rgba(17,24,39,0.10)" },
+        { boxShadow: "0 22px 56px rgba(16,185,129,0.50)", duration: 0.7 }, 5.8);
+
+      tl.fromTo("#p3-total",
+        { scale: 1 },
+        { scale: 1.08, duration: 0.35, yoyo: true, repeat: 1 }, 6.0);
+
+      // FLUID EXIT — soft fade & lift in last 0.8s, prepares the eye for slide 7's dark green CTA
+      tl.to([".row", ".pill"],
+        { y: -18, opacity: 0, duration: 0.8, ease: "power2.in" }, 9.2);
+
+      window.__timelines["paso3"] = tl;
+    </script>
+  </body>
+</html>

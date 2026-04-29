@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>CashBak — Demo para vendedores</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #ffffff;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        color: #111827;
+        -webkit-font-smoothing: antialiased;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="45" data-width="1920" data-height="1080">
+      <!-- Beat 1 — Hook (0–4s) -->
+      <div class="clip" data-composition-id="hook" data-composition-src="compositions/01-hook.html" data-start="0" data-duration="4" data-track-index="0" style="z-index: 1"></div>
+
+      <!-- Beat 2 — Contexto (4–10s) -->
+      <div class="clip" data-composition-id="contexto" data-composition-src="compositions/02-contexto.html" data-start="4" data-duration="6" data-track-index="0" style="z-index: 1"></div>
+
+      <!-- Beat 3 — Idea Cashbak (10–16s) -->
+      <div class="clip" data-composition-id="idea" data-composition-src="compositions/03-idea.html" data-start="10" data-duration="6" data-track-index="0" style="z-index: 1"></div>
+
+      <!-- Beat 4 — Paso 1 (16–20s) -->
+      <div class="clip" data-composition-id="paso1" data-composition-src="compositions/04-paso1-postula.html" data-start="16" data-duration="4" data-track-index="0" style="z-index: 1"></div>
+
+      <!-- Beat 5 — Paso 2 Publica + preview ingreso (20–30s) -->
+      <div class="clip" data-composition-id="paso2" data-composition-src="compositions/05-paso2-publica.html" data-start="20" data-duration="10" data-track-index="0" style="z-index: 1"></div>
+
+      <!-- Beat 6 — Paso 3 Define ingreso (30–40s) -->
+      <div class="clip" data-composition-id="paso3" data-composition-src="compositions/06-paso3-comision.html" data-start="30" data-duration="10" data-track-index="0" style="z-index: 1"></div>
+
+      <!-- Beat 7 — Cierre (40–45s) -->
+      <div class="clip" data-composition-id="cierre" data-composition-src="compositions/08-cierre.html" data-start="40" data-duration="5" data-track-index="0" style="z-index: 1"></div>
+
+      <!-- Narration audio (regenerar con `npx hyperframes tts`) -->
+      
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>
