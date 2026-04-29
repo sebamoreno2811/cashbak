@@ -73,8 +73,8 @@ export default function StorePageClient({ store, products }: { store: Store; pro
         </div>
       </div>
 
-      {/* Buscador + categorías */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
+      {/* Buscador + categorías — sticky debajo del navbar global (h-16 = top-16) */}
+      <div className="bg-white border-b border-gray-200 sticky top-16 z-20 shadow-sm">
         <div className="container mx-auto max-w-5xl px-4 py-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -86,7 +86,7 @@ export default function StorePageClient({ store, products }: { store: Store; pro
               className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-green-700 transition"
             />
             {search && (
-              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer">
                 <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
               </button>
             )}
@@ -94,11 +94,11 @@ export default function StorePageClient({ store, products }: { store: Store; pro
         </div>
 
         {categories.length > 1 && (
-          <div className="container mx-auto max-w-5xl px-4 pb-3 overflow-x-auto scrollbar-hide">
+          <div className="container mx-auto max-w-5xl px-4 pb-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <div className="flex gap-2 min-w-max">
               <button
                 onClick={() => setCategoryFilter(null)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap ${categoryFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap cursor-pointer ${categoryFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
               >
                 Todas
               </button>
@@ -106,7 +106,7 @@ export default function StorePageClient({ store, products }: { store: Store; pro
                 <button
                   key={cat}
                   onClick={() => setCategoryFilter(categoryFilter === cat ? null : cat)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap ${categoryFilter === cat ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap cursor-pointer ${categoryFilter === cat ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
                 >
                   {cat}
                 </button>
@@ -137,13 +137,15 @@ export default function StorePageClient({ store, products }: { store: Store; pro
           </div>
         ) : (
           <div className="text-center py-20">
-            <p className="text-4xl mb-4">🔍</p>
+            <div className="flex justify-center mb-4">
+              <Search className="w-12 h-12 text-gray-300" />
+            </div>
             <p className="text-gray-500 text-lg font-medium">
               {search ? `No encontramos "${search}"` : "No hay productos con estos filtros"}
             </p>
             <button
               onClick={() => { setSearch(""); setCategoryFilter(null) }}
-              className="mt-4 text-sm text-green-700 underline"
+              className="mt-4 text-sm text-green-700 underline cursor-pointer"
             >
               Limpiar filtros
             </button>
@@ -167,7 +169,7 @@ function ProductCard({
   const selectedCashbak = selectedBetOdd ? calculateProductCashbak(product, selectedBetOdd) : null
 
   return (
-    <Link href={`/product/${product.id}/${toSlug(product.name)}`} className="group">
+    <Link href={`/product/${product.id}/${toSlug(product.name)}`} className="group cursor-pointer">
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 h-full flex flex-col">
         <div className="relative aspect-square overflow-hidden">
           <Image
