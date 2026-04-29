@@ -401,7 +401,6 @@ export default function StoreManager({
               icon={Building2}
               label="Ver tienda pública"
               href={`/tienda/${store.id}`}
-              external
             />
           </div>
         </nav>
