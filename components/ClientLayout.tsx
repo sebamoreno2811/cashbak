@@ -5,7 +5,7 @@ import UserMenu from "@/components/auth/user-menu"
 import SellerNavItem from "@/components/auth/seller-nav-item"
 import { useCart } from "@/hooks/use-cart"
 import { useProducts } from "@/context/product-context"
-import { ShoppingCart, ChevronDown, Shirt, Dumbbell, Package, Tag, Menu, X, Zap } from "lucide-react"
+import { ShoppingCart, ChevronDown, Shirt, Dumbbell, Package, Tag, Menu, X } from "lucide-react"
 import { useState, useRef, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -133,10 +133,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           <div className="flex items-center justify-between h-16">
 
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 shrink-0 group cursor-pointer">
-              <div className="w-7 h-7 rounded-lg bg-green-300/20 border border-green-300/30 flex items-center justify-center group-hover:bg-green-300/30 transition-colors">
-                <Zap className="w-4 h-4 text-green-300" aria-hidden="true" />
-              </div>
+            <Link href="/" className="flex items-center shrink-0 cursor-pointer">
               <span className="text-xl font-extrabold tracking-tight">
                 Cash<span className="text-green-300">Bak</span>
               </span>
