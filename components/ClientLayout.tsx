@@ -167,17 +167,17 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                       </Link>
                     </div>
 
-                    <div className="p-4 flex flex-wrap gap-2">
+                    <div className="py-1">
                       {visibleCats.map(({ name, count }) => (
                         <Link
                           key={name}
                           href={categoryHref(name)}
                           role="menuitem"
                           onClick={closeAllMenus}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-green-100 hover:text-green-900 rounded-full text-sm font-medium text-gray-700 transition-colors cursor-pointer whitespace-nowrap"
+                          className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50 transition-colors cursor-pointer group"
                         >
-                          {name}
-                          <span className="text-[10px] font-semibold bg-white text-gray-400 rounded-full px-1.5 py-0.5 leading-none">
+                          <span className="text-sm text-gray-700 group-hover:text-green-900 font-medium">{name}</span>
+                          <span className="text-xs font-semibold text-gray-400 bg-gray-100 group-hover:bg-green-100 group-hover:text-green-700 rounded-full px-2 py-0.5 ml-4 leading-none tabular-nums">
                             {count}
                           </span>
                         </Link>
@@ -186,9 +186,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                         <Link
                           href="/products"
                           onClick={closeAllMenus}
-                          className="flex items-center px-3 py-1.5 bg-green-900 hover:bg-green-800 rounded-full text-sm font-medium text-white transition-colors cursor-pointer whitespace-nowrap"
+                          className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50 transition-colors cursor-pointer group border-t border-gray-100 mt-1"
                         >
-                          + {hiddenCount} más
+                          <span className="text-sm font-semibold text-green-800 group-hover:text-green-900">Ver {hiddenCount} categorías más</span>
+                          <span className="text-green-700 text-sm">→</span>
                         </Link>
                       )}
                     </div>
