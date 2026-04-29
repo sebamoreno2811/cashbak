@@ -76,6 +76,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     return result
   }, [products])
 
+  const catCount = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const p of products) {
+      if (p.category_name) counts[p.category_name] = (counts[p.category_name] ?? 0) + 1
+    }
+    return counts
+  }, [products])
+
   // Scroll detection for shadow effect
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -183,32 +191,33 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                         Ver todos →
                       </Link>
                     </div>
-                    <div
-                      className="p-4 grid gap-5"
-                      style={{ gridTemplateColumns: `repeat(${Math.min(Object.keys(grouped).length, 3)}, 1fr)` }}
-                    >
+                    <div className="p-4 flex flex-col gap-5">
                       {Object.entries(grouped).map(([group, cats]) => (
                         <div key={group}>
-                          <div className="flex items-center gap-1.5 mb-2 px-1">
+                          <div className="flex items-center gap-1.5 mb-2.5 px-1">
                             <span className="text-green-800" aria-hidden="true">
                               {CATEGORY_GROUPS[group]?.icon ?? <Package className="w-4 h-4" />}
                             </span>
-                            <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">{group}</h4>
+                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{group}</h4>
                           </div>
-                          <ul className="space-y-0.5">
+                          <div className="flex flex-wrap gap-2">
                             {cats.map(cat => (
-                              <li key={cat}>
-                                <Link
-                                  href={categoryHref(cat)}
-                                  role="menuitem"
-                                  onClick={closeAllMenus}
-                                  className="block w-full text-left px-3 py-1.5 rounded-lg text-sm text-gray-800 hover:bg-green-50 hover:text-green-900 font-medium transition-colors cursor-pointer"
-                                >
-                                  {cat}
-                                </Link>
-                              </li>
+                              <Link
+                                key={cat}
+                                href={categoryHref(cat)}
+                                role="menuitem"
+                                onClick={closeAllMenus}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-green-100 hover:text-green-900 rounded-full text-sm font-medium text-gray-700 transition-colors cursor-pointer whitespace-nowrap"
+                              >
+                                {cat}
+                                {catCount[cat] && (
+                                  <span className="text-[10px] font-semibold bg-white text-gray-400 rounded-full px-1.5 py-0.5 leading-none">
+                                    {catCount[cat]}
+                                  </span>
+                                )}
+                              </Link>
                             ))}
-                          </ul>
+                          </div>
                         </div>
                       ))}
                     </div>
