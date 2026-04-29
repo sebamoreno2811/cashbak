@@ -23,7 +23,7 @@ interface Store {
 }
 
 export default function Home() {
-  const { products } = useProducts()
+  const { products, loading } = useProducts()
   const { bets } = useBets()
   const { selectedOption } = useBetOption()
   const [stores, setStores] = useState<Store[]>([])
@@ -106,6 +106,8 @@ export default function Home() {
       return storeCats.includes(categoryFilter)
     })
   }, [sorted, categoryFilter, storeMap])
+
+  if (loading) return <HomeSkeletonGrid />
 
   return (
     <main id="main" className="min-h-screen bg-gray-50">
@@ -455,5 +457,61 @@ function ProductCard({
         </div>
       </div>
     </article>
+  )
+}
+
+function HomeSkeletonGrid() {
+  return (
+    <main className="min-h-screen bg-gray-50">
+      {/* Carousel skeleton */}
+      <div className="bg-white border-b border-gray-100 px-4 pt-8 pb-6">
+        <div className="container mx-auto max-w-4xl flex justify-center">
+          <div className="h-16 w-72 bg-gray-100 rounded-2xl animate-pulse" />
+        </div>
+      </div>
+
+      <div className="pt-10 pb-4">
+        <div className="container mx-auto max-w-5xl px-8 mb-4 flex items-center gap-3">
+          <div className="h-7 w-28 bg-gray-200 rounded-full animate-pulse" />
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+        <div className="flex gap-4 px-8 overflow-hidden">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="w-48 shrink-0 bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
+              <div className="aspect-square bg-gray-100" />
+              <div className="p-3 space-y-2">
+                <div className="h-4 bg-gray-100 rounded w-3/4" />
+                <div className="h-3 bg-gray-100 rounded w-1/3" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Category pills */}
+      <div className="bg-white border-y border-gray-100 px-4 py-3 mt-6">
+        <div className="container mx-auto max-w-5xl flex gap-2">
+          {[60, 80, 70, 90, 65, 75].map((w, i) => (
+            <div key={i} style={{ width: w }} className="h-9 bg-gray-100 rounded-full animate-pulse flex-shrink-0" />
+          ))}
+        </div>
+      </div>
+
+      {/* Product grid */}
+      <div className="container mx-auto max-w-5xl px-4 py-8">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
+              <div className="aspect-square bg-gray-100" />
+              <div className="p-3 space-y-2">
+                <div className="h-4 bg-gray-100 rounded w-3/4" />
+                <div className="h-4 bg-gray-100 rounded w-1/2" />
+                <div className="h-4 bg-gray-100 rounded w-1/3" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
   )
 }
