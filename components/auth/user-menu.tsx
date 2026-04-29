@@ -117,6 +117,18 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
       onClose={() => setShowBankReminder(false)}
       context="login"
     />
+
+    {/* Acceso rápido a Mi Tienda — visible en el navbar para vendedores */}
+    {hasStore && (
+      <a
+        href="/mi-tienda"
+        className="hidden md:flex items-center gap-1.5 bg-green-800 hover:bg-green-700 border border-green-700 hover:border-green-600 rounded-full px-3 py-1.5 text-sm font-semibold transition-all text-white cursor-pointer"
+      >
+        <Building2 className="w-4 h-4" aria-hidden="true" />
+        Mi Tienda
+      </a>
+    )}
+
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-full pl-1 pr-3 py-1 transition-all outline-none">
