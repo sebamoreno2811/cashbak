@@ -4,12 +4,13 @@ import { useState, useMemo, useRef, useEffect } from "react"
 import { formatRut } from "@/lib/rut"
 import Image from "next/image"
 import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
 import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
 import { addProduct, updateProduct, deleteProduct, updateStoreDeliveryOptions, updateStoreBankAccount } from "./actions"
 import {
   Pencil, Trash2, Plus, X, Truck, MapPin, Package, ShoppingBag,
-  Banknote, CheckCircle2, Loader2, Building2,
+  Banknote, CheckCircle2, Loader2, Building2, ExternalLink,
 } from "lucide-react"
 import type { DeliveryOption } from "@/types/delivery"
 
@@ -93,6 +94,7 @@ function SidebarItem({
   badge,
   dot,
   dotColor = "bg-red-400",
+  external,
 }: {
   icon: React.ElementType
   label: string
@@ -102,33 +104,56 @@ function SidebarItem({
   badge?: number
   dot?: boolean
   dotColor?: string
+  external?: boolean
 }) {
+  const pathname = usePathname()
+  const router = useRouter()
+  const [navigating, setNavigating] = useState(false)
+
+  // Reset loading state once the route has changed
+  useEffect(() => { setNavigating(false) }, [pathname])
+
+  const isActiveHref = href && !external && pathname.startsWith(href)
+  const effectiveActive = active || isActiveHref
+
   const cls = `relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer w-full text-left ${
-    active
+    effectiveActive
       ? "bg-green-800 text-white"
       : "text-green-200 hover:bg-green-800/60 hover:text-white"
   }`
 
   const content = (
     <>
-      <Icon className="w-4 h-4 shrink-0" />
+      {navigating
+        ? <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
+        : <Icon className="w-4 h-4 shrink-0" />
+      }
       <span className="flex-1 truncate">{label}</span>
       {badge !== undefined && (
-        <span className={`text-xs px-1.5 py-0.5 rounded-full font-normal ${active ? "bg-green-700 text-green-100" : "bg-green-800 text-green-300"}`}>
+        <span className={`text-xs px-1.5 py-0.5 rounded-full font-normal ${effectiveActive ? "bg-green-700 text-green-100" : "bg-green-800 text-green-300"}`}>
           {badge}
         </span>
       )}
-      {dot && (
+      {dot && !navigating && (
         <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
       )}
+      {external && <ExternalLink className="w-3 h-3 shrink-0 opacity-50" />}
     </>
   )
 
+  if (href && external) {
+    return <Link href={href} className={cls} target="_blank" rel="noopener noreferrer">{content}</Link>
+  }
+
   if (href) {
     return (
-      <Link href={href} className={cls}>
+      <button
+        type="button"
+        onClick={() => { setNavigating(true); router.push(href) }}
+        className={cls}
+      >
         {content}
-      </Link>
+      </button>
     )
   }
 
@@ -158,21 +183,44 @@ function MobileTab({
   dot?: boolean
   dotColor?: string
 }) {
+  const pathname = usePathname()
+  const router = useRouter()
+  const [navigating, setNavigating] = useState(false)
+
+  useEffect(() => { setNavigating(false) }, [pathname])
+
+  const isActiveHref = href && pathname.startsWith(href)
+  const effectiveActive = active || isActiveHref
+
   const cls = `relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
-    active
+    effectiveActive
       ? "bg-white text-green-900"
       : "text-green-200 hover:text-white hover:bg-green-800"
   }`
 
   const content = (
     <>
-      <Icon className="w-3.5 h-3.5 shrink-0" />
+      {navigating
+        ? <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" />
+        : <Icon className="w-3.5 h-3.5 shrink-0" />
+      }
       {label}
-      {dot && <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />}
+      {dot && !navigating && <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />}
     </>
   )
 
-  if (href) return <Link href={href} className={cls}>{content}</Link>
+  if (href) {
+    return (
+      <button
+        type="button"
+        onClick={() => { setNavigating(true); router.push(href) }}
+        className={cls}
+      >
+        {content}
+      </button>
+    )
+  }
+
   return <button type="button" onClick={onClick} className={cls}>{content}</button>
 }
 
@@ -353,6 +401,7 @@ export default function StoreManager({
               icon={Building2}
               label="Ver tienda pública"
               href={`/tienda/${store.id}`}
+              external
             />
           </div>
         </nav>
