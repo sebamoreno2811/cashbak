@@ -5,26 +5,13 @@ import UserMenu from "@/components/auth/user-menu"
 import SellerNavItem from "@/components/auth/seller-nav-item"
 import { useCart } from "@/hooks/use-cart"
 import { useProducts } from "@/context/product-context"
-import { ShoppingCart, ChevronDown, Shirt, Dumbbell, Package, Tag, Menu, X } from "lucide-react"
+import { ShoppingCart, ChevronDown, Menu, X } from "lucide-react"
 import { useState, useRef, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import ChatWidget from "@/components/ChatWidget"
 
-const CATEGORY_GROUPS: Record<string, { icon: React.ReactNode; categories: string[] }> = {
-  Ropa: {
-    icon: <Shirt className="w-4 h-4" />,
-    categories: ["Poleras de Fútbol", "Camisetas", "Shorts", "Calcetines", "Buzos", "Chaquetas"],
-  },
-  "Artículos Deportivos": {
-    icon: <Dumbbell className="w-4 h-4" />,
-    categories: ["Balones", "Guantes", "Canilleras", "Zapatillas", "Implementos"],
-  },
-  Accesorios: {
-    icon: <Tag className="w-4 h-4" />,
-    categories: ["Gorros", "Bufandas", "Mochilas", "Llaveros", "Insignias"],
-  },
-}
+const MAX_VISIBLE_CATS = 12
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -58,31 +45,19 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         : "text-green-100 hover:bg-white/10 hover:text-white"
     }`
 
-  const grouped = useMemo(() => {
-    const active = new Set(products.map(p => p.category_name).filter(Boolean) as string[])
-    const result: Record<string, string[]> = {}
-    const assigned = new Set<string>()
-
-    for (const [group, { categories }] of Object.entries(CATEGORY_GROUPS)) {
-      const matched = categories.filter(c => active.has(c))
-      if (matched.length > 0) {
-        result[group] = matched
-        matched.forEach(c => assigned.add(c))
-      }
-    }
-
-    const others = [...active].filter(c => !assigned.has(c)).sort()
-    if (others.length > 0) result["Otros"] = others
-    return result
-  }, [products])
-
-  const catCount = useMemo(() => {
+  // Categorías ordenadas por cantidad de productos (más popular primero)
+  const sortedCategories = useMemo(() => {
     const counts: Record<string, number> = {}
     for (const p of products) {
       if (p.category_name) counts[p.category_name] = (counts[p.category_name] ?? 0) + 1
     }
-    return counts
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => ({ name, count }))
   }, [products])
+
+  const visibleCats = sortedCategories.slice(0, MAX_VISIBLE_CATS)
+  const hiddenCount = sortedCategories.length - visibleCats.length
 
   // Scroll detection for shadow effect
   useEffect(() => {
@@ -179,50 +154,47 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     role="menu"
                     aria-label="Categorías de productos"
                     className="absolute top-full left-1/2 -translate-x-1/2 mt-3 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden"
-                    style={{ minWidth: "520px" }}
+                    style={{ minWidth: "480px", maxWidth: "560px" }}
                   >
                     <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-gray-800">Explorar productos</h3>
+                      <h3 className="text-sm font-semibold text-gray-800">Explorar por categoría</h3>
                       <Link
                         href="/products"
                         onClick={() => setShowProductsMenu(false)}
-                        className="text-xs font-medium text-green-800 hover:text-green-900 hover:underline"
+                        className="text-xs font-medium text-green-800 hover:text-green-900 hover:underline cursor-pointer"
                       >
                         Ver todos →
                       </Link>
                     </div>
-                    <div className="p-4 flex flex-col gap-5">
-                      {Object.entries(grouped).map(([group, cats]) => (
-                        <div key={group}>
-                          <div className="flex items-center gap-1.5 mb-2.5 px-1">
-                            <span className="text-green-800" aria-hidden="true">
-                              {CATEGORY_GROUPS[group]?.icon ?? <Package className="w-4 h-4" />}
-                            </span>
-                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{group}</h4>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {cats.map(cat => (
-                              <Link
-                                key={cat}
-                                href={categoryHref(cat)}
-                                role="menuitem"
-                                onClick={closeAllMenus}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-green-100 hover:text-green-900 rounded-full text-sm font-medium text-gray-700 transition-colors cursor-pointer whitespace-nowrap"
-                              >
-                                {cat}
-                                {catCount[cat] && (
-                                  <span className="text-[10px] font-semibold bg-white text-gray-400 rounded-full px-1.5 py-0.5 leading-none">
-                                    {catCount[cat]}
-                                  </span>
-                                )}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
+
+                    <div className="p-4 flex flex-wrap gap-2">
+                      {visibleCats.map(({ name, count }) => (
+                        <Link
+                          key={name}
+                          href={categoryHref(name)}
+                          role="menuitem"
+                          onClick={closeAllMenus}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-green-100 hover:text-green-900 rounded-full text-sm font-medium text-gray-700 transition-colors cursor-pointer whitespace-nowrap"
+                        >
+                          {name}
+                          <span className="text-[10px] font-semibold bg-white text-gray-400 rounded-full px-1.5 py-0.5 leading-none">
+                            {count}
+                          </span>
+                        </Link>
                       ))}
+                      {hiddenCount > 0 && (
+                        <Link
+                          href="/products"
+                          onClick={closeAllMenus}
+                          className="flex items-center px-3 py-1.5 bg-green-900 hover:bg-green-800 rounded-full text-sm font-medium text-white transition-colors cursor-pointer whitespace-nowrap"
+                        >
+                          + {hiddenCount} más
+                        </Link>
+                      )}
                     </div>
+
                     <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
-                      <p className="text-xs text-gray-600">{products.length} productos disponibles en CashBak</p>
+                      <p className="text-xs text-gray-500">{products.length} productos disponibles en CashBak</p>
                     </div>
                   </div>
                 )}
@@ -309,32 +281,31 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   />
                 </button>
                 {mobileProductsOpen && (
-                  <div id="mobile-products-submenu" className="mt-1 ml-3 pl-3 border-l border-white/20 space-y-3 py-2">
-                    <Link href="/products" onClick={closeAllMenus} className="block text-sm text-green-200 font-semibold py-1 hover:text-white transition-colors cursor-pointer">
+                  <div id="mobile-products-submenu" className="mt-1 ml-3 pl-3 border-l border-white/20 py-2">
+                    <Link href="/products" onClick={closeAllMenus} className="block text-sm text-green-200 font-semibold py-1 mb-2 hover:text-white transition-colors cursor-pointer">
                       Ver todos los productos →
                     </Link>
-                    {Object.entries(grouped).map(([group, cats]) => (
-                      <div key={group}>
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          <span className="text-green-300" aria-hidden="true">
-                            {CATEGORY_GROUPS[group]?.icon ?? <Package className="w-3.5 h-3.5" />}
-                          </span>
-                          <h4 className="text-xs font-bold text-green-300 uppercase tracking-wider">{group}</h4>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {cats.map(cat => (
-                            <Link
-                              key={cat}
-                              href={categoryHref(cat)}
-                              onClick={closeAllMenus}
-                              className="text-xs bg-white/10 hover:bg-white/20 text-green-100 hover:text-white px-2.5 py-1.5 rounded-full transition-colors cursor-pointer"
-                            >
-                              {cat}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                    <div className="flex flex-wrap gap-1.5">
+                      {visibleCats.map(({ name }) => (
+                        <Link
+                          key={name}
+                          href={categoryHref(name)}
+                          onClick={closeAllMenus}
+                          className="text-xs bg-white/10 hover:bg-white/20 text-green-100 hover:text-white px-2.5 py-1.5 rounded-full transition-colors cursor-pointer"
+                        >
+                          {name}
+                        </Link>
+                      ))}
+                      {hiddenCount > 0 && (
+                        <Link
+                          href="/products"
+                          onClick={closeAllMenus}
+                          className="text-xs bg-green-700 hover:bg-green-600 text-white px-2.5 py-1.5 rounded-full transition-colors cursor-pointer"
+                        >
+                          + {hiddenCount} más
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
