@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { Search, SlidersHorizontal, X } from "lucide-react"
+import { Search, SlidersHorizontal, X, ArrowUpDown } from "lucide-react"
 import { toSlug } from "@/lib/slug"
 import { calculateProductCashbak, calculateMaxProductCashbak } from "@/lib/cashbak-calculator"
 import { useProducts } from "@/context/product-context"
@@ -21,6 +21,15 @@ interface Store {
   logo_url: string | null
 }
 
+type SortKey = "default" | "cashback_desc" | "price_asc" | "price_desc"
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "default", label: "Relevancia" },
+  { value: "cashback_desc", label: "Mayor cashback" },
+  { value: "price_asc", label: "Menor precio" },
+  { value: "price_desc", label: "Mayor precio" },
+]
+
 export default function ProductsPage() {
   const { products, loading } = useProducts()
   const { bets } = useBets()
@@ -31,11 +40,13 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("")
   const [storeFilter, setStoreFilter] = useState<string | null>(null)
   const [categoryFilter, setCategoryFilter] = useState<string | null>(searchParams.get("category"))
+  const [sortBy, setSortBy] = useState<SortKey>("default")
+  const [showFilters, setShowFilters] = useState(false)
+  const [showSort, setShowSort] = useState(false)
 
   useEffect(() => {
     setCategoryFilter(searchParams.get("category"))
   }, [searchParams])
-  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     createClient()
@@ -67,28 +78,33 @@ export default function ProductsPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return products.filter(p => {
+    const base = products.filter(p => {
       if (storeFilter && p.store_id !== storeFilter) return false
       if (categoryFilter && p.category_name !== categoryFilter) return false
       if (q && !p.name.toLowerCase().includes(q) && !p.category_name?.toLowerCase().includes(q)) return false
       return true
     })
-  }, [products, search, storeFilter, categoryFilter])
+
+    if (sortBy === "price_asc") return [...base].sort((a, b) => a.price - b.price)
+    if (sortBy === "price_desc") return [...base].sort((a, b) => b.price - a.price)
+    if (sortBy === "cashback_desc") {
+      return [...base].sort((a, b) => calculateMaxProductCashbak(b, bets) - calculateMaxProductCashbak(a, bets))
+    }
+    return base
+  }, [products, search, storeFilter, categoryFilter, sortBy, bets])
 
   const activeFilters = [
     storeFilter ? storeMap[storeFilter]?.name : null,
   ].filter(Boolean) as string[]
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="w-8 h-8 border-4 border-green-700 rounded-full border-t-transparent animate-spin" />
-    </div>
-  )
+  if (loading) return <SkeletonGrid />
+
+  const selectedSortLabel = SORT_OPTIONS.find(o => o.value === sortBy)?.label ?? "Ordenar"
 
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* Header buscador */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
+      {/* Header buscador — sticky debajo del navbar global (h-16 = top-16) */}
+      <div className="bg-white border-b border-gray-200 sticky top-16 z-20 shadow-sm">
         <div className="container mx-auto max-w-5xl px-4 py-3 flex items-center gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -101,14 +117,14 @@ export default function ProductsPage() {
               autoFocus
             />
             {search && (
-              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer">
                 <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
               </button>
             )}
           </div>
           <button
             onClick={() => setShowFilters(v => !v)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition ${showFilters || activeFilters.length > 0 ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-300 bg-white"}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition cursor-pointer ${showFilters || activeFilters.length > 0 ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-300 bg-white"}`}
           >
             <SlidersHorizontal className="w-4 h-4" />
             Filtros
@@ -121,11 +137,11 @@ export default function ProductsPage() {
         </div>
 
         {/* Barra de categorías */}
-        <div className="container mx-auto max-w-5xl px-4 pb-3 overflow-x-auto scrollbar-hide">
+        <div className="container mx-auto max-w-5xl px-4 pb-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="flex gap-2 min-w-max">
             <button
               onClick={() => setCategoryFilter(null)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap ${categoryFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap cursor-pointer ${categoryFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
             >
               Todas
             </button>
@@ -133,7 +149,7 @@ export default function ProductsPage() {
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(categoryFilter === cat ? null : cat)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap ${categoryFilter === cat ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap cursor-pointer ${categoryFilter === cat ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
               >
                 {cat}
               </button>
@@ -148,7 +164,7 @@ export default function ProductsPage() {
             <div className="flex flex-wrap gap-1.5">
               <button
                 onClick={() => setStoreFilter(null)}
-                className={`px-3 py-1 rounded-full text-xs font-medium border transition ${storeFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition cursor-pointer ${storeFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
               >
                 Todas
               </button>
@@ -156,7 +172,7 @@ export default function ProductsPage() {
                 <button
                   key={s.id}
                   onClick={() => setStoreFilter(storeFilter === s.id ? null : s.id)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium border transition ${storeFilter === s.id ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition cursor-pointer ${storeFilter === s.id ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
                 >
                   {s.name}
                 </button>
@@ -178,29 +194,58 @@ export default function ProductsPage() {
 
       <div className="container mx-auto max-w-5xl px-4 py-6">
         {/* Tags activos */}
-        {activeFilters.length > 0 && (
+        {(activeFilters.length > 0 || categoryFilter) && (
           <div className="flex flex-wrap gap-2 mb-4">
             {storeFilter && (
               <span className="flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-800 text-xs font-medium px-3 py-1 rounded-full">
                 {storeMap[storeFilter]?.name}
-                <button onClick={() => setStoreFilter(null)}><X className="w-3 h-3" /></button>
+                <button onClick={() => setStoreFilter(null)} className="cursor-pointer"><X className="w-3 h-3" /></button>
               </span>
             )}
             {categoryFilter && (
               <span className="flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-800 text-xs font-medium px-3 py-1 rounded-full">
                 {categoryFilter}
-                <button onClick={() => setCategoryFilter(null)}><X className="w-3 h-3" /></button>
+                <button onClick={() => setCategoryFilter(null)} className="cursor-pointer"><X className="w-3 h-3" /></button>
               </span>
             )}
           </div>
         )}
 
-        {/* Contador */}
-        <p className="text-sm text-gray-500 mb-5">
-          {filtered.length === 0
-            ? "Sin resultados"
-            : `${filtered.length} producto${filtered.length !== 1 ? "s" : ""}${search ? ` para "${search}"` : ""}`}
-        </p>
+        {/* Barra de info + ordenamiento */}
+        <div className="flex items-center justify-between mb-5">
+          <p className="text-sm text-gray-500">
+            {filtered.length === 0
+              ? "Sin resultados"
+              : `${filtered.length} producto${filtered.length !== 1 ? "s" : ""}${search ? ` para "${search}"` : ""}`}
+          </p>
+
+          {/* Sort dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSort(v => !v)}
+              className="flex items-center gap-1.5 text-sm text-gray-600 border border-gray-200 rounded-xl px-3 py-2 bg-white hover:border-gray-300 transition cursor-pointer"
+            >
+              <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
+              {selectedSortLabel}
+            </button>
+            {showSort && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowSort(false)} />
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1 min-w-[160px]">
+                  {SORT_OPTIONS.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setSortBy(opt.value); setShowSort(false) }}
+                      className={`w-full text-left px-4 py-2 text-sm transition cursor-pointer ${sortBy === opt.value ? "text-green-800 font-semibold bg-green-50" : "text-gray-700 hover:bg-gray-50"}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
 
         {/* Grilla */}
         {filtered.length > 0 ? (
@@ -217,18 +262,57 @@ export default function ProductsPage() {
           </div>
         ) : (
           <div className="text-center py-20">
-            <p className="text-4xl mb-4">🔍</p>
+            <div className="flex justify-center mb-4">
+              <Search className="w-12 h-12 text-gray-300" />
+            </div>
             <p className="text-gray-500 text-lg font-medium">
               {search ? `No encontramos "${search}"` : "No hay productos con estos filtros"}
             </p>
             <button
               onClick={() => { setSearch(""); setStoreFilter(null); setCategoryFilter(null) }}
-              className="mt-4 text-sm text-green-700 underline"
+              className="mt-4 text-sm text-green-700 underline cursor-pointer"
             >
               Limpiar filtros
             </button>
           </div>
         )}
+      </div>
+    </main>
+  )
+}
+
+function SkeletonCard() {
+  return (
+    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 h-full flex flex-col animate-pulse">
+      <div className="aspect-square bg-gray-100" />
+      <div className="p-3 flex flex-col flex-1 gap-2">
+        <div className="h-3 bg-gray-100 rounded w-1/2" />
+        <div className="h-4 bg-gray-100 rounded w-3/4" />
+        <div className="h-4 bg-gray-100 rounded w-1/2" />
+        <div className="h-5 bg-gray-100 rounded w-1/3 mt-auto" />
+      </div>
+    </div>
+  )
+}
+
+function SkeletonGrid() {
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <div className="bg-white border-b border-gray-200 sticky top-16 z-20 shadow-sm">
+        <div className="container mx-auto max-w-5xl px-4 py-3 flex items-center gap-3">
+          <div className="flex-1 h-10 bg-gray-100 rounded-xl animate-pulse" />
+          <div className="w-24 h-10 bg-gray-100 rounded-xl animate-pulse" />
+        </div>
+        <div className="container mx-auto max-w-5xl px-4 pb-3 flex gap-2">
+          {[80, 64, 96, 72, 80].map((w, i) => (
+            <div key={i} style={{ width: w }} className="h-8 bg-gray-100 rounded-full animate-pulse flex-shrink-0" />
+          ))}
+        </div>
+      </div>
+      <div className="container mx-auto max-w-5xl px-4 py-6">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+        </div>
       </div>
     </main>
   )
@@ -251,7 +335,7 @@ function ProductCard({
   const productHref = `/product/${product.id}/${toSlug(product.name)}`
 
   return (
-    <div className="group cursor-pointer" onClick={() => window.location.href = productHref}>
+    <Link href={productHref} className="group cursor-pointer">
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 h-full flex flex-col">
         <div className="relative aspect-square overflow-hidden">
           <Image
@@ -277,7 +361,7 @@ function ProductCard({
             <Link
               href={`/tienda/${store.slug ?? store.id}`}
               onClick={e => e.stopPropagation()}
-              className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 hover:bg-white transition-colors"
+              className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 hover:bg-white transition-colors cursor-pointer"
             >
               {store.logo_url ? (
                 <Image src={store.logo_url} alt={store.name} width={14} height={14} className="rounded-full object-cover w-3.5 h-3.5" />
@@ -297,6 +381,6 @@ function ProductCard({
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
