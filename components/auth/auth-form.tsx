@@ -26,7 +26,10 @@ export default function AuthForm({ onSuccess: _onSuccess, redirectTo = "/" }: Au
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: callbackUrl },
+        options: {
+          redirectTo: callbackUrl,
+          queryParams: { prompt: "select_account" },
+        },
       })
 
       if (error) {

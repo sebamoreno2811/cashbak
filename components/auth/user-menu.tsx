@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { createClient } from "@/utils/supabase/client"
-import { User, LogOut, ShoppingBag, Shield, Building2, LayoutDashboard, ChevronDown } from "lucide-react"
+import { User, LogOut, ShoppingBag, Shield, Building2, LayoutDashboard, ChevronDown, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import BankAccountReminderModal from "@/components/bank-account-reminder-modal"
 
@@ -26,6 +26,7 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [hasStore, setHasStore] = useState(false)
   const [showBankReminder, setShowBankReminder] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
@@ -79,6 +80,7 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
   }, [supabase.auth])
 
   const handleSignOut = async () => {
+    setSigningOut(true)
     await fetch("/auth/signout", { method: "POST" })
     window.location.href = "/"
   }
@@ -183,9 +185,12 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
           </>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut}>
-          <LogOut className="w-4 h-4 mr-2" />
-          <span>Cerrar Sesión</span>
+        <DropdownMenuItem onClick={handleSignOut} disabled={signingOut}>
+          {signingOut
+            ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            : <LogOut className="w-4 h-4 mr-2" />
+          }
+          <span>{signingOut ? "Cerrando sesión..." : "Cerrar Sesión"}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
