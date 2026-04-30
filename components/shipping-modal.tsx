@@ -3,19 +3,13 @@
 import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import useSupabaseUser from "@/hooks/use-supabase-user"
-import { createClient } from "@/utils/supabase/client"
+import { saveShippingAddress } from "@/app/actions/shipping"
 
 type Props = {
   onSaved?: () => void
 }
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
 export default function ShippingModalForm({ onSaved }: Props) {
-  const { user } = useSupabaseUser()
-  const supabase = createClient()
-
   const [formData, setFormData] = useState({
     ciudad: "",
     comuna: "",
@@ -38,47 +32,12 @@ export default function ShippingModalForm({ onSaved }: Props) {
     setError(null)
 
     try {
-      if (!user?.id) {
-        setError("Debes iniciar sesión para guardar una dirección.")
+      const result = await saveShippingAddress(formData)
+
+      if (result.error) {
+        setError(result.error)
         return
       }
-
-      const customer_id = user.id
-
-      // Ensure customer record exists (FK requirement)
-      await supabase.from("customers").upsert(
-        {
-          id: customer_id,
-          email: user.email ?? "",
-          full_name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "",
-          created_at: new Date().toISOString(),
-        },
-        { onConflict: "id", ignoreDuplicates: true }
-      )
-
-      // Check if shipping record already exists
-      const { data: existing } = await supabase
-        .from("customer_shipping_details")
-        .select("id")
-        .eq("customer_id", customer_id)
-        .maybeSingle()
-
-      const { error: saveError } = existing
-        ? await supabase
-            .from("customer_shipping_details")
-            .update({ ...formData })
-            .eq("customer_id", customer_id)
-        : await supabase
-            .from("customer_shipping_details")
-            .insert([{ customer_id, ...formData }])
-
-      if (saveError) {
-        setError(`Error al guardar la dirección: ${saveError.message}`)
-        console.error(saveError)
-        return
-      }
-
-      await sleep(500)
 
       onSaved?.()
       window.location.reload()
