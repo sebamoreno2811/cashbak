@@ -15,17 +15,16 @@ const globalLimit = new Ratelimit({
   prefix: "rl:global",
 })
 
-// Límite estricto para endpoints críticos: 5 intentos cada 10 minutos
+// Límite estricto para endpoints de pago y auth: 10 intentos cada 10 minutos
 const strictLimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(5, "10 m"),
+  limiter: Ratelimit.slidingWindow(10, "10 m"),
   prefix: "rl:strict",
 })
 
 const STRICT_PATHS = [
   "/api/auth",
   "/api/webpay/initiate",
-  "/checkout",
 ]
 
 function isStrictPath(pathname: string) {
