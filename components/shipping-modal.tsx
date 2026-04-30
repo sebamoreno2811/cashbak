@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import useSupabaseUser from "@/hooks/use-supabase-user"
@@ -14,7 +13,6 @@ type Props = {
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export default function ShippingModalForm({ onSaved }: Props) {
-  const router = useRouter()
   const { user } = useSupabaseUser()
   const supabase = createClient()
 
@@ -47,22 +45,40 @@ export default function ShippingModalForm({ onSaved }: Props) {
 
       const customer_id = user.id
 
-      const { error: insertError } = await supabase
-        .from("customer_shipping_details")
-        .insert([
-          {
-            customer_id,
-            ...formData,
-          },
-        ])
+      // Ensure customer record exists (FK requirement)
+      await supabase.from("customers").upsert(
+        {
+          id: customer_id,
+          email: user.email ?? "",
+          full_name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "",
+          created_at: new Date().toISOString(),
+        },
+        { onConflict: "id", ignoreDuplicates: true }
+      )
 
-      if (insertError) {
-        setError("Error al guardar la dirección.")
-        console.error(insertError)
+      // Check if shipping record already exists
+      const { data: existing } = await supabase
+        .from("customer_shipping_details")
+        .select("id")
+        .eq("customer_id", customer_id)
+        .maybeSingle()
+
+      const { error: saveError } = existing
+        ? await supabase
+            .from("customer_shipping_details")
+            .update({ ...formData })
+            .eq("customer_id", customer_id)
+        : await supabase
+            .from("customer_shipping_details")
+            .insert([{ customer_id, ...formData }])
+
+      if (saveError) {
+        setError(`Error al guardar la dirección: ${saveError.message}`)
+        console.error(saveError)
         return
       }
 
-      await sleep(2000)
+      await sleep(500)
 
       onSaved?.()
       window.location.reload()
@@ -73,22 +89,6 @@ export default function ShippingModalForm({ onSaved }: Props) {
 
   return (
     <>
-      <style>{`
-        .spinner {
-          border: 3px solid rgba(255, 255, 255, 0.3);
-          border-top: 3px solid white;
-          border-radius: 50%;
-          width: 16px;
-          height: 16px;
-          animation: spin 1s linear infinite;
-          margin-left: 8px;
-        }
-        @keyframes spin {
-          0% { transform: rotate(0deg);}
-          100% { transform: rotate(360deg);}
-        }
-      `}</style>
-
       <form
         onSubmit={handleSubmit}
         className="p-4 mt-2 space-y-4 bg-white border rounded-lg shadow-sm"
@@ -141,14 +141,7 @@ export default function ShippingModalForm({ onSaved }: Props) {
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <Button type="submit" disabled={isSaving} className="bg-green-900 hover:bg-emerald-700">
-          {isSaving ? (
-            <>
-              Guardando...
-              <span className="spinner" />
-            </>
-          ) : (
-            "Guardar dirección"
-          )}
+          {isSaving ? "Guardando..." : "Guardar dirección"}
         </Button>
       </form>
     </>
