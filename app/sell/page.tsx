@@ -103,9 +103,15 @@ export default function SellPage() {
       {/* Hero */}
       <section className="py-14 bg-green-900 text-white text-center px-4">
         <h1 className="text-4xl font-bold mb-3">Vende con nosotros</h1>
-        <p className="text-green-200 text-lg max-w-xl mx-auto">
+        <p className="text-green-200 text-lg max-w-xl mx-auto mb-8">
           Simula cómo funcionaría vender tu producto en CashBak. Ingresa tu precio y descubre cuánto CashBak puedes ofrecer a tus clientes.
         </p>
+        <Link
+          href="/sell/aplicar"
+          className="inline-flex items-center justify-center px-7 py-3 rounded-xl bg-white text-green-900 font-bold hover:bg-green-100 transition-colors text-sm shadow-lg"
+        >
+          Solicitar mi tienda →
+        </Link>
       </section>
 
       {/* Simulator */}
@@ -307,7 +313,7 @@ export default function SellPage() {
               <span className="text-2xl">📣</span>
               <p className="font-semibold text-gray-800">Más visibilidad</p>
               <p className="text-sm text-gray-600">
-                Tus productos aparecen en la plataforma CashBak, exponiéndote a clientes que ya están buscando comprar con recompensa. Sin costo adicional de publicidad.
+                Tus productos aparecen en la plataforma CashBak, exponiéndote a clientes que ya están buscando comprar con una promoción de CashBak. Sin costo adicional de publicidad.
               </p>
             </div>
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex flex-col gap-2">
