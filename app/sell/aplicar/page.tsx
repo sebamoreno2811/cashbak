@@ -260,6 +260,7 @@ export default function AplicarPage() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={() => { setIsAuthModalOpen(false); setAuthChecked("ok") }}
+        redirectTo="/sell/aplicar"
       />
     </div>
   )

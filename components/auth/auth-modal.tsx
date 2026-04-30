@@ -7,9 +7,10 @@ interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
+  redirectTo?: string
 }
 
-export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose, onSuccess, redirectTo }: AuthModalProps) {
   const handleSuccess = () => {
     onClose()
     onSuccess?.()
@@ -21,7 +22,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         <DialogHeader>
           <DialogTitle>Accede a tu cuenta</DialogTitle>
         </DialogHeader>
-        <AuthForm onSuccess={handleSuccess} />
+        <AuthForm onSuccess={handleSuccess} redirectTo={redirectTo} />
       </DialogContent>
     </Dialog>
   )

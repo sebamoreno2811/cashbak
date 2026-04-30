@@ -506,6 +506,7 @@ export default function CartPage() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        redirectTo="/cart"
         onSuccess={handleAuthSuccess}
       />
     </div>

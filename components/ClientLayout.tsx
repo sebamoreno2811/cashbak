@@ -397,7 +397,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         </div>
       </footer>
 
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} redirectTo={pathname} />
       <ChatWidget />
     </div>
   )
