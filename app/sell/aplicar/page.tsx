@@ -34,13 +34,17 @@ const CATEGORIES = [
 
 export default function AplicarPage() {
   const router = useRouter()
-  const [authChecked, setAuthChecked] = useState<"loading" | "ok" | "no-auth">("loading")
+  const [authChecked, setAuthChecked] = useState<"loading" | "ok" | "no-auth" | "error">("loading")
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data }: { data: { user: { id: string } | null } }) => {
-      setAuthChecked(data.user ? "ok" : "no-auth")
-    })
+    createClient().auth.getUser()
+      .then(({ data }: { data: { user: { id: string } | null } }) => {
+        setAuthChecked(data.user ? "ok" : "no-auth")
+      })
+      .catch(() => {
+        setAuthChecked("error")
+      })
   }, [])
 
   const [name, setName] = useState("")
@@ -236,6 +240,21 @@ export default function AplicarPage() {
   if (authChecked === "loading") return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="w-8 h-8 border-4 border-green-700 rounded-full border-t-transparent animate-spin" />
+    </div>
+  )
+
+  if (authChecked === "error") return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 max-w-md w-full text-center">
+        <p className="text-gray-700 font-medium mb-2">No se pudo verificar tu sesión</p>
+        <p className="text-gray-400 text-sm mb-6">Revisa tu conexión e inténtalo de nuevo.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="w-full py-2.5 bg-green-900 text-white rounded-xl font-semibold text-sm hover:bg-green-800 transition-colors"
+        >
+          Recargar página
+        </button>
+      </div>
     </div>
   )
 
