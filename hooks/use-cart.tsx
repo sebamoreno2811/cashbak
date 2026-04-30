@@ -65,7 +65,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { bets, loading: betsLoading, error: betsError } = useBets()
   const [deliveryOption, setDeliveryOption] = useState<DeliveryOption | null>(null)
   const deliveryType: Delivery = deliveryOption?.name ?? null
-  const shippingCost = deliveryOption?.price ?? 0
+  const shippingCost = deliveryOption?.priceTBD ? 0 : (deliveryOption?.price ?? 0)
   const chooseDelivery = (option: DeliveryOption | null) => setDeliveryOption(option)
 
   const [items, setItems] = useState<CartItem[]>([])
@@ -73,11 +73,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedCart = localStorage.getItem("cashbak-cart")
     if (savedCart) {
-      try {
-        setItems(JSON.parse(savedCart))
-      } catch (error) {
-        console.error("Error parsing cart from localStorage:", error)
-      }
+      try { setItems(JSON.parse(savedCart)) } catch {}
+    }
+    const savedDelivery = localStorage.getItem("cashbak-delivery-option")
+    if (savedDelivery) {
+      try { setDeliveryOption(JSON.parse(savedDelivery)) } catch {}
     }
   }, [])
 
@@ -92,6 +92,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem("cashbak-cart", JSON.stringify(items))
   }, [items])
+
+  useEffect(() => {
+    if (deliveryOption) {
+      localStorage.setItem("cashbak-delivery-option", JSON.stringify(deliveryOption))
+    } else {
+      localStorage.removeItem("cashbak-delivery-option")
+    }
+  }, [deliveryOption])
 
   const addItem = async (
     productId: number,
@@ -182,6 +190,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => {
     setItems([])
+    setDeliveryOption(null)
   }
 
   const getItemsCount = () => {
