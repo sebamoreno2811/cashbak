@@ -41,22 +41,11 @@ export default function ShippingModalForm({ onSaved }: Props) {
 
     try {
       if (!user?.id) {
-        setError("No se encontró el usuario.")
+        setError("Debes iniciar sesión para guardar una dirección.")
         return
       }
 
-      const { data: customerData, error: customerError } = await supabase
-        .from("customers")
-        .select("id")
-        .eq("email", user.email)
-        .single()
-
-      if (customerError || !customerData) {
-        setError("No se encontró información del cliente.")
-        return
-      }
-
-      const customer_id = customerData.id
+      const customer_id = user.id
 
       const { error: insertError } = await supabase
         .from("customer_shipping_details")

@@ -254,37 +254,55 @@ export default function StoreManager({
   // Delivery options state
   const [savedDeliveryOptions, setSavedDeliveryOptions] = useState<DeliveryOption[]>(store.delivery_options ?? [])
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>(store.delivery_options ?? [])
-  const [showAddOpt, setShowAddOpt] = useState(false)
-  const [newOptName, setNewOptName] = useState("")
-  const [newOptPrice, setNewOptPrice] = useState("")
-  const [newOptPriceTBD, setNewOptPriceTBD] = useState(false)
-  const [newOptType, setNewOptType] = useState<"delivery" | "pickup" | null>(null)
-  const [newOptAddress, setNewOptAddress] = useState("")
+  const [newDeliveryType, setNewDeliveryType] = useState<"" | "pickup" | "delivery">("")
+  const [newDeliverySubtype, setNewDeliverySubtype] = useState<"" | "own" | "external">("")
+  const [newDeliveryCarrier, setNewDeliveryCarrier] = useState("")
+  const [newDeliveryPrice, setNewDeliveryPrice] = useState("")
+  const [newDeliveryPriceTBD, setNewDeliveryPriceTBD] = useState(false)
+  const [newDeliveryAddress, setNewDeliveryAddress] = useState("")
   const [savingDelivery, setSavingDelivery] = useState(false)
   const [deliveryError, setDeliveryError] = useState<string | null>(null)
   const [deliverySaved, setDeliverySaved] = useState(false)
-  const newOptNameRef = useRef<HTMLInputElement>(null)
 
+  const CARRIERS = ["Starken", "BlueExpress", "Chilexpress", "Correos Chile", "Shippify", "Otro"]
   const deliveryHasChanges = JSON.stringify(deliveryOptions) !== JSON.stringify(savedDeliveryOptions)
 
-  function openAddOpt() {
-    setNewOptType(null); setNewOptName(""); setNewOptPrice(""); setNewOptPriceTBD(false); setNewOptAddress(""); setShowAddOpt(true)
+  function getDeliveryName() {
+    if (newDeliveryType === "pickup") return `Retiro presencial${newDeliveryAddress ? ` — ${newDeliveryAddress}` : ""}`
+    if (newDeliverySubtype === "own") return "Envío a domicilio"
+    if (newDeliverySubtype === "external") return newDeliveryCarrier ? `Envío ${newDeliveryCarrier}` : "Envío externo"
+    return ""
   }
 
-  function confirmAddOpt() {
-    if (!newOptName.trim() || !newOptType) return
-    if (newOptType === "pickup" && !newOptAddress.trim()) return
+  function canAddDelivery() {
+    if (!newDeliveryType) return false
+    if (newDeliveryType === "pickup") return !!newDeliveryAddress.trim()
+    if (newDeliveryType === "delivery") {
+      if (!newDeliverySubtype) return false
+      if (newDeliverySubtype === "external" && !newDeliveryCarrier) return false
+      return true
+    }
+    return false
+  }
+
+  function addDeliveryOption() {
+    if (!canAddDelivery()) return
+    const isPickup = newDeliveryType === "pickup"
     const opt: DeliveryOption = {
-      id: Math.random().toString(36).slice(2) + Date.now().toString(36),
-      name: newOptName.trim(),
-      price: newOptPriceTBD ? 0 : Math.max(0, Number(newOptPrice) || 0),
-      priceTBD: newOptPriceTBD || undefined,
-      type: newOptType,
-      address: newOptType === "pickup" ? newOptAddress.trim() : undefined,
+      id: crypto.randomUUID(),
+      name: getDeliveryName(),
+      type: newDeliveryType as "delivery" | "pickup",
+      price: isPickup ? 0 : (newDeliveryPriceTBD ? 0 : (parseInt(newDeliveryPrice) || 0)),
+      priceTBD: isPickup ? undefined : (newDeliveryPriceTBD || undefined),
+      address: isPickup ? newDeliveryAddress.trim() : undefined,
     }
     setDeliveryOptions(prev => [...prev, opt])
-    setDeliverySaved(false)
-    setShowAddOpt(false)
+    setNewDeliveryType("")
+    setNewDeliverySubtype("")
+    setNewDeliveryCarrier("")
+    setNewDeliveryPrice("")
+    setNewDeliveryPriceTBD(false)
+    setNewDeliveryAddress("")
   }
 
   function removeDeliveryOption(id: string) {
@@ -588,23 +606,21 @@ export default function StoreManager({
                   )}
                 </div>
 
-                {deliveryOptions.length === 0 && !showAddOpt ? (
+                {deliveryOptions.length === 0 ? (
                   <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
                     Sin opciones de entrega tus clientes no podrán finalizar una compra.
                   </p>
                 ) : (
                   <div className="space-y-2">
                     {deliveryOptions.map(opt => (
-                      <div key={opt.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2.5 border border-gray-100">
+                      <div key={opt.id} className="flex items-center justify-between bg-emerald-50 rounded-lg px-3 py-2.5 border border-emerald-200">
                         <div className="flex items-center gap-2.5">
-                          {opt.type === "delivery"
-                            ? <Truck className="w-4 h-4 text-gray-400 shrink-0" />
-                            : <MapPin className="w-4 h-4 text-gray-400 shrink-0" />}
+                          <span className="text-base">{opt.type === "delivery" ? "🚚" : "🏪"}</span>
                           <div>
-                            <p className="text-sm font-medium text-gray-800">{opt.name}</p>
-                            <p className="text-xs text-gray-500">
-                              {opt.type === "delivery" ? "Envío a domicilio" : "Retiro presencial"} · {opt.priceTBD ? "Por pagar" : opt.price > 0 ? `$${FMT(opt.price)}` : "Gratis"}
-                            </p>
+                            <span className="text-sm font-medium text-gray-800">{opt.name}</span>
+                            <span className="ml-2 text-emerald-700 font-semibold text-xs">
+                              {opt.priceTBD ? "Por pagar" : opt.price === 0 ? "Gratis" : `$${FMT(opt.price)}`}
+                            </span>
                           </div>
                         </div>
                         <button type="button" onClick={() => removeDeliveryOption(opt.id)}
@@ -616,90 +632,130 @@ export default function StoreManager({
                   </div>
                 )}
 
-                {showAddOpt ? (
-                  <div className="border border-green-200 rounded-xl bg-green-50 p-4 space-y-4">
-                    <p className="text-sm font-semibold text-gray-700">¿Qué tipo de entrega es?</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button type="button" onClick={() => { setNewOptType("pickup"); setTimeout(() => newOptNameRef.current?.focus(), 50) }}
-                        className={`flex flex-col items-center gap-2 py-4 rounded-xl border-2 font-medium text-sm transition-all cursor-pointer ${newOptType === "pickup" ? "border-green-700 bg-white text-green-900 shadow-sm" : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"}`}>
-                        <MapPin className="w-6 h-6" />
-                        Retiro presencial
-                      </button>
-                      <button type="button" onClick={() => { setNewOptType("delivery"); setTimeout(() => newOptNameRef.current?.focus(), 50) }}
-                        className={`flex flex-col items-center gap-2 py-4 rounded-xl border-2 font-medium text-sm transition-all cursor-pointer ${newOptType === "delivery" ? "border-green-700 bg-white text-green-900 shadow-sm" : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"}`}>
-                        <Truck className="w-6 h-6" />
-                        Envío a domicilio
-                      </button>
-                    </div>
+                {/* Agregar nueva opción — mismo flujo que sell/aplicar */}
+                <div className="space-y-4 border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                  <p className="text-sm font-semibold text-gray-700">
+                    {deliveryOptions.length === 0 ? "Configura tu primer método" : "+ Agregar otro método"}
+                  </p>
 
-                    {newOptType && (
-                      <div className="space-y-3 pt-1">
-                        <input
-                          ref={newOptNameRef}
-                          value={newOptName}
-                          onChange={e => setNewOptName(e.target.value)}
-                          onKeyDown={e => e.key === "Enter" && confirmAddOpt()}
-                          placeholder={newOptType === "pickup" ? "Ej: Retiro en tienda, Metro Baquedano..." : "Ej: Despacho Starken, Chilexpress..."}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
-                        />
-                        {newOptType === "pickup" && (
-                          <input
-                            value={newOptAddress}
-                            onChange={e => setNewOptAddress(e.target.value)}
-                            placeholder="Dirección de retiro (obligatorio)"
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
-                          />
-                        )}
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-gray-600">Costo para el cliente</p>
-                          <div className="flex rounded-lg overflow-hidden border border-gray-200 text-xs">
-                            <button type="button" onClick={() => setNewOptPriceTBD(false)}
-                              className={`flex-1 py-2 font-medium transition-colors cursor-pointer ${!newOptPriceTBD ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
-                              Monto fijo
-                            </button>
-                            <button type="button" onClick={() => setNewOptPriceTBD(true)}
-                              className={`flex-1 py-2 font-medium transition-colors cursor-pointer ${newOptPriceTBD ? "bg-green-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
-                              Por pagar
-                            </button>
-                          </div>
-                          {!newOptPriceTBD ? (
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                              <input type="number" min="0" value={newOptPrice}
-                                onChange={e => setNewOptPrice(e.target.value)}
-                                placeholder="0 = gratis"
-                                className="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
-                              />
-                            </div>
-                          ) : (
-                            <p className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
-                              El costo se coordina directamente con el cliente, no se suma al total de la compra.
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2 pt-1">
-                      <button type="button" onClick={confirmAddOpt}
-                        disabled={!newOptName.trim() || !newOptType || (newOptType === "pickup" && !newOptAddress.trim())}
-                        className="flex-1 py-2.5 bg-green-900 text-white rounded-lg font-semibold text-sm hover:bg-green-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">
-                        Confirmar
+                  {/* Paso 1: tipo */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["pickup", "delivery"] as const).map(t => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => { setNewDeliveryType(t); setNewDeliverySubtype(""); setNewDeliveryCarrier("") }}
+                        className={`flex flex-col items-center gap-1 p-3 rounded-lg border text-sm font-medium transition-colors cursor-pointer ${
+                          newDeliveryType === t
+                            ? "border-green-700 bg-green-50 text-green-900"
+                            : "border-gray-200 text-gray-600 hover:border-gray-400"
+                        }`}
+                      >
+                        <span className="text-xl">{t === "pickup" ? "🏪" : "🚚"}</span>
+                        {t === "pickup" ? "Retiro presencial" : "Envío a domicilio"}
                       </button>
-                      <button type="button" onClick={() => setShowAddOpt(false)}
-                        className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
-                        Cancelar
-                      </button>
-                    </div>
+                    ))}
                   </div>
-                ) : (
-                  <button type="button" onClick={openAddOpt}
-                    className="flex items-center gap-2 text-sm font-semibold text-green-800 hover:text-green-900 border border-dashed border-green-300 hover:border-green-500 rounded-lg px-4 py-2.5 w-full justify-center transition-colors bg-white cursor-pointer">
-                    <Plus className="w-4 h-4" /> Nueva opción de entrega
-                  </button>
-                )}
 
-                {deliveryHasChanges && !showAddOpt && (
+                  {/* Paso 2a: retiro → dirección */}
+                  {newDeliveryType === "pickup" && (
+                    <input
+                      placeholder="Dirección de retiro (ej: Av. Providencia 1234, Santiago)"
+                      value={newDeliveryAddress}
+                      onChange={e => setNewDeliveryAddress(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
+                    />
+                  )}
+
+                  {/* Paso 2b: envío → subtipo */}
+                  {newDeliveryType === "delivery" && (
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["own", "external"] as const).map(s => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => { setNewDeliverySubtype(s); setNewDeliveryCarrier(""); setNewDeliveryPriceTBD(false); setNewDeliveryPrice("") }}
+                          className={`flex flex-col items-center gap-1 p-3 rounded-lg border text-sm font-medium transition-colors cursor-pointer ${
+                            newDeliverySubtype === s
+                              ? "border-green-700 bg-green-50 text-green-900"
+                              : "border-gray-200 text-gray-600 hover:border-gray-400"
+                          }`}
+                        >
+                          <span className="text-xl">{s === "own" ? "🧑‍💼" : "📦"}</span>
+                          {s === "own" ? "Envío propio" : "Courier externo"}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Paso 3: courier externo → seleccionar empresa */}
+                  {newDeliveryType === "delivery" && newDeliverySubtype === "external" && (
+                    <div className="flex flex-wrap gap-2">
+                      {CARRIERS.map(c => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setNewDeliveryCarrier(c)}
+                          className={`px-3 py-1.5 rounded-full text-sm border transition-colors cursor-pointer ${
+                            newDeliveryCarrier === c
+                              ? "border-green-700 bg-green-50 text-green-900 font-semibold"
+                              : "border-gray-200 text-gray-600 hover:border-gray-400"
+                          }`}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Precio (solo para envío) */}
+                  {canAddDelivery() && newDeliveryType === "delivery" && (
+                    <div className="space-y-2 pt-1">
+                      <p className="text-xs font-medium text-gray-500">Costo de envío para el comprador</p>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="number"
+                          min={0}
+                          placeholder="Precio ($)"
+                          value={newDeliveryPrice}
+                          onChange={e => setNewDeliveryPrice(e.target.value)}
+                          disabled={newDeliveryPriceTBD}
+                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700 disabled:opacity-50"
+                        />
+                        {newDeliverySubtype === "external" && (
+                          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer whitespace-nowrap">
+                            <input
+                              type="checkbox"
+                              checked={newDeliveryPriceTBD}
+                              onChange={e => { setNewDeliveryPriceTBD(e.target.checked); setNewDeliveryPrice("") }}
+                              className="rounded"
+                            />
+                            Por pagar
+                          </label>
+                        )}
+                      </div>
+                      {getDeliveryName() && (
+                        <p className="text-xs text-gray-400">Se agregará como: <span className="font-medium text-gray-600">{getDeliveryName()}</span></p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Preview retiro */}
+                  {canAddDelivery() && newDeliveryType === "pickup" && getDeliveryName() && (
+                    <p className="text-xs text-gray-400">Se agregará como: <span className="font-medium text-gray-600">{getDeliveryName()}</span> · <span className="text-emerald-600 font-medium">Gratis</span></p>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={addDeliveryOption}
+                    disabled={!canAddDelivery()}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-green-900 text-white text-sm font-semibold hover:bg-green-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Confirmar y agregar método
+                  </button>
+                </div>
+
+                {deliveryHasChanges && (
                   <div className="border-t border-amber-200 pt-4 space-y-3">
                     <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
                       <span className="text-amber-500 text-base shrink-0">⚠</span>

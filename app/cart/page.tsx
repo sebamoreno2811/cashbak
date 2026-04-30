@@ -55,7 +55,7 @@ export default function CartPage() {
   const { bets, loading: loadingBets } = useBets()
   
   const [storeInfoMap, setStoreInfoMap] = useState<Record<string, StoreInfo>>({})
-  const [loadingStores, setLoadingStores] = useState(false)
+  const [loadingStores, setLoadingStores] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
   const [requiresAddress, setRequiresAddress] = useState(false)
   const [invalidBets, setInvalidBets] = useState<string[]>([])
@@ -86,12 +86,14 @@ export default function CartPage() {
   )]
   const hasMultipleStores = uniqueStoreIds.length > 1
 
-  // Delivery options: from the single store in cart, or CashBak defaults for official products
+  // Delivery options: from the single store in cart, or CashBak defaults
   const cartDeliveryOptions = useMemo(() => {
     if (hasMultipleStores) return []
-    if (uniqueStoreIds.length === 0) return DEFAULT_DELIVERY_OPTIONS
+    if (uniqueStoreIds.length === 0 || !storeInfoMap[uniqueStoreIds[0]]) {
+      return DEFAULT_DELIVERY_OPTIONS
+    }
     const store = storeInfoMap[uniqueStoreIds[0]]
-    return store?.delivery_options ?? []
+    return store.delivery_options?.length ? store.delivery_options : DEFAULT_DELIVERY_OPTIONS
   }, [hasMultipleStores, uniqueStoreIds, storeInfoMap])
 
   // Auto-select first delivery option when options load or store changes
@@ -364,8 +366,6 @@ export default function CartPage() {
                   <p className="text-xs text-amber-700">Disponible al tener productos de una sola tienda.</p>
                 ) : loadingStores ? (
                   <p className="text-xs text-gray-400">Cargando opciones de entrega…</p>
-                ) : cartDeliveryOptions.length === 0 && uniqueStoreIds.length > 0 ? (
-                  <p className="text-xs text-gray-400">Esta tienda no ha configurado opciones de entrega.</p>
                 ) : (
                   <div className="flex flex-col gap-2">
                     {cartDeliveryOptions.map(opt => (
