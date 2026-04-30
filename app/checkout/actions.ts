@@ -339,13 +339,12 @@ export async function verifyCartStock(cartItems: { productId: number; quantity: 
 
 export async function updateProductStock(cartItems: any[]) {
   try {
-    const supabase = await createSupabaseClientWithCookies()
+    const admin = createSupabaseAdminClient()
 
     for (const item of cartItems) {
       const size = item.size
 
-      // Leer el stock actual
-      const { data: productData, error: fetchError } = await supabase
+      const { data: productData, error: fetchError } = await admin
         .from("products")
         .select("stock")
         .eq("id", item.productId)
@@ -368,19 +367,18 @@ export async function updateProductStock(cartItems: any[]) {
       const newStockValue = availableStock - item.quantity
       const updatedStock = { ...currentStock, [size]: newStockValue }
 
-      // Actualizar solo si el stock sigue siendo el mismo que leimos (optimistic locking)
-      const { error: updateError, count } = await supabase
+      // Optimistic locking: solo actualiza si sigue habiendo stock suficiente
+      const { error: updateError, count } = await admin
         .from("products")
         .update({ stock: updatedStock })
         .eq("id", item.productId)
-        .gte(`stock->>${size}`, item.quantity) // Solo actualiza si hay stock suficiente aun
+        .gte(`stock->>${size}`, item.quantity)
         .select()
 
       if (updateError) {
         return { success: false, error: `Error al actualizar stock del producto ${item.productId}` }
       }
 
-      // Si count === 0, otro proceso ya redujo el stock (race condition detectada)
       if (count === 0) {
         return {
           success: false,

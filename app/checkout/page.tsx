@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, CreditCard, AlertCircle, CheckCircle, XCircle, Loader2, Truck, MapPin } from "lucide-react"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
-import { saveCheckoutData, updateProductStock } from "./actions"
+import { saveCheckoutData, updateProductStock, verifyCartStock } from "./actions"
 import { saveCheckoutSession, getCheckoutSession, deleteCheckoutSession } from "@/app/actions/checkout-session"
 import posthog from "posthog-js"
 import AuthModal from "@/components/auth/auth-modal"
 import useSupabaseUser from "@/hooks/use-supabase-user"
 import BankAccountReminderModal from "@/components/bank-account-reminder-modal"
+import { useBets } from "@/context/bet-context"
 
 
 export default function CheckoutPage() {
@@ -23,6 +24,7 @@ export default function CheckoutPage() {
   const hasProcessed = useRef(false)
 
   const { user, loading: loadingUser } = useSupabaseUser()
+  const { bets } = useBets()
 
   const [userProfile, setUserProfile] = useState<any>(null)
   const [bankAccount, setBankAccount] = useState<any>(null)
@@ -35,6 +37,7 @@ export default function CheckoutPage() {
   const [orderId, setOrderId] = useState<string | null>(null)
   const [showBankReminder, setShowBankReminder] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   // Función helper para formatear número de cuenta
   const formatAccountNumber = (accountNumber: any) => {
@@ -213,6 +216,49 @@ export default function CheckoutPage() {
   const handlePayment = async () => {
     if (!user || !userProfile) {
       setIsAuthModalOpen(true)
+      return
+    }
+
+    setValidationError(null)
+
+    // 1. Dirección de envío
+    if (deliveryOption?.type === "delivery" && !shippingAddress) {
+      setValidationError("Necesitas guardar una dirección de envío antes de pagar. Ve a tu perfil y complétala.")
+      return
+    }
+
+    // 2. Productos de una sola tienda
+    const storeIds = [...new Set(items.map(item => getItemDetails(item).product?.store_id).filter(Boolean))]
+    if (storeIds.length > 1) {
+      setValidationError("Solo puedes comprar productos de una tienda a la vez. Vuelve al carrito y elimina los de otras tiendas.")
+      return
+    }
+
+    // 3. Eventos válidos (no vencidos)
+    const nowChile = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Santiago" }))
+    const expiredNames: string[] = []
+    items.forEach((item) => {
+      const bet = bets.find((b) => b.id === Number.parseFloat(item.betOptionId))
+      if (!bet || new Date(bet.end_date) <= nowChile) {
+        expiredNames.push(getItemDetails(item).product?.name || "Producto sin nombre")
+      }
+    })
+    if (expiredNames.length > 0) {
+      setValidationError(`Los siguientes productos tienen eventos vencidos: ${expiredNames.join(", ")}. Vuelve al carrito y cámbialos.`)
+      return
+    }
+
+    // 4. Stock disponible
+    const stockCheck = await verifyCartStock(
+      items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        size: item.size,
+        productName: getItemDetails(item).product?.name,
+      }))
+    )
+    if (!stockCheck.success && stockCheck.outOfStock) {
+      setValidationError(`Stock insuficiente:\n${stockCheck.outOfStock.join("\n")}`)
       return
     }
 
@@ -577,6 +623,23 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               </div>
+
+              {validationError && (
+                <div className="p-4 border border-amber-200 rounded-lg bg-amber-50 space-y-3">
+                  <p className="text-amber-800 text-sm whitespace-pre-line">
+                    <strong>Atención:</strong> {validationError}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-amber-400 text-amber-800 hover:bg-amber-100"
+                    onClick={() => router.push("/cart")}
+                  >
+                    <ArrowLeft className="mr-1.5 size-3.5" />
+                    Volver al carrito
+                  </Button>
+                </div>
+              )}
 
               {paymentError && (
                 <div className="p-4 border border-red-200 rounded-lg bg-red-50">
