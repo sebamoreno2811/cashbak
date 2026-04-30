@@ -31,22 +31,17 @@ function selectVariedBets(bets: Bet[], maxCount = 4): Bet[] {
 
 export default function SellPage() {
   const [precioVenta, setPrecioVenta] = useState<string>("20000")
-  const [costo, setCosto] = useState<string>("")
   const calcularRecomendado = (p: number) => Math.max(0, Math.round(p - (0.15 * p / 1.5) / 0.80))
   const [gananciaCLP, setGananciaCLP] = useState<number>(() => calcularRecomendado(20000))
   const [bets, setBets] = useState<Bet[]>([])
   const [selectedBetId, setSelectedBetId] = useState<number | null>(null)
 
   const precio = Number(precioVenta)
-  const costoNum = Number(costo)
   const inputsValidos = precio > 0
 
   const sliderMax = Math.round(precio * 0.98)
   const sliderStep = Math.max(1, 10 ** Math.max(0, Math.floor(Math.log10(Math.max(1, sliderMax))) - 2))
   const margenVendedorPct = precio > 0 ? gananciaCLP / precio : 0
-  const tarifaProcesamiento = Math.round(0.02 * precio)
-  const ingresoNeto = gananciaCLP - tarifaProcesamiento
-  const gananciaBajoElCosto = costoNum > 0 && ingresoNeto < costoNum
 
   useEffect(() => {
     // Cuando cambia el precio, mantener el mismo % aproximado
@@ -73,30 +68,25 @@ export default function SellPage() {
     if (!inputsValidos) return null
     return calculateExternalCashbak({
       precioVenta: precio,
-      costo: costoNum,
+      costo: 0,
       cuota,
       margenVendedorPct,
     })
-  }, [precio, costoNum, margenVendedorPct, cuota, inputsValidos])
+  }, [precio, margenVendedorPct, cuota, inputsValidos])
 
   const bestCuota = bets.length > 0 ? Math.max(...bets.map(b => b.odd)) : cuota
 
-  // Recomendación fallback: deja 35% del margen declarado (precio-costo) para cashback
-  const recFallbackMonto = costoNum > 0 ? Math.round(precio - 0.35 * (precio - costoNum)) : null
-
-  const recMonto = resultado && resultado.margenRecomendadoMonto > costoNum
-    ? resultado.margenRecomendadoMonto
-    : (recFallbackMonto && recFallbackMonto > costoNum ? recFallbackMonto : null)
+  const recMonto = resultado ? resultado.margenRecomendadoMonto : null
 
   const cashbackAtRec = useMemo(() => {
     if (!inputsValidos || !recMonto) return 0
     return calculateExternalCashbak({
       precioVenta: precio,
-      costo: costoNum,
+      costo: 0,
       cuota: bestCuota,
       margenVendedorPct: recMonto / precio,
     }).cashbackPct
-  }, [precio, costoNum, bestCuota, recMonto, inputsValidos])
+  }, [precio, bestCuota, recMonto, inputsValidos])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -135,19 +125,6 @@ export default function SellPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="costo">Tu costo de producto (CLP) <span className="text-gray-400 font-normal">(opcional)</span></Label>
-                <Input
-                  id="costo"
-                  type="number"
-                  min={0}
-                  value={costo}
-                  onChange={(e) => setCosto(e.target.value)}
-                  placeholder="Solo para ver tu ganancia neta estimada"
-                />
-                <p className="text-xs text-gray-400">No afecta el CashBak ni la comisión. Ingrésalo si quieres ver cuánto ganas después de costos.</p>
-              </div>
-
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <Label>¿Cuánto quieres recibir por venta?</Label>
@@ -162,11 +139,6 @@ export default function SellPage() {
                   onChange={(e) => setGananciaCLP(Number(e.target.value))}
                   className="w-full accent-green-900"
                 />
-                {gananciaBajoElCosto && (
-                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    ⚠️ Estás eligiendo recibir menos que tu costo declarado ({formatCLP(costoNum)}). Estarías vendiendo a pérdida.
-                  </p>
-                )}
                 {recMonto && (
                   <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
                     <p className="text-xs text-emerald-800">
@@ -282,16 +254,6 @@ export default function SellPage() {
                       <span className="font-semibold text-gray-500 shrink-0">{resultado.cashbackPct}%</span>
                     </div>
 
-                    {costoNum > 0 && (
-                      <div className={`flex justify-between items-start gap-3 py-2 rounded-lg ${resultado.margenVendedorNeto < costoNum ? "px-2 bg-red-50 border border-red-200" : ""}`}>
-                        <div className="min-w-0">
-                          <span className={`text-sm ${resultado.margenVendedorNeto < costoNum ? "text-red-600 font-semibold" : "text-gray-500"}`}>Tu ganancia neta estimada</span>
-                          <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo ({formatCLP(costoNum)}) y 2% Transbank ({formatCLP(resultado.tarifaProcesamiento)})</p>
-                          {resultado.margenVendedorNeto < costoNum && <p className="text-xs text-red-500 mt-0.5">⚠️ Tu ingreso neto es menor que tu costo declarado. Estarías vendiendo a pérdida.</p>}
-                        </div>
-                        <span className={`font-semibold shrink-0 ${resultado.margenVendedorNeto < costoNum ? "text-red-600" : "text-gray-700"}`}>{formatCLP(resultado.gananciaNeta)}</span>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               </>

@@ -801,7 +801,6 @@ function ProductFormModal({
 }) {
   const [name, setName] = useState(initial?.name ?? "")
   const [price, setPrice] = useState(initial?.price.toString() ?? "")
-  const [cost, setCost] = useState(initial?.cost.toString() ?? "")
   const [categoryNames, setCategoryNames] = useState<string[]>(() => {
     if (initial?.category_names?.length) return initial.category_names
     if (initial?.category_name) return [initial.category_name]
@@ -856,7 +855,6 @@ function ProductFormModal({
   const selectedBet = bets.find(b => b.id === selectedBetId) ?? null
   const cuota = selectedBet?.odd ?? 2.0
   const priceNum = Number(price) || 0
-  const costNum = Number(cost) || 0
   const valid = priceNum > 0
 
   const pricing = useMemo(() => {
@@ -880,14 +878,10 @@ function ProductFormModal({
 
   const sliderMax = Math.round(priceNum * 0.98)
   const sliderStep = Math.max(1, 10 ** Math.max(0, Math.floor(Math.log10(Math.max(1, sliderMax))) - 2))
-  const tarifaProcesamientoEstimada = Math.round(0.02 * priceNum)
-  const ingresoNetoEstimado = gananciaCLP - tarifaProcesamientoEstimada
-  const gananciaBajoElCosto = costNum > 0 && ingresoNetoEstimado < costNum
-
   const sim = useMemo(() => {
     if (!valid) return null
-    return calculateExternalCashbak({ precioVenta: priceNum, costo: costNum, cuota, margenVendedorPct: priceNum > 0 ? gananciaCLP / priceNum : 0 })
-  }, [priceNum, costNum, gananciaCLP, cuota, valid])
+    return calculateExternalCashbak({ precioVenta: priceNum, costo: 0, cuota, margenVendedorPct: priceNum > 0 ? gananciaCLP / priceNum : 0 })
+  }, [priceNum, gananciaCLP, cuota, valid])
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
@@ -935,7 +929,7 @@ function ProductFormModal({
     }
 
     const payload = {
-      name, price: priceNum, cost: costNum,
+      name, price: priceNum, cost: 0,
       margin_pct: priceNum > 0 ? gananciaCLP / priceNum : 0,
       net_margin: sim?.margenVendedor ?? 0,
       category_name: categoryNames[0] ?? "",
@@ -1032,23 +1026,13 @@ function ProductFormModal({
             )}
           </div>
 
-          {/* Precio y Costo */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Precio de venta *</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                <input required type="number" min="1" value={price} onChange={e => setPrice(e.target.value)} placeholder="20000"
-                  className="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-700" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tu costo <span className="text-gray-400 font-normal">(opcional)</span></label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                <input type="number" min="0" value={cost} onChange={e => setCost(e.target.value)} placeholder="Solo para ver tu ganancia neta"
-                  className="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-700" />
-              </div>
+          {/* Precio */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Precio de venta *</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+              <input required type="number" min="1" value={price} onChange={e => setPrice(e.target.value)} placeholder="20000"
+                className="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-700" />
             </div>
           </div>
 
@@ -1080,12 +1064,6 @@ function ProductFormModal({
                   value={Math.min(gananciaCLP, sliderMax)}
                   onChange={e => setGananciaCLP(Number(e.target.value))}
                   className="w-full accent-green-900" />
-
-                {gananciaBajoElCosto && (
-                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    ⚠ Estás eligiendo recibir menos que tu costo declarado (${FMT(costNum)}). Estarías vendiendo a pérdida.
-                  </p>
-                )}
 
                 {pricing?.recMonto && (
                   <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
@@ -1135,18 +1113,6 @@ function ProductFormModal({
                     </div>
                     <span className="font-semibold text-gray-800 shrink-0">{sim.cashbackPct}% · ${FMT(sim.cashbackMonto)}</span>
                   </div>
-                  {costNum > 0 && (
-                    <div className={`flex justify-between text-sm py-1.5 rounded ${sim.margenVendedorNeto < costNum ? "px-2 bg-red-50 border border-red-200" : ""}`}>
-                      <div>
-                        <span className={sim.margenVendedorNeto < costNum ? "text-red-600 font-semibold" : "text-gray-500"}>Ganancia neta estimada</span>
-                        <p className="text-xs text-gray-400">Ilustrativo — descontando tu costo y 2% Transbank</p>
-                        {sim.margenVendedorNeto < costNum && <p className="text-xs text-red-500">⚠ Tu ingreso neto es menor que tu costo declarado.</p>}
-                      </div>
-                      <span className={`font-semibold ${sim.margenVendedorNeto < costNum ? "text-red-600" : "text-gray-600"}`}>
-                        {sim.gananciaNeta < 0 ? `-$${FMT(Math.abs(sim.gananciaNeta))}` : `$${FMT(sim.gananciaNeta)}`}
-                      </span>
-                    </div>
-                  )}
                   <p className="text-xs text-gray-400 pt-1 border-t border-gray-100">
                     {selectedBet ? `Simulado con el evento "${selectedBet.name}".` : "Selecciona un evento para simular."}{" "}
                     El CashBak varía según el evento activo.
