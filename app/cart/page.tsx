@@ -15,6 +15,7 @@ const DEFAULT_DELIVERY_OPTIONS: DeliveryOption[] = [
 ]
 import { createClient } from "@/utils/supabase/client"
 import { verifyCartStock } from "@/app/checkout/actions"
+import Link from "next/link"
 
 interface StoreInfo { id: string; name: string; logo_url: string | null; delivery_options: DeliveryOption[] | null }
 
@@ -63,6 +64,21 @@ export default function CartPage() {
 
 
   const { hasShippingDetails } = useShipping()
+  const [shippingAddress, setShippingAddress] = useState<{
+    calle: string; numero_calle: string; numero_casa_depto: string; comuna: string; ciudad: string
+  } | null>(null)
+
+  // Load saved shipping address for logged-in user
+  useEffect(() => {
+    if (!user) return
+    const supabase = createClient()
+    supabase
+      .from("customer_shipping_details")
+      .select("calle, numero_calle, numero_casa_depto, comuna, ciudad")
+      .eq("customer_id", user.id)
+      .maybeSingle()
+      .then(({ data }: { data: { calle: string; numero_calle: string; numero_casa_depto: string; comuna: string; ciudad: string } | null }) => { if (data) setShippingAddress(data) })
+  }, [user?.id])
 
   // Fetch store info for products in cart
   useEffect(() => {
@@ -359,6 +375,24 @@ export default function CartPage() {
           <div className="lg:col-span-1">
             <div className="p-6 bg-white rounded-lg shadow-lg">
               <h2 className="mb-4 text-lg font-bold">Resumen de la orden</h2>
+
+              {user && deliveryOption?.type === "delivery" && (
+                <div className="mb-4 flex items-center justify-between gap-2 text-xs text-gray-500">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                    {shippingAddress ? (
+                      <span className="truncate">
+                        {shippingAddress.calle} {shippingAddress.numero_calle}{shippingAddress.numero_casa_depto ? `, ${shippingAddress.numero_casa_depto}` : ""}, {shippingAddress.comuna}
+                      </span>
+                    ) : (
+                      <span className="italic text-gray-400">Sin dirección guardada</span>
+                    )}
+                  </div>
+                  <Link href="/perfil" className="shrink-0 text-green-700 hover:text-green-900 underline underline-offset-2">
+                    Editar
+                  </Link>
+                </div>
+              )}
 
               <div className="mt-6">
                 <h3 className="mb-2 text-sm font-medium text-gray-700">Método de entrega</h3>

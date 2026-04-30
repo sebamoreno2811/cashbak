@@ -4,10 +4,11 @@ import { useEffect, useState } from "react"
 import { formatRut } from "@/lib/rut"
 import { createClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation"
-import { Loader2, CheckCircle, Banknote, User } from "lucide-react"
+import { Loader2, CheckCircle, Banknote, User, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { saveShippingAddress } from "@/app/actions/shipping"
 
 const BANKS = [
   "Banco de Chile", "BancoEstado", "Santander", "BCI",
@@ -42,6 +43,17 @@ export default function PerfilPage() {
     account_number: "",
   })
 
+  const [shippingForm, setShippingForm] = useState({
+    ciudad: "",
+    comuna: "",
+    calle: "",
+    numero_calle: "",
+    numero_casa_depto: "",
+  })
+  const [savingShipping, setSavingShipping] = useState(false)
+  const [savedShipping, setSavedShipping] = useState(false)
+  const [shippingError, setShippingError] = useState<string | null>(null)
+
   useEffect(() => {
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -64,6 +76,23 @@ export default function PerfilPage() {
           account_number: String(data.account_number ?? ""),
         })
       }
+
+      const { data: shippingData } = await supabase
+        .from("customer_shipping_details")
+        .select("*")
+        .eq("customer_id", user.id)
+        .maybeSingle()
+
+      if (shippingData) {
+        setShippingForm({
+          ciudad: shippingData.ciudad ?? "",
+          comuna: shippingData.comuna ?? "",
+          calle: shippingData.calle ?? "",
+          numero_calle: shippingData.numero_calle ?? "",
+          numero_casa_depto: shippingData.numero_casa_depto ?? "",
+        })
+      }
+
       setLoading(false)
     }
     load()
@@ -98,6 +127,22 @@ export default function PerfilPage() {
     setTimeout(() => setSaved(false), 3000)
   }
 
+  const handleSaveShipping = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setShippingError(null)
+    if (!shippingForm.ciudad.trim()) return setShippingError("Ingresa la ciudad")
+    if (!shippingForm.comuna.trim()) return setShippingError("Ingresa la comuna")
+    if (!shippingForm.calle.trim()) return setShippingError("Ingresa la calle")
+    if (!shippingForm.numero_calle.trim()) return setShippingError("Ingresa el número de calle")
+
+    setSavingShipping(true)
+    const result = await saveShippingAddress(shippingForm)
+    setSavingShipping(false)
+    if (result.error) return setShippingError(result.error)
+    setSavedShipping(true)
+    setTimeout(() => setSavedShipping(false), 3000)
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -120,6 +165,76 @@ export default function PerfilPage() {
           <p className="font-semibold text-gray-800">{userName}</p>
           <p className="text-sm text-gray-500">{userEmail}</p>
         </div>
+      </div>
+
+      {/* Dirección de envío */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+        <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100 bg-gray-50">
+          <MapPin className="w-4 h-4 text-green-700" />
+          <h2 className="font-semibold text-gray-800">Dirección de envío</h2>
+        </div>
+
+        <form onSubmit={handleSaveShipping} className="px-5 py-5 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Ciudad</Label>
+              <Input
+                placeholder="Santiago"
+                value={shippingForm.ciudad}
+                onChange={e => setShippingForm(f => ({ ...f, ciudad: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label>Comuna</Label>
+              <Input
+                placeholder="Providencia"
+                value={shippingForm.comuna}
+                onChange={e => setShippingForm(f => ({ ...f, comuna: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label>Calle</Label>
+            <Input
+              placeholder="Av. Providencia"
+              value={shippingForm.calle}
+              onChange={e => setShippingForm(f => ({ ...f, calle: e.target.value }))}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Número</Label>
+              <Input
+                placeholder="1234"
+                value={shippingForm.numero_calle}
+                onChange={e => setShippingForm(f => ({ ...f, numero_calle: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label>Dpto / Casa</Label>
+              <Input
+                placeholder="Apto 5B"
+                value={shippingForm.numero_casa_depto}
+                onChange={e => setShippingForm(f => ({ ...f, numero_casa_depto: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          {shippingError && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{shippingError}</p>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full bg-green-900 hover:bg-green-800"
+            disabled={savingShipping}
+          >
+            {savingShipping ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : savedShipping ? <CheckCircle className="w-4 h-4 mr-2" /> : null}
+            {savingShipping ? "Guardando..." : savedShipping ? "¡Guardado!" : "Guardar dirección"}
+          </Button>
+        </form>
       </div>
 
       {/* Datos bancarios */}
