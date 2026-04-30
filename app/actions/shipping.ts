@@ -24,7 +24,6 @@ export async function saveShippingAddress(formData: {
       id: user.id,
       email: user.email ?? "",
       full_name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "",
-      phone: "",
       created_at: new Date().toISOString(),
     },
     { onConflict: "id", ignoreDuplicates: true }
