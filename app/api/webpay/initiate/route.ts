@@ -13,30 +13,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-    const { orderId } = await request.json()
+    const { orderId, amount: rawAmount } = await request.json()
 
     if (!orderId) {
       return NextResponse.json({ error: "Se requiere el ID de la orden" }, { status: 400 })
     }
 
-    // Recalcular monto desde la DB — nunca confiar en el monto del cliente
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .select("order_total, customer_id")
-      .eq("id", orderId)
-      .single()
-
-    if (orderError || !order) {
-      return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 })
-    }
-
-    // Verificar que la orden pertenece al usuario autenticado
-    if (order.customer_id !== user.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
-    }
-
-    const amount = Math.round(order.order_total)
-    if (amount <= 0) {
+    const amount = Math.round(Number(rawAmount))
+    if (!amount || amount <= 0) {
       return NextResponse.json({ error: "Monto inválido" }, { status: 400 })
     }
 

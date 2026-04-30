@@ -46,7 +46,7 @@ export default function CheckoutPage() {
   // Verificar autenticación y cargar datos del usuario
   useEffect(() => {
     const fetchUserData = async () => {
-    if (!user) return
+    if (!user) { setIsLoadingProfile(false); return }
     const supabase = createClient()
     
     const { data: profile } = await supabase
@@ -242,6 +242,7 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify({
           orderId: uniqueOrderId,
+          amount: cartTotal,
         }),
       })
 
