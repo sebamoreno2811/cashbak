@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, CreditCard, AlertCircle, CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { ArrowLeft, CreditCard, AlertCircle, CheckCircle, XCircle, Loader2, Truck, MapPin } from "lucide-react"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { saveCheckoutData, updateProductStock } from "./actions"
@@ -25,6 +25,7 @@ export default function CheckoutPage() {
 
   const [userProfile, setUserProfile] = useState<any>(null)
   const [bankAccount, setBankAccount] = useState<any>(null)
+  const [shippingAddress, setShippingAddress] = useState<{ calle: string; numero_calle: string; numero_casa_depto: string; comuna: string; ciudad: string } | null>(null)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   const [paymentProcessing, setPaymentProcessing] = useState(false)
@@ -59,8 +60,15 @@ export default function CheckoutPage() {
       .eq("customer_id", user.id)
       .single()
 
+    const { data: shippingData } = await supabase
+      .from("customer_shipping_details")
+      .select("calle, numero_calle, numero_casa_depto, comuna, ciudad")
+      .eq("customer_id", user.id)
+      .maybeSingle()
+
     setUserProfile(profile)
     setBankAccount(bankData)
+    if (shippingData) setShippingAddress(shippingData)
     setIsLoadingProfile(false)
   }
 
@@ -454,34 +462,38 @@ export default function CheckoutPage() {
                 <div className="p-4 border border-gray-200 rounded-lg">
                   <h3 className="mb-2 font-medium text-gray-900">Datos Personales</h3>
                   <div className="space-y-1 text-sm text-gray-600">
-                    <p>
-                      <span className="font-medium">Nombre:</span> {userProfile?.full_name || "No disponible"}
-                    </p>
-                    <p>
-                      <span className="font-medium">Email:</span> {userProfile?.email || "No disponible"}
-                    </p>
-                    <p>
-                      <span className="font-medium">Teléfono:</span> {userProfile?.phone || "No disponible"}
-                    </p>
+                    <p><span className="font-medium">Nombre:</span> {userProfile?.full_name || "No disponible"}</p>
+                    <p><span className="font-medium">Email:</span> {userProfile?.email || "No disponible"}</p>
                   </div>
                 </div>
 
                 <div className="p-4 border border-gray-200 rounded-lg">
-                  <h3 className="mb-2 font-medium text-gray-900">Datos Bancarios</h3>
+                  <h3 className="mb-2 font-medium text-gray-900">Método de entrega</h3>
                   <div className="space-y-1 text-sm text-gray-600">
-                    <p>
-                      <span className="font-medium">Banco:</span> {bankAccount?.bank_name || "No disponible"}
-                    </p>
-                    <p>
-                      <span className="font-medium">Tipo:</span> {bankAccount?.account_type || "No disponible"}
-                    </p>
-                    <p>
-                      <span className="font-medium">Cuenta:</span> {formatAccountNumber(bankAccount?.account_number)}
-                    </p>
-                    <p>
-                      <span className="font-medium">RUT:</span> {bankAccount?.rut || "No disponible"}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      {deliveryOption?.type === "delivery"
+                        ? <Truck className="w-4 h-4 text-green-700 shrink-0" />
+                        : <MapPin className="w-4 h-4 text-green-700 shrink-0" />}
+                      <span className="font-medium">{deliveryOption?.name || "No seleccionado"}</span>
+                    </div>
+                    {deliveryOption?.type === "delivery" && (
+                      <p className="text-gray-500 pl-5 leading-snug">
+                        {shippingAddress
+                          ? `${shippingAddress.calle} ${shippingAddress.numero_calle}${shippingAddress.numero_casa_depto ? `, ${shippingAddress.numero_casa_depto}` : ""}, ${shippingAddress.comuna}, ${shippingAddress.ciudad}`
+                          : "Sin dirección guardada"}
+                      </p>
+                    )}
                   </div>
+                </div>
+              </div>
+
+              <div className="p-4 border border-gray-200 rounded-lg">
+                <h3 className="mb-2 font-medium text-gray-900">Datos Bancarios</h3>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-gray-600">
+                  <p><span className="font-medium">Banco:</span> {bankAccount?.bank_name || "No disponible"}</p>
+                  <p><span className="font-medium">Tipo:</span> {bankAccount?.account_type || "No disponible"}</p>
+                  <p><span className="font-medium">Cuenta:</span> {formatAccountNumber(bankAccount?.account_number)}</p>
+                  <p><span className="font-medium">RUT:</span> {bankAccount?.rut || "No disponible"}</p>
                 </div>
               </div>
 
