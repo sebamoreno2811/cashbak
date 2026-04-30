@@ -244,9 +244,12 @@ export default function CheckoutPage() {
       const cartTotal = getCartTotal(shippingCost)
       const cashbakTotal = getTotalcashbak()
 
-      // Guardar en Supabase como fuente principal (sobrevive la redirección a Webpay)
+      // buyOrder = lo que Webpay recibe y devuelve (max 26 chars, igual que en el endpoint)
+      const buyOrder = uniqueOrderId.substring(0, 26)
+
+      // Guardar en Supabase keyed por buyOrder — es lo que Webpay devuelve en el commit
       await saveCheckoutSession({
-        orderIdClient: uniqueOrderId,
+        orderIdClient: buyOrder,
         cartItems: cartItemsPayload,
         shippingCost,
         deliveryType: deliveryType?.toString() ?? "",
