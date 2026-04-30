@@ -1,6 +1,6 @@
 "use server"
 
-import { createSupabaseClientWithCookies } from "@/utils/supabase/server"
+import { createSupabaseClientWithCookies, createSupabaseAdminClient } from "@/utils/supabase/server"
 import type { CheckoutFormData } from "@/types/checkout"
 import { Resend } from 'resend'
 
@@ -76,8 +76,9 @@ export async function saveCheckoutData(
     }
     serverTotal = Math.round(serverTotal)
 
-    // 5. Crear orden
-    const { data: orderData, error: orderError } = await supabase
+    // 5. Crear orden (admin client para saltarse RLS — auth ya validada arriba)
+    const admin = createSupabaseAdminClient()
+    const { data: orderData, error: orderError } = await admin
       .from("orders")
       .insert({
         customer_id: customerId,
@@ -93,6 +94,7 @@ export async function saveCheckoutData(
       .single()
 
     if (orderError || !orderData) {
+      console.error("[saveCheckoutData] Error creando orden:", orderError)
       return { success: false, error: "Error al crear la orden" }
     }
 
@@ -116,7 +118,7 @@ export async function saveCheckoutData(
       vendor_net_amount: item.vendor_net_amount ?? null,
     }))
 
-    const { error: itemsError } = await supabase.from("order_items").insert(orderItems)
+    const { error: itemsError } = await admin.from("order_items").insert(orderItems)
 
     if (itemsError) {
       return { success: false, error: "Error al guardar los items de la orden" }
