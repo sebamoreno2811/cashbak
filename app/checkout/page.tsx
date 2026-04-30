@@ -8,6 +8,7 @@ import { ArrowLeft, CreditCard, AlertCircle, CheckCircle, XCircle, Loader2, Truc
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { saveCheckoutData, updateProductStock } from "./actions"
+import { saveCheckoutSession, getCheckoutSession, deleteCheckoutSession } from "@/app/actions/checkout-session"
 import posthog from "posthog-js"
 import AuthModal from "@/components/auth/auth-modal"
 import useSupabaseUser from "@/hooks/use-supabase-user"
@@ -126,53 +127,73 @@ export default function CheckoutPage() {
 
   const handleSuccessfulPayment = async (orderIdParam: string | null) => {
   try {
-    // Verifica si ya se procesó esta orden
+    let cartItems: any[] = []
+    let cashbakTotal = 0
+    let deliveryType = ""
+    let shippingCost = 0
+    let formData: any = null
+    let resolvedFromDB = false
+
+    // 1. Intentar obtener datos desde Supabase (fuente principal)
+    if (orderIdParam) {
+      const session = await getCheckoutSession(orderIdParam)
+      if (session) {
+        cartItems = session.cart_items
+        cashbakTotal = Number(session.cashbak_total)
+        deliveryType = session.delivery_type ?? ""
+        shippingCost = Number(session.shipping_cost)
+        resolvedFromDB = true
+      }
+    }
+
+    // 2. Fallback a localStorage si Supabase no tiene la sesión
+    if (!resolvedFromDB) {
+      const cartItemsStr = localStorage.getItem("checkout_cart_items")
+      const cashbakTotalStr = localStorage.getItem("checkout_cashbak_total")
+      const deliveryTypeStr = localStorage.getItem("checkout_delivery_type")
+      const shippingCostStr = localStorage.getItem("checkout_shipping_cost")
+      if (!cartItemsStr) {
+        console.error("[checkout] Sin datos de sesión en DB ni localStorage. orderIdParam:", orderIdParam)
+        setPaymentError("cobro_sin_orden")
+        return
+      }
+      cartItems = JSON.parse(cartItemsStr)
+      cashbakTotal = Number.parseFloat(cashbakTotalStr ?? "0") || 0
+      deliveryType = String(deliveryTypeStr ?? "")
+      shippingCost = Number.parseFloat(shippingCostStr ?? "0") || 0
+    }
 
     const formDataStr = localStorage.getItem("checkout_form_data")
-    const cartItemsStr = localStorage.getItem("checkout_cart_items")
-    const cartTotalStr = localStorage.getItem("checkout_cart_total")
-    const cashbakTotalStr = localStorage.getItem("checkout_cashbak_total")
-    const deliveryTypeStr = localStorage.getItem("checkout_delivery_type")
-    const shippingCostStr = localStorage.getItem("checkout_shipping_cost")
+    formData = formDataStr ? JSON.parse(formDataStr) : {}
 
-    if (formDataStr && cartItemsStr && cartTotalStr && cashbakTotalStr) {
-      const storedFormData = JSON.parse(formDataStr)
-      const cartItems = JSON.parse(cartItemsStr)
-      const cartTotal = Number.parseFloat(cartTotalStr)
-      const cashbakTotal = Number.parseFloat(cashbakTotalStr)
-      const deliveryType = String(deliveryTypeStr)
-      const shippingCost = Number.parseFloat(shippingCostStr ?? "0") || 0
+    const result = await saveCheckoutData(formData, cartItems, 0, cashbakTotal, deliveryType, shippingCost)
 
-      const result = await saveCheckoutData(storedFormData, cartItems, cartTotal, cashbakTotal, deliveryType, shippingCost)
-
-      if (result.success) {
-        // Solo descontar stock una vez confirmada la compra exitosa
-        const stockResult = await updateProductStock(cartItems)
-        if (!stockResult.success) {
-          console.error("Error al actualizar stock (orden ya creada):", stockResult.error)
-        }
-
-        localStorage.setItem("processed_order_id", orderIdParam || "")
-        posthog.capture("compra_completada", { order_id: orderIdParam, cart_total: cartTotal, cashbak_total: cashbakTotal })
-        setPaymentSuccess(true)
-        if (!bankAccount) setShowBankReminder(true)
-        clearCart()
-        localStorage.removeItem("checkout_form_data")
-        localStorage.removeItem("checkout_cart_items")
-        localStorage.removeItem("checkout_cart_total")
-        localStorage.removeItem("checkout_cashbak_total")
-        localStorage.removeItem("checkout_order_id")
-        localStorage.removeItem("checkout_delivery_type")
-        localStorage.removeItem("checkout_delivery_option")
-      } else {
-        setPaymentError(result.error || "Error al guardar los datos de la orden")
+    if (result.success) {
+      const stockResult = await updateProductStock(cartItems)
+      if (!stockResult.success) {
+        console.error("Error al actualizar stock (orden ya creada):", stockResult.error)
       }
+
+      if (orderIdParam) await deleteCheckoutSession(orderIdParam)
+
+      posthog.capture("compra_completada", { order_id: orderIdParam, cashbak_total: cashbakTotal })
+      setPaymentSuccess(true)
+      if (!bankAccount) setShowBankReminder(true)
+      clearCart()
+      localStorage.removeItem("checkout_form_data")
+      localStorage.removeItem("checkout_cart_items")
+      localStorage.removeItem("checkout_cart_total")
+      localStorage.removeItem("checkout_cashbak_total")
+      localStorage.removeItem("checkout_order_id")
+      localStorage.removeItem("checkout_delivery_type")
+      localStorage.removeItem("checkout_delivery_option")
     } else {
-      setPaymentError("No se encontraron datos para esta orden")
+      console.error("[checkout] saveCheckoutData falló. orderIdParam:", orderIdParam, "error:", result.error)
+      setPaymentError("cobro_sin_orden")
     }
   } catch (err: any) {
-    console.error("Error al procesar la orden:", err)
-    setPaymentError(err.message || "Error al procesar la orden")
+    console.error("[checkout] Error inesperado en handleSuccessfulPayment:", err)
+    setPaymentError("cobro_sin_orden")
   } finally {
     setIsLoading(false)
   }
@@ -204,30 +225,37 @@ export default function CheckoutPage() {
         rut: bankAccount?.rut || "",
       }
 
-      localStorage.setItem("checkout_form_data", JSON.stringify(formData))
-      localStorage.setItem(
-        "checkout_cart_items",
-        JSON.stringify(
-          items.map((item) => {
-            const details = getItemDetails(item)
-            return {
-              ...item,
-              product: details.product,
-              betName: details.betName,
-              order_id: uniqueOrderId,
-              cashbakPercentage: details.cashbakPercentage,
-              bet_amount: details.bet_amount,
-              comision_cashbak: details.comision_cashbak,
-              vendor_net_amount: details.vendor_net_amount,
-              tarifa_procesamiento: details.tarifa_procesamiento,
-              size: details.size
-            }
-          }),
-        ),
-      )
+      const cartItemsPayload = items.map((item) => {
+        const details = getItemDetails(item)
+        return {
+          ...item,
+          product: details.product,
+          betName: details.betName,
+          order_id: uniqueOrderId,
+          cashbakPercentage: details.cashbakPercentage,
+          bet_amount: details.bet_amount,
+          comision_cashbak: details.comision_cashbak,
+          vendor_net_amount: details.vendor_net_amount,
+          tarifa_procesamiento: details.tarifa_procesamiento,
+          size: details.size
+        }
+      })
 
       const cartTotal = getCartTotal(shippingCost)
       const cashbakTotal = getTotalcashbak()
+
+      // Guardar en Supabase como fuente principal (sobrevive la redirección a Webpay)
+      await saveCheckoutSession({
+        orderIdClient: uniqueOrderId,
+        cartItems: cartItemsPayload,
+        shippingCost,
+        deliveryType: deliveryType?.toString() ?? "",
+        cashbakTotal,
+      })
+
+      // Guardar en localStorage como respaldo
+      localStorage.setItem("checkout_form_data", JSON.stringify(formData))
+      localStorage.setItem("checkout_cart_items", JSON.stringify(cartItemsPayload))
       localStorage.setItem("checkout_cart_total", cartTotal.toString())
       localStorage.setItem("checkout_cashbak_total", cashbakTotal.toString())
       localStorage.setItem("checkout_shipping_cost", shippingCost.toString())
@@ -392,6 +420,27 @@ export default function CheckoutPage() {
                   Volver al inicio
                 </Button>
               </div>
+            </div>
+          ) : paymentError === "cobro_sin_orden" ? (
+            // Pago sí se realizó pero hubo error al crear la orden
+            <div className="p-8 text-center">
+              <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 bg-amber-100 rounded-full">
+                <AlertCircle className="w-10 h-10 text-amber-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tu pago fue procesado</h2>
+              <p className="text-gray-600 mb-1">El cobro se realizó correctamente, pero hubo un error al registrar tu pedido.</p>
+              <p className="text-gray-500 text-sm mb-6">No te preocupes — con tu número de referencia podemos recuperar la orden manualmente.</p>
+              {orderId && (
+                <div className="inline-block bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6">
+                  <p className="text-xs text-amber-700 font-medium">Número de referencia</p>
+                  <p className="text-sm font-mono font-bold text-amber-900 break-all">{orderId}</p>
+                </div>
+              )}
+              <p className="text-sm text-gray-600 mb-6">
+                Escríbenos a{" "}
+                <a href="mailto:cashbak.ops@gmail.com" className="text-green-700 underline font-medium">cashbak.ops@gmail.com</a>
+                {" "}con este número y te confirmamos tu pedido a la brevedad.
+              </p>
             </div>
           ) : paymentError ? (
             <div className="p-8 text-center">
