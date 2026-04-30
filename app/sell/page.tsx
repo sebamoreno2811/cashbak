@@ -340,29 +340,6 @@ export default function SellPage() {
           </Link>
         </div>
 
-        {/* ¿Cómo funciona? */}
-        <Card className="mt-8">
-          <CardContent className="pt-6">
-            <h3 className="font-bold text-gray-800 mb-4">¿Cómo funciona el Seguro CashBak?</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-600">
-              <div className="flex flex-col gap-2">
-                <span className="text-2xl">🛒</span>
-                <p className="font-semibold text-gray-800">El cliente compra</p>
-                <p>Al comprar, CashBak contrata automáticamente un seguro en nombre del cliente ligado a un evento deportivo.</p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <span className="text-2xl">🏆</span>
-                <p className="font-semibold text-gray-800">Si el evento ocurre</p>
-                <p>El seguro se activa y el cliente recibe el CashBak prometido. Tu ganancia no cambia.</p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <span className="text-2xl">🛡️</span>
-                <p className="font-semibold text-gray-800">Si no ocurre</p>
-                <p>No se paga CashBak. La prima del seguro cubre los costos operativos. Tu ganancia tampoco cambia.</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </section>
 
       {/* CTA */}
