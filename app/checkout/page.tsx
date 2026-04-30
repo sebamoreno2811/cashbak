@@ -126,6 +126,13 @@ export default function CheckoutPage() {
   }, [])
 
   const handleSuccessfulPayment = async (orderIdParam: string | null) => {
+  // Si ya procesamos este pago en esta sesión del browser (ej: refresh), mostrar éxito directo
+  if (orderIdParam && sessionStorage.getItem(`paid_${orderIdParam}`)) {
+    setPaymentSuccess(true)
+    setIsLoading(false)
+    return
+  }
+
   try {
     let cartItems: any[] = []
     let cashbakTotal = 0
@@ -175,6 +182,9 @@ export default function CheckoutPage() {
       }
 
       if (orderIdParam) await deleteCheckoutSession(orderIdParam)
+
+      // Marcar como exitoso en sessionStorage para manejar refresh sin re-procesar
+      if (orderIdParam) sessionStorage.setItem(`paid_${orderIdParam}`, "1")
 
       posthog.capture("compra_completada", { order_id: orderIdParam, cashbak_total: cashbakTotal })
       setPaymentSuccess(true)
@@ -248,13 +258,16 @@ export default function CheckoutPage() {
       const buyOrder = uniqueOrderId.substring(0, 26)
 
       // Guardar en Supabase keyed por buyOrder — es lo que Webpay devuelve en el commit
-      await saveCheckoutSession({
+      const sessionResult = await saveCheckoutSession({
         orderIdClient: buyOrder,
         cartItems: cartItemsPayload,
         shippingCost,
         deliveryType: deliveryType?.toString() ?? "",
         cashbakTotal,
       })
+      if (sessionResult.error) {
+        throw new Error("No se pudo guardar la sesión de pago. Por favor intenta de nuevo.")
+      }
 
       // Guardar en localStorage como respaldo
       localStorage.setItem("checkout_form_data", JSON.stringify(formData))
