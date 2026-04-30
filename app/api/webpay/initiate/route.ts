@@ -13,14 +13,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-    const { orderId, amount: rawAmount } = await request.json()
+    const { orderId, items, shippingCost: rawShipping } = await request.json()
 
-    if (!orderId) {
-      return NextResponse.json({ error: "Se requiere el ID de la orden" }, { status: 400 })
+    if (!orderId || !Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: "Datos de la orden inválidos" }, { status: 400 })
     }
 
-    const amount = Math.round(Number(rawAmount))
-    if (!amount || amount <= 0) {
+    // Calcular monto server-side desde precios en DB — nunca confiar en el cliente
+    const productIds = items.map((i: { productId: number }) => i.productId)
+    const { data: dbProducts, error: productsError } = await supabase
+      .from("products")
+      .select("id, price")
+      .in("id", productIds)
+
+    if (productsError || !dbProducts || dbProducts.length === 0) {
+      return NextResponse.json({ error: "No se pudieron verificar los productos" }, { status: 400 })
+    }
+
+    const productsTotal = items.reduce((sum: number, item: { productId: number; quantity: number }) => {
+      const product = dbProducts.find((p: { id: number; price: number }) => p.id === item.productId)
+      return sum + (product ? product.price * item.quantity : 0)
+    }, 0)
+
+    const shippingCost = Math.max(0, Math.round(Number(rawShipping) || 0))
+    const amount = Math.round(productsTotal + shippingCost)
+
+    if (amount <= 0) {
       return NextResponse.json({ error: "Monto inválido" }, { status: 400 })
     }
 

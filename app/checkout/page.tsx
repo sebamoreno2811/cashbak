@@ -242,7 +242,8 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify({
           orderId: uniqueOrderId,
-          amount: cartTotal,
+          items: items.map(item => ({ productId: item.productId, quantity: item.quantity })),
+          shippingCost,
         }),
       })
 

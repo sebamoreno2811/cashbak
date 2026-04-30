@@ -13,7 +13,7 @@ const EMAIL_FROM = process.env.EMAIL_FROM || "support@cashbak.cl"
 export async function saveCheckoutData(
   _formData: CheckoutFormData,
   cartItems: any[],
-  cartTotal: number,
+  _cartTotal: number,
   cashbakTotal: number,
   deliveryType: string,
   shippingCost: number = 0
@@ -66,25 +66,22 @@ export async function saveCheckoutData(
       return { success: false, error: "No se pudieron verificar los productos" }
     }
 
+    let serverTotal = shippingCost
     for (const item of cartItems) {
       const dbProduct = dbProducts.find((p: { id: number; price: number; stock: Record<string, number> }) => p.id === item.productId)
       if (!dbProduct) {
         return { success: false, error: `Producto ${item.productId} no encontrado` }
       }
-      if (dbProduct.price !== item.product?.price) {
-        return {
-          success: false,
-          error: `El precio de "${item.product?.name}" ha cambiado. Por favor, actualiza tu carrito.`,
-        }
-      }
+      serverTotal += dbProduct.price * item.quantity
     }
+    serverTotal = Math.round(serverTotal)
 
     // 5. Crear orden
     const { data: orderData, error: orderError } = await supabase
       .from("orders")
       .insert({
         customer_id: customerId,
-        order_total: cartTotal,
+        order_total: serverTotal,
         cashback_amount: cashbakTotal,
         shipping_cost: shippingCost,
         order_status: "completed",
