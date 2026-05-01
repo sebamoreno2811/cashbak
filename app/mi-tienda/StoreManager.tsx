@@ -10,7 +10,7 @@ import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
 import { addProduct, updateProduct, deleteProduct, updateStoreDeliveryOptions, updateStoreBankAccount } from "./actions"
 import {
   Pencil, Trash2, Plus, X, Truck, MapPin, Package, ShoppingBag,
-  Banknote, CheckCircle2, Loader2, Building2, ExternalLink,
+  Banknote, CheckCircle2, Loader2, Building2, ExternalLink, Search,
 } from "lucide-react"
 import type { DeliveryOption } from "@/types/delivery"
 
@@ -237,6 +237,28 @@ export default function StoreManager({
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<StoreProduct | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>("productos")
+  const [search, setSearch] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("")
+
+  const allCategories = useMemo(() => {
+    const cats = new Set<string>()
+    products.forEach(p => {
+      p.category_names?.forEach(c => cats.add(c))
+      if (p.category_name) cats.add(p.category_name)
+    })
+    return [...cats].sort()
+  }, [products])
+
+  const filteredProducts = useMemo(() => {
+    const q = search.toLowerCase().trim()
+    return products.filter(p => {
+      const matchesSearch = !q || p.name.toLowerCase().includes(q)
+      const matchesCategory = !categoryFilter ||
+        p.category_names?.includes(categoryFilter) ||
+        p.category_name === categoryFilter
+      return matchesSearch && matchesCategory
+    })
+  }, [products, search, categoryFilter])
 
   // Bank account state
   const [bank, setBank] = useState({
@@ -476,7 +498,7 @@ export default function StoreManager({
           {/* ── Tab: Productos ── */}
           {activeTab === "productos" && (
             <>
-              {products.length === 0 && !showForm && (
+              {products.length === 0 && !showForm ? (
                 <div className="text-center py-20 text-gray-400">
                   <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                   <p className="font-medium text-gray-500">Aún no tienes productos</p>
@@ -488,12 +510,51 @@ export default function StoreManager({
                     <Plus className="w-4 h-4" /> Agregar producto
                   </button>
                 </div>
+              ) : (
+                <>
+                  {/* Buscador + filtro por categoría */}
+                  <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Buscar producto..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-700 bg-white"
+                      />
+                    </div>
+                    {allCategories.length > 0 && (
+                      <select
+                        value={categoryFilter}
+                        onChange={e => setCategoryFilter(e.target.value)}
+                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 bg-white text-gray-600"
+                      >
+                        <option value="">Todas las categorías</option>
+                        {allCategories.map(c => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {filteredProducts.length === 0 ? (
+                    <div className="text-center py-16 text-gray-400">
+                      <Search className="w-8 h-8 mx-auto mb-3 text-gray-300" />
+                      <p className="text-sm font-medium text-gray-500">Sin resultados para "{search}"</p>
+                      <button onClick={() => { setSearch(""); setCategoryFilter("") }} className="mt-2 text-xs text-green-700 underline">
+                        Limpiar filtros
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredProducts.map(p => (
+                        <ProductRow key={p.id} product={p} onEdit={openEdit} onDelete={handleDelete} />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {products.map(p => (
-                  <ProductRow key={p.id} product={p} onEdit={openEdit} onDelete={handleDelete} />
-                ))}
-              </div>
             </>
           )}
 
