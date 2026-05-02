@@ -133,7 +133,7 @@ async function sendCashbackTransferredEmail(supabase: any, orderId: string) {
 
     sendPushToUser(order.customer_id, {
       title: "🎉 ¡Tu CashBak llegó!",
-      body: `Recibiste $${winningCashback.toLocaleString("es-CL")} de cashback del pedido #${orderRef}.`,
+      body: `Recibiste $${winningCashback.toLocaleString("es-CL")} de CashBak del pedido #${orderRef}.`,
       url: "/orders",
     }).catch(() => {})
 
