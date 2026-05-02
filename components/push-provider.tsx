@@ -58,7 +58,7 @@ export default function PushProvider() {
   if (!showBanner) return null
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 sm:left-auto sm:right-4 sm:w-80">
+    <div className="fixed bottom-4 left-4 z-50 w-72 sm:w-80">
       <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-4 flex items-start gap-3">
         <span className="text-2xl shrink-0">🔔</span>
         <div className="flex-1 min-w-0">
