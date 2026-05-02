@@ -3,6 +3,7 @@
 import { createSupabaseClientWithCookies as createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
 import { Resend } from "resend"
+import { sendPushToUser } from "@/lib/push"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://cashbak.cl"
@@ -58,6 +59,16 @@ async function sendVendorPaidEmail(supabase: any, orderId: string) {
     if (!store?.email) { console.log("[sendVendorPaidEmail] EXIT: no store email"); return }
 
     const orderRef = orderId.slice(0, 8).toUpperCase()
+
+    // Push al vendedor
+    const { data: storeOwner } = await supabase.from("stores").select("owner_id").eq("id", storeId).single()
+    if (storeOwner?.owner_id) {
+      sendPushToUser(storeOwner.owner_id, {
+        title: "💸 Transferencia realizada",
+        body: `El pago del pedido #${orderRef} fue transferido a tu cuenta.`,
+        url: "/mi-tienda/pedidos",
+      }).catch(() => {})
+    }
 
     console.log(`[sendVendorPaidEmail] Sending email to ${store.email} from ${EMAIL_FROM} for order ${orderRef}`)
     const { data: emailData, error: emailError } = await resend.emails.send({
@@ -119,6 +130,12 @@ async function sendCashbackTransferredEmail(supabase: any, orderId: string) {
 
     const orderRef = orderId.slice(0, 8).toUpperCase()
     const nombre = customer.full_name?.split(" ")[0] || "Cliente"
+
+    sendPushToUser(order.customer_id, {
+      title: "🎉 ¡Tu CashBak llegó!",
+      body: `Recibiste $${winningCashback.toLocaleString("es-CL")} de cashback del pedido #${orderRef}.`,
+      url: "/orders",
+    }).catch(() => {})
 
     await resend.emails.send({
       from: EMAIL_FROM,

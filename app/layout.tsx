@@ -14,6 +14,7 @@ import { BetProvider } from "@/context/bet-context"
 import { ShippingAddressProvider } from "@/context/shipping-context"
 import { CommentProvider } from "@/context/comment-context"
 import { CustomerProvider } from "@/context/customer-context"
+import PushProvider from "@/components/push-provider"
 
 
 
@@ -114,6 +115,7 @@ export default function RootLayout({
                     <ProductSelectionProvider>
                         <CartProvider>
                           <ShippingAddressProvider>
+                            <PushProvider />
                             <ClientLayout>{children}</ClientLayout>
                           </ShippingAddressProvider>
                         </CartProvider>

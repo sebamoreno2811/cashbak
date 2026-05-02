@@ -3,6 +3,7 @@
 import { createSupabaseClientWithCookies, createSupabaseAdminClient } from "@/utils/supabase/server"
 import type { CheckoutFormData } from "@/types/checkout"
 import { Resend } from 'resend'
+import { sendPushToUser } from "@/lib/push"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -145,7 +146,13 @@ export async function saveCheckoutData(
       </tr>`
     ).join("")
 
-    // 8. Email de confirmación al comprador
+    // 8. Push + email de confirmación al comprador
+    sendPushToUser(user.id, {
+      title: "¡Compra exitosa! 🎉",
+      body: `Tu pedido fue registrado. Pronto recibirás más información.`,
+      url: "/orders",
+    }).catch(() => {})
+
     try {
       await resend.emails.send({
         from: EMAIL_FROM,
@@ -190,9 +197,23 @@ export async function saveCheckoutData(
       console.error("Error enviando email al comprador:", emailError)
     }
 
-    // 10. Email a la(s) tienda(s) con botón magic link para marcar como enviado
+    // 10. Email + push a la(s) tienda(s)
+    const { data: storeOwners } = await supabase
+      .from("stores")
+      .select("id, owner_id")
+      .in("id", storeIds)
+    const ownerMap = Object.fromEntries((storeOwners ?? []).map((s: any) => [s.id, s.owner_id]))
+
     for (const storeId of storeIds) {
       const store = storeEmailMap[storeId]
+      const ownerId = ownerMap[storeId]
+      if (ownerId) {
+        sendPushToUser(ownerId, {
+          title: "¡Nueva venta! 🛍️",
+          body: `Tienes un nuevo pedido en tu tienda. Revísalo en Mi Tienda.`,
+          url: "/mi-tienda/pedidos",
+        }).catch(() => {})
+      }
       if (!store?.email) continue
       const storeItems = cartItems.filter((i: any) => i.product?.store_id === storeId)
       const storeItemsHtml = storeItems.map((item: any) =>

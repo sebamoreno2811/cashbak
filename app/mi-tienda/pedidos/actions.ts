@@ -3,6 +3,7 @@
 import { createSupabaseClientWithCookies as createClient, createSupabaseClientWithoutCookies, createSupabaseAdminClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
 import { Resend } from "resend"
+import { sendPushToUser } from "@/lib/push"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://cashbak.cl"
@@ -139,6 +140,14 @@ export async function updateShippingStatus(orderId: string, shipping_status: str
           </div>
         `
       }
+
+      sendPushToUser(order.customer_id, {
+        title: isPickup ? "📦 Tu pedido está listo" : "🚚 Tu pedido fue enviado",
+        body: isPickup
+          ? `Tu pedido #${orderRef} está listo para retiro en ${store.name}.`
+          : `Tu pedido #${orderRef} de ${store.name} está en camino.`,
+        url: "/orders",
+      }).catch(() => {})
 
       await resend.emails.send({ from: EMAIL_FROM, to: customerEmail, subject, html })
 
