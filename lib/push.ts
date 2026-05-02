@@ -21,7 +21,7 @@ export async function sendPushToUser(
 
   const stale: string[] = []
   await Promise.allSettled(
-    subs.map(async (row) => {
+    subs.map(async (row: { subscription: any }) => {
       try {
         await webpush.sendNotification(row.subscription, JSON.stringify(payload))
       } catch (err: any) {
