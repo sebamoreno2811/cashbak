@@ -3,6 +3,7 @@
 import { createSupabaseClientWithCookies as createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
 import { Resend } from "resend"
+import { sendPushToUser } from "@/lib/push"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://cashbak.cl"
@@ -75,6 +76,12 @@ export async function markBetWinner(betId: number) {
         const orderRef = order.id.slice(0, 8).toUpperCase()
 
         try {
+          sendPushToUser(order.customer_id, {
+            title: "🏆 ¡Tu evento se cumplió!",
+            body: `Tu CashBak de $${cashbackAmount.toLocaleString("es-CL")} para el pedido #${orderRef} está en camino.`,
+            url: "/orders",
+          }).catch(() => {})
+
           await resend.emails.send({
             from: EMAIL_FROM,
             to: customer.email,
@@ -172,6 +179,12 @@ export async function markBetLost(betId: number) {
         const orderRef = order.id.slice(0, 8).toUpperCase()
 
         try {
+          sendPushToUser(order.customer_id, {
+            title: "Tu evento no se cumplió",
+            body: `El evento de tu pedido #${orderRef} no resultó, pero tu producto sigue en camino.`,
+            url: "/orders",
+          }).catch(() => {})
+
           await resend.emails.send({
             from: EMAIL_FROM,
             to: customer.email,
