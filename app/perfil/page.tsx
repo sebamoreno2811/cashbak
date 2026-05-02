@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { saveShippingAddress } from "@/app/actions/shipping"
+import NotificationToggle from "@/components/notification-toggle"
 
 const BANKS = [
   "Banco de Chile", "BancoEstado", "Santander", "BCI",
@@ -166,6 +167,8 @@ export default function PerfilPage() {
           <p className="text-sm text-gray-500">{userEmail}</p>
         </div>
       </div>
+
+      <NotificationToggle />
 
       {/* Dirección de envío */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
