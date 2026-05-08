@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { createClient } from "@/utils/supabase/client"
+import CashbakFundBar from "@/components/cashbak-fund-bar"
 
 function formatCLP(value: number) {
   return value.toLocaleString("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 })
@@ -39,8 +40,6 @@ export default function SellPage() {
   const precio = Number(precioVenta)
   const inputsValidos = precio > 0
 
-  const sliderMax = Math.round(precio * 0.98)
-  const sliderStep = Math.max(1, 10 ** Math.max(0, Math.floor(Math.log10(Math.max(1, sliderMax))) - 2))
   const margenVendedorPct = precio > 0 ? gananciaCLP / precio : 0
 
   useEffect(() => {
@@ -77,6 +76,10 @@ export default function SellPage() {
   const bestCuota = bets.length > 0 ? Math.max(...bets.map(b => b.odd)) : cuota
 
   const recMonto = resultado ? resultado.margenRecomendadoMonto : null
+  const recSellerPct = recMonto && precio > 0 ? Math.max(2, Math.min(98, Math.round(recMonto / precio * 100))) : null
+  const recFondoPct = recSellerPct != null ? 100 - recSellerPct : null
+  const recFondoCLP = recFondoPct != null ? Math.round(precio * recFondoPct / 100) : null
+  const recMontoSnapped = recSellerPct != null ? Math.round(precio * recSellerPct / 100) : null
 
   const cashbackAtRec = useMemo(() => {
     if (!inputsValidos || !recMonto) return 0
@@ -126,27 +129,16 @@ export default function SellPage() {
               </div>
 
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <Label>¿Cuánto quieres recibir por venta?</Label>
-                  <span className="text-xl font-bold text-green-900">{formatCLP(gananciaCLP)}</span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={sliderMax}
-                  step={sliderStep}
-                  value={gananciaCLP}
-                  onChange={(e) => setGananciaCLP(Number(e.target.value))}
-                  className="w-full accent-green-900"
-                />
-                {recMonto && (
+                <Label>¿Cuánto deseas invertir en las promociones de CashBak para tus clientes?</Label>
+                <CashbakFundBar price={precio} gananciaCLP={gananciaCLP} onChange={setGananciaCLP} />
+                {recMontoSnapped != null && recFondoCLP != null && recFondoPct != null && (
                   <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
                     <p className="text-xs text-emerald-800">
-                      💡 Recibiendo <strong>{formatCLP(recMonto)}</strong> por venta puedes ofrecer hasta <strong>{cashbackAtRec}% de CashBak</strong> con los eventos disponibles hoy — muy atractivo para compradores.
+                      💡 Destinando <strong>{formatCLP(recFondoCLP)}</strong> ({recFondoPct}% del precio) al fondo puedes ofrecer hasta <strong>{cashbackAtRec}% de CashBak</strong> — muy atractivo para compradores.
                     </p>
                     <button
                       type="button"
-                      onClick={() => setGananciaCLP(recMonto)}
+                      onClick={() => setGananciaCLP(recMontoSnapped)}
                       className="ml-3 shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline"
                     >
                       Aplicar
@@ -234,16 +226,8 @@ export default function SellPage() {
                     </div>
 
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="text-gray-600">Comisión CashBak</span>
-                      <span className="font-semibold text-gray-500">{formatCLP(resultado.comisionDisplay)}</span>
-                    </div>
-
-                    <div className="flex justify-between items-start gap-3 py-2 border-b border-gray-100">
-                      <div className="min-w-0">
-                        <span className="text-gray-600">Seguro CashBak</span>
-                        <p className="text-xs text-gray-400">Prima que financia el CashBak al cliente</p>
-                      </div>
-                      <span className="font-semibold text-gray-500 shrink-0">{formatCLP(resultado.montoApuestaDisplay)}</span>
+                      <span className="text-gray-600">Fondo CashBak</span>
+                      <span className="font-semibold text-gray-500">{formatCLP(resultado.comisionDisplay + resultado.montoApuestaDisplay)}</span>
                     </div>
 
                     <div className="flex justify-between items-start gap-3 py-2 border-b border-gray-100">

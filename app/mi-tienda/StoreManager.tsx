@@ -13,6 +13,7 @@ import {
   Banknote, CheckCircle2, Loader2, Building2, ExternalLink, Search,
 } from "lucide-react"
 import type { DeliveryOption } from "@/types/delivery"
+import CashbakFundBar from "@/components/cashbak-fund-bar"
 
 function selectVariedBets(bets: Bet[], maxCount = 4): Bet[] {
   if (bets.length <= maxCount) return bets
@@ -993,8 +994,6 @@ function ProductFormModal({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [priceNum])
 
-  const sliderMax = Math.round(priceNum * 0.98)
-  const sliderStep = Math.max(1, 10 ** Math.max(0, Math.floor(Math.log10(Math.max(1, sliderMax))) - 2))
   const sim = useMemo(() => {
     if (!valid) return null
     return calculateExternalCashbak({ precioVenta: priceNum, costo: 0, cuota, margenVendedorPct: priceNum > 0 ? gananciaCLP / priceNum : 0 })
@@ -1173,27 +1172,27 @@ function ProductFormModal({
               )}
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-semibold text-gray-700">¿Cuánto quieres recibir por venta?</label>
-                  <span className="text-sm font-bold text-green-900">${FMT(gananciaCLP)}</span>
-                </div>
-                <input type="range" min={0} max={sliderMax} step={sliderStep}
-                  value={Math.min(gananciaCLP, sliderMax)}
-                  onChange={e => setGananciaCLP(Number(e.target.value))}
-                  className="w-full accent-green-900" />
+                <label className="text-sm font-semibold text-gray-700">¿Cuánto deseas invertir en las promociones de CashBak para tus clientes?</label>
+                <CashbakFundBar price={priceNum} gananciaCLP={gananciaCLP} onChange={setGananciaCLP} />
 
-                {pricing?.recMonto && (
-                  <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-                    <p className="text-xs text-emerald-800">
-                      💡 Recibiendo <strong>${FMT(pricing.recMonto)}</strong> puedes ofrecer hasta{" "}
-                      <strong>{maxCashbackAtRec ?? 0}% de CashBak</strong> con los eventos actuales.
-                    </p>
-                    <button type="button" onClick={() => setGananciaCLP(pricing.recMonto!)}
-                      className="ml-3 shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline cursor-pointer">
-                      Aplicar
-                    </button>
-                  </div>
-                )}
+                {pricing?.recMonto && (() => {
+                  const rSellerPct = Math.max(2, Math.min(98, Math.round(pricing.recMonto! / priceNum * 100)))
+                  const rFondoPct = 100 - rSellerPct
+                  const rFondoCLP = Math.round(priceNum * rFondoPct / 100)
+                  const rSnapped = Math.round(priceNum * rSellerPct / 100)
+                  return (
+                    <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                      <p className="text-xs text-emerald-800">
+                        💡 Destinando <strong>${FMT(rFondoCLP)}</strong> ({rFondoPct}% del precio) al fondo puedes ofrecer hasta{" "}
+                        <strong>{maxCashbackAtRec ?? 0}% de CashBak</strong> con los eventos actuales.
+                      </p>
+                      <button type="button" onClick={() => setGananciaCLP(rSnapped)}
+                        className="ml-3 shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline cursor-pointer">
+                        Aplicar
+                      </button>
+                    </div>
+                  )
+                })()}
               </div>
 
               {sim && (
@@ -1220,8 +1219,8 @@ function ProductFormModal({
                     <span className="text-emerald-700">${FMT(sim.margenVendedorNeto)}</span>
                   </div>
                   <div className="flex justify-between text-sm pt-1 border-t border-gray-100">
-                    <span className="text-gray-500">Comisión CashBak</span>
-                    <span className="text-gray-600">${FMT(sim.comisionDisplay)}</span>
+                    <span className="text-gray-500">Fondo CashBak</span>
+                    <span className="text-gray-600">${FMT(sim.comisionDisplay + sim.montoApuestaDisplay)}</span>
                   </div>
                   <div className="flex justify-between text-sm gap-3">
                     <div className="min-w-0">

@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>CashBak · Tríptico vendedores</title>
+<style>
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+
+  :root {
+    --green-900: #14532d;
+    --green-800: #166534;
+    --green-700: #15803d;
+    --emerald-600: #059669;
+    --emerald-500: #10b981;
+    --emerald-50:  #ecfdf5;
+    --emerald-100: #d1fae5;
+    --emerald-200: #a7f3d0;
+    --gray-900: #111827;
+    --gray-800: #1f2937;
+    --gray-700: #374151;
+    --gray-600: #4b5563;
+    --gray-500: #6b7280;
+    --gray-400: #9ca3af;
+    --gray-300: #d1d5db;
+    --gray-200: #e5e7eb;
+    --gray-100: #f3f4f6;
+    --gray-50:  #f9fafb;
+    --amber-500: #f59e0b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    font-family: "Helvetica", "Arial", sans-serif;
+    color: var(--gray-900);
+    background: #ddd;
+    font-size: 9pt;
+    line-height: 1.35;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Sheet = una cara A4 horizontal con 3 paneles */
+  .sheet {
+    width: 297mm;
+    height: 210mm;
+    display: grid;
+    grid-template-columns: 99mm 99mm 99mm;
+    page-break-after: always;
+    break-after: page;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .sheet:last-child { page-break-after: auto; break-after: auto; }
+
+  /* Líneas guía de doblez (sutiles, casi invisibles en print) */
+  .sheet::before, .sheet::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 0;
+    border-left: 0.2mm dashed rgba(0,0,0,0.08);
+    z-index: 50;
+    pointer-events: none;
+  }
+  .sheet::before { left: 99mm; }
+  .sheet::after  { left: 198mm; }
+
+  .panel {
+    width: 99mm;
+    height: 210mm;
+    padding: 9mm 7mm;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ───────────────────────────────────────────────
+     FRONT COVER (panel derecho cara exterior)
+     ─────────────────────────────────────────────── */
+  .front-cover {
+    background:
+      radial-gradient(ellipse at 80% 0%, rgba(16,185,129,0.30) 0%, rgba(16,185,129,0) 55%),
+      linear-gradient(160deg, var(--green-900) 0%, var(--green-800) 55%, var(--green-700) 100%);
+    color: #fff;
+    padding: 11mm 9mm;
+  }
+  .front-cover::before {
+    content: "";
+    position: absolute;
+    top: -25mm; right: -30mm;
+    width: 90mm; height: 90mm;
+    background: rgba(16,185,129,0.18);
+    border-radius: 50%;
+  }
+  .front-cover::after {
+    content: "";
+    position: absolute;
+    bottom: -20mm; left: -25mm;
+    width: 70mm; height: 70mm;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+  }
+  .fc-brand {
+    display: flex;
+    align-items: center;
+    gap: 3mm;
+    font-weight: 800;
+    font-size: 16pt;
+    position: relative;
+    z-index: 2;
+  }
+  .fc-brand img {
+    width: 13mm; height: 13mm;
+    display: block;
+    border-radius: 2.5mm;
+  }
+  .fc-brand .wordmark {
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .fc-tag {
+    position: relative; z-index: 2;
+    display: inline-block;
+    margin-top: 7mm;
+    background: rgba(16,185,129,0.25);
+    border: 1px solid var(--emerald-200);
+    color: var(--emerald-100);
+    padding: 1.4mm 3.4mm;
+    border-radius: 99px;
+    font-size: 7.2pt;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    align-self: flex-start;
+  }
+  .fc-headline {
+    position: relative; z-index: 2;
+    font-size: 22pt;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-top: 6mm;
+    color: #fff;
+  }
+  .fc-headline .hl {
+    color: var(--emerald-200);
+  }
+  .fc-lede {
+    position: relative; z-index: 2;
+    margin-top: 5mm;
+    color: #d1fae5;
+    font-size: 9pt;
+    line-height: 1.45;
+  }
+  .fc-lede strong { color: #fff; }
+
+  .fc-foot {
+    margin-top: auto;
+    position: relative;
+    z-index: 2;
+    padding-top: 6mm;
+    display: flex;
+    flex-direction: column;
+    gap: 2mm;
+  }
+  .fc-foot .fc-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 2mm;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(167,243,208,0.35);
+    border-radius: 99px;
+    padding: 1.6mm 4mm;
+    font-size: 7.6pt;
+    font-weight: 700;
+    color: var(--emerald-100);
+    letter-spacing: 0.04em;
+    align-self: flex-start;
+  }
+  .fc-foot .fc-arrow svg {
+    width: 4mm; height: 4mm;
+    color: var(--emerald-200);
+  }
+  .fc-foot .fc-url {
+    font-size: 8pt;
+    color: var(--emerald-100);
+    letter-spacing: 0.02em;
+  }
+  .fc-foot .fc-url b { color: #fff; }
+
+  /* ───────────────────────────────────────────────
+     INSIDE FLAP (panel izquierdo cara exterior)
+     "POR QUÉ VENDER EN CASHBAK"
+     ─────────────────────────────────────────────── */
+  .inside-flap {
+    background: linear-gradient(180deg, #fff 0%, var(--emerald-50) 100%);
+    padding: 12mm 8mm;
+  }
+  .if-eyebrow {
+    font-size: 7pt;
+    font-weight: 800;
+    color: var(--emerald-600);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 2mm;
+  }
+  .if-title {
+    font-size: 17pt;
+    font-weight: 800;
+    color: var(--green-900);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 2.5mm;
+  }
+  .if-sub {
+    font-size: 8.5pt;
+    color: var(--gray-700);
+    line-height: 1.4;
+    margin-bottom: 6mm;
+  }
+  .if-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 3.5mm;
+  }
+  .if-benefit {
+    background: #fff;
+    border: 1px solid var(--emerald-200);
+    border-radius: 3mm;
+    padding: 4mm 4mm 3.6mm;
+  }
+  .if-benefit .icon {
+    width: 6mm; height: 6mm;
+    color: var(--emerald-600);
+    margin-bottom: 1.6mm;
+    display: block;
+  }
+  .if-benefit h3 {
+    font-size: 10pt;
+    font-weight: 800;
+    color: var(--green-900);
+    margin-bottom: 1mm;
+    line-height: 1.15;
+  }
+  .if-benefit p {
+    font-size: 8pt;
+    color: var(--gray-700);
+    line-height: 1.4;
+  }
+  .if-benefit strong { color: var(--emerald-600); }
+
+  .if-foot {
+    margin-top: auto;
+    padding-top: 6mm;
+    font-size: 7.5pt;
+    color: var(--green-800);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 2mm;
+  }
+  .if-foot svg {
+    width: 4mm; height: 4mm;
+    color: var(--emerald-600);
+  }
+
+  /* ───────────────────────────────────────────────
+     BACK COVER (panel central cara exterior) — CTA
+     ─────────────────────────────────────────────── */
+  .back-cover {
+    background:
+      radial-gradient(ellipse at 50% 110%, rgba(16,185,129,0.28) 0%, rgba(16,185,129,0) 55%),
+      linear-gradient(180deg, var(--green-900) 0%, var(--green-800) 100%);
+    color: #fff;
+    padding: 12mm 8mm;
+    text-align: center;
+    align-items: center;
+  }
+  .back-cover::before {
+    content: "";
+    position: absolute;
+    top: -30mm; left: -30mm;
+    width: 90mm; height: 90mm;
+    background: rgba(16,185,129,0.12);
+    border-radius: 50%;
+  }
+  .bc-tag {
+    position: relative; z-index: 2;
+    display: inline-block;
+    background: rgba(16,185,129,0.25);
+    border: 1px solid var(--emerald-200);
+    color: var(--emerald-100);
+    padding: 1.4mm 3.4mm;
+    border-radius: 99px;
+    font-size: 7.2pt;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .bc-title {
+    position: relative; z-index: 2;
+    font-size: 18pt;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin-top: 5mm;
+  }
+  .bc-sub {
+    position: relative; z-index: 2;
+    margin-top: 3.5mm;
+    color: var(--emerald-100);
+    font-size: 8.5pt;
+    line-height: 1.45;
+  }
+  .bc-sub strong { color: #fff; }
+
+  .bc-qr {
+    position: relative; z-index: 2;
+    background: #fff;
+    border-radius: 3mm;
+    padding: 3.5mm 3.5mm 3mm;
+    margin: 14mm auto 0;
+    width: 56mm;
+  }
+  .bc-qr img {
+    width: 49mm; height: 49mm;
+    display: block;
+    margin: 0 auto;
+  }
+  .bc-qr .cap {
+    margin-top: 2mm;
+    color: var(--green-900);
+    font-size: 7.6pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    line-height: 1.15;
+  }
+
+  .bc-baki {
+    position: relative; z-index: 2;
+    margin-top: 6mm;
+    display: inline-flex;
+    align-items: center;
+    gap: 2.2mm;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 99px;
+    padding: 1.5mm 4mm 1.5mm 2mm;
+    color: #fff;
+    font-size: 7.6pt;
+    line-height: 1.25;
+    backdrop-filter: blur(2px);
+  }
+  .bc-baki .baki-ico {
+    width: 5.5mm; height: 5.5mm;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--green-900);
+  }
+  .bc-baki .baki-ico svg { width: 3.2mm; height: 3.2mm; }
+  .bc-baki b { color: #fff; font-weight: 800; }
+  .bc-baki .baki-sub { color: rgba(255,255,255,0.75); font-size: 7pt; }
+
+  .bc-contacts {
+    position: relative; z-index: 2;
+    margin-top: auto;
+    padding-top: 6mm;
+    display: flex;
+    flex-direction: column;
+    gap: 2mm;
+    width: 100%;
+  }
+  .bc-contact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2.2mm;
+    color: var(--emerald-100);
+    font-size: 8pt;
+  }
+  .bc-contact b { color: #fff; font-weight: 700; }
+  .bc-contact .ico {
+    width: 5mm; height: 5mm;
+    background: var(--emerald-600);
+    border-radius: 1.4mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 1mm;
+  }
+  .bc-contact .ico svg {
+    width: 100%; height: 100%;
+    color: #fff;
+  }
+
+  /* ───────────────────────────────────────────────
+     INSIDE PANELS (cara interior)
+     ─────────────────────────────────────────────── */
+  .inner {
+    background: #fff;
+    padding: 11mm 8mm;
+  }
+  .inner-eyebrow {
+    font-size: 7pt;
+    font-weight: 800;
+    color: var(--emerald-600);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 2mm;
+    display: flex;
+    align-items: center;
+    gap: 2.5mm;
+  }
+  .inner-eyebrow::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--gray-200);
+  }
+  .inner-title {
+    font-size: 16pt;
+    font-weight: 800;
+    color: var(--green-900);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 5mm;
+  }
+  .inner-title .hl { color: var(--emerald-600); }
+
+  /* Steps verticales (Cómo funciona / 3 pasos) */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 4.5mm;
+  }
+  .step-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 3mm;
+    padding: 4mm 4mm 3.6mm 4mm;
+    background: #fff;
+    position: relative;
+  }
+  .step-card .step-num {
+    position: absolute;
+    top: -3mm;
+    left: 4mm;
+    background: var(--emerald-600);
+    color: #fff;
+    font-weight: 800;
+    font-size: 8pt;
+    width: 6mm; height: 6mm;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 6mm;
+  }
+  .step-card .step-head {
+    display: flex;
+    align-items: center;
+    gap: 2.4mm;
+    margin-bottom: 1.6mm;
+    margin-top: 1mm;
+  }
+  .step-card .icon {
+    width: 5.5mm; height: 5.5mm;
+    color: var(--emerald-600);
+    flex-shrink: 0;
+  }
+  .step-card h3 {
+    font-size: 10pt;
+    font-weight: 800;
+    color: var(--gray-900);
+    line-height: 1.15;
+  }
+  .step-card p {
+    font-size: 8pt;
+    color: var(--gray-700);
+    line-height: 1.4;
+  }
+  .step-card p strong { color: var(--gray-900); }
+
+  /* Variante "abre tu tienda" — más compacto, con destaque */
+  .step-card.alt {
+    background: var(--emerald-50);
+    border-color: var(--emerald-200);
+  }
+  .step-card.alt h3 { color: var(--green-900); }
+  .step-card.alt .icon { color: var(--emerald-600); }
+
+  /* ───────────────────────────────────────────────
+     FLOW DEL DINERO (inside-1)
+     ─────────────────────────────────────────────── */
+  .flow-card {
+    margin-top: auto;
+    margin-bottom: auto;
+    background: linear-gradient(180deg, var(--emerald-50) 0%, #ffffff 100%);
+    border: 1px solid var(--emerald-200);
+    border-radius: 3mm;
+    padding: 4mm 4mm 3.5mm;
+  }
+  .flow-title {
+    text-align: center;
+    font-size: 8.4pt;
+    font-weight: 800;
+    color: var(--green-900);
+    letter-spacing: 0.01em;
+    margin-bottom: 3mm;
+    line-height: 1.2;
+  }
+  .flow-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1.2mm;
+  }
+  .flow-row + .flow-row { margin-top: 2.6mm; }
+  .flow-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1mm;
+    padding: 1.4mm 0.6mm;
+  }
+  .flow-node .flow-ico {
+    width: 8mm; height: 8mm;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid var(--emerald-200);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--emerald-600);
+  }
+  .flow-node.flow-node-strong .flow-ico {
+    background: var(--emerald-600);
+    border-color: var(--emerald-600);
+    color: #fff;
+  }
+  .flow-node .flow-ico svg { width: 4.6mm; height: 4.6mm; }
+  .flow-node .flow-lbl {
+    font-size: 6.6pt;
+    font-weight: 700;
+    color: var(--gray-700);
+    line-height: 1.1;
+    text-align: center;
+  }
+  .flow-node.flow-node-strong .flow-lbl { color: var(--green-900); }
+  .flow-node .flow-tag {
+    margin-top: 0.8mm;
+    font-size: 5.2pt;
+    font-weight: 800;
+    color: var(--emerald-700, #047857);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    background: rgba(5,150,105,0.12);
+    padding: 0.7mm 1.6mm;
+    border-radius: 99px;
+    white-space: nowrap;
+  }
+  .flow-node-check .flow-ico { position: relative; }
+  .flow-node-check .flow-ico::after {
+    content: "✓";
+    position: absolute;
+    top: -0.8mm;
+    right: -1.2mm;
+    width: 3.4mm; height: 3.4mm;
+    background: #fff;
+    color: var(--emerald-600);
+    border: 0.5mm solid var(--emerald-600);
+    border-radius: 50%;
+    font-size: 5.6pt;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6mm;
+    min-width: 22mm;
+    padding: 0 1mm;
+  }
+  .flow-arrow .flow-arrow-lbl {
+    font-size: 6.2pt;
+    font-weight: 800;
+    color: var(--emerald-700, #047857);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .flow-arrow .flow-arrow-line {
+    position: relative;
+    width: 100%; height: 1.4mm;
+    display: flex;
+    align-items: center;
+  }
+  .flow-arrow .flow-arrow-line::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 1.6mm;
+    top: 50%; transform: translateY(-50%);
+    height: 0.6mm;
+    background: var(--emerald-600);
+    border-radius: 1mm;
+  }
+  .flow-arrow .flow-arrow-line::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%; transform: translateY(-50%) rotate(45deg);
+    width: 1.8mm; height: 1.8mm;
+    border-top: 0.6mm solid var(--emerald-600);
+    border-right: 0.6mm solid var(--emerald-600);
+  }
+  .flow-foot {
+    margin-top: 3mm;
+    text-align: center;
+    font-size: 6.6pt;
+    color: var(--gray-700);
+    line-height: 1.35;
+    font-style: italic;
+  }
+  .flow-foot strong { color: var(--green-900); font-style: normal; font-weight: 800; }
+
+  /* ───────────────────────────────────────────────
+     CHECKLIST "Qué incluye tu tienda" (inside-3)
+     ─────────────────────────────────────────────── */
+  .features-card {
+    margin-top: auto;
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 3mm;
+    padding: 3.6mm 4mm 3.4mm;
+  }
+  .features-title {
+    font-size: 7.6pt;
+    font-weight: 800;
+    color: var(--green-900);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin-bottom: 2.4mm;
+    line-height: 1.2;
+  }
+  .features-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.6mm;
+  }
+  .features-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 2mm;
+    font-size: 7.8pt;
+    color: var(--gray-700);
+    line-height: 1.3;
+  }
+  .features-list li .check {
+    flex-shrink: 0;
+    width: 4mm; height: 4mm;
+    border-radius: 50%;
+    background: var(--emerald-600);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 0.2mm;
+  }
+  .features-list li .check svg { width: 2.4mm; height: 2.4mm; }
+  .features-list li strong { color: var(--gray-900); font-weight: 700; }
+
+  /* ───────────────────────────────────────────────
+     EJEMPLO con números reales
+     ─────────────────────────────────────────────── */
+  .inside-2 { padding: 8mm 7mm 7mm; }
+  .inside-2 .inner-title { font-size: 13pt; margin-bottom: 3mm; line-height: 1.05; }
+  .inside-2 .inner-eyebrow { margin-bottom: 1.6mm; font-size: 6.6pt; }
+  .example-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2mm;
+  }
+  .ex-section { display: flex; flex-direction: column; gap: 1.2mm; }
+  .ex-section-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 1.8mm;
+    font-size: 6.4pt;
+    font-weight: 800;
+    color: var(--emerald-700, #047857);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .ex-section-num {
+    width: 4.4mm; height: 4.4mm;
+    flex-shrink: 0;
+    display: block;
+  }
+  .ex-section-num circle { fill: var(--emerald-600); }
+  .ex-section-num text {
+    fill: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    font-family: inherit;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  /* Producto ejemplo */
+  .ex-product-card {
+    display: flex;
+    align-items: center;
+    gap: 3mm;
+    background: linear-gradient(180deg, var(--emerald-50) 0%, #ffffff 100%);
+    border: 1px solid var(--emerald-200);
+    border-radius: 2.6mm;
+    padding: 2.4mm 3.4mm;
+  }
+  .ex-product-icon {
+    width: 11mm; height: 11mm;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--emerald-600);
+  }
+  .ex-product-icon svg { width: 100%; height: 100%; }
+  .ex-product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4mm;
+    flex: 1;
+    min-width: 0;
+  }
+  .ex-product-meta {
+    font-size: 6pt;
+    font-weight: 700;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+  .ex-product-name {
+    font-size: 9pt;
+    font-weight: 800;
+    color: var(--green-900);
+    line-height: 1.15;
+    margin-top: 0.4mm;
+  }
+  .ex-product-price {
+    font-size: 10.5pt;
+    font-weight: 800;
+    color: var(--gray-900);
+    margin-top: 0.4mm;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  /* Nota del evento (reemplaza tabla scale) */
+  .ex-event-note {
+    font-size: 6.6pt;
+    color: var(--gray-600);
+    text-align: center;
+    font-style: italic;
+    line-height: 1.45;
+    margin-top: 0.8mm;
+    padding: 0 1mm;
+  }
+  .ex-event-note strong { color: var(--emerald-700, #047857); font-style: normal; font-weight: 800; }
+
+  .ex-badge {
+    display: inline-block;
+    background: var(--emerald-600);
+    color: #fff;
+    padding: 0.8mm 2.8mm;
+    border-radius: 99px;
+    font-size: 7.4pt;
+    font-weight: 700;
+    align-self: flex-start;
+  }
+  .ex-title {
+    font-size: 10.5pt;
+    font-weight: 800;
+    color: var(--gray-900);
+    line-height: 1.2;
+  }
+  .ex-desc {
+    font-size: 7pt;
+    color: var(--gray-700);
+    line-height: 1.35;
+  }
+  .ex-desc strong { color: var(--gray-900); }
+
+  /* Bloque comparativo: descuento directo vs CashBak */
+  .compare {
+    border: 1px solid var(--gray-200);
+    border-radius: 2.4mm;
+    padding: 1.8mm 2mm 2mm;
+    background: #fff;
+  }
+  .compare-eyebrow {
+    font-size: 6.4pt;
+    font-weight: 700;
+    color: var(--emerald-700, #047857);
+    text-align: center;
+    line-height: 1.2;
+    margin-bottom: 0.6mm;
+    font-style: italic;
+  }
+  .compare-title {
+    font-size: 6.4pt;
+    font-weight: 800;
+    color: var(--gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-align: center;
+    margin-bottom: 1.4mm;
+  }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.6mm;
+    align-items: stretch;
+  }
+  .compare-col {
+    border-radius: 1.8mm;
+    padding: 1.6mm 1.4mm 1.8mm;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3mm;
+    position: relative;
+  }
+  .compare-bad {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    color: var(--gray-700);
+  }
+  .compare-good {
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(180deg, var(--emerald-600) 0%, var(--green-700) 100%);
+    color: #fff;
+    border: 1px solid var(--emerald-600);
+  }
+  .compare-tag {
+    font-size: 5.8pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.9;
+    line-height: 1.15;
+  }
+  .compare-pct {
+    font-size: 14pt;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin-top: 0.4mm;
+  }
+  .compare-good .compare-pct .lead {
+    font-size: 6pt;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    display: block;
+    opacity: 0.85;
+    margin-bottom: -0.5mm;
+  }
+  .compare-money {
+    font-size: 6.4pt;
+    font-weight: 700;
+    opacity: 0.75;
+    font-variant-numeric: tabular-nums;
+    margin-top: 0.2mm;
+  }
+  .compare-desc {
+    font-size: 6.2pt;
+    line-height: 1.25;
+    margin-top: 1mm;
+  }
+  .compare-desc strong { font-weight: 800; }
+  .compare-vs {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border: 1px solid var(--gray-300);
+    color: var(--gray-700);
+    width: 6mm;
+    height: 6mm;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 7pt;
+    font-weight: 800;
+    z-index: 3;
+    letter-spacing: 0;
+  }
+
+  .breakdown {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 2.5mm;
+    padding: 1.8mm 3mm 2mm;
+  }
+  .breakdown .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.7mm 0;
+    font-size: 7.6pt;
+    border-bottom: 1px dashed var(--gray-200);
+  }
+  .breakdown .row:last-child { border-bottom: 0; }
+  .breakdown .row .label { color: var(--gray-600); }
+  .breakdown .row .val {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+  .breakdown .row .val.neg { color: var(--gray-500); }
+  .breakdown .row.total {
+    font-weight: 800;
+    color: var(--green-900);
+    font-size: 9.4pt;
+    padding-top: 1.4mm;
+    margin-top: 0.4mm;
+    border-top: 2px solid var(--green-900);
+    border-bottom: 0;
+  }
+  .breakdown .row.total .label { color: var(--green-900); }
+
+  .ex-note {
+    font-size: 7.2pt;
+    color: var(--gray-600);
+    line-height: 1.4;
+    border-top: 1px dashed var(--gray-200);
+    padding-top: 2mm;
+  }
+  .ex-note b { color: var(--gray-800); }
+
+  .event-pick {
+    margin-top: 2.2mm;
+    margin-bottom: 0.8mm;
+    font-size: 6.4pt;
+    color: var(--gray-500);
+    line-height: 1.3;
+    text-align: center;
+    font-style: italic;
+  }
+  .event-pick strong {
+    color: var(--gray-700);
+    font-weight: 700;
+    font-style: normal;
+  }
+  .event-btn {
+    position: relative;
+    background: var(--emerald-600);
+    color: #fff;
+    border-radius: 2.2mm;
+    padding: 2mm 3mm;
+    margin-top: 0.4mm;
+  }
+  .event-btn .evt-main {
+    display: flex;
+    align-items: center;
+    gap: 2.4mm;
+  }
+  .event-btn .evt-icon {
+    width: 6.8mm; height: 6.8mm;
+    flex-shrink: 0;
+    display: block;
+    color: #fff;
+  }
+  .event-btn .evt-icon .icon-bg { fill: rgba(255,255,255,0.14); }
+  .event-btn .evt-icon .icon-stroke { stroke: #fff; }
+  .event-btn .evt-body { flex: 1; min-width: 0; }
+  .event-btn .evt-name {
+    font-size: 8.4pt;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .event-btn .evt-lbl {
+    font-size: 6.4pt;
+    opacity: 0.9;
+    margin-top: 0.3mm;
+  }
+  .event-btn .evt-lbl strong { color: #fff; }
+  .event-btn .evt-pct {
+    font-size: 14pt;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  /* Tabla de cashback según fondo invertido */
+  .scale-caption {
+    margin-top: 1.6mm;
+    margin-bottom: 1mm;
+    text-align: center;
+    font-size: 6.2pt;
+    font-weight: 700;
+    color: var(--gray-700);
+    letter-spacing: 0.01em;
+    line-height: 1.25;
+  }
+  .scale-caption em {
+    font-style: italic;
+    color: var(--emerald-700, #047857);
+    font-weight: 700;
+  }
+  .scale-foot {
+    margin-top: 0.8mm;
+    text-align: center;
+    font-size: 5.6pt;
+    color: var(--gray-500);
+    font-style: italic;
+    line-height: 1.25;
+  }
+  .scale {
+    border: 1px solid var(--gray-200);
+    border-radius: 2mm;
+    overflow: visible;
+    background: #fff;
+  }
+  .scale-row {
+    display: grid;
+    grid-template-columns: 27mm 1fr 1fr 1fr 1fr;
+    align-items: center;
+  }
+  .scale-row + .scale-row {
+    border-top: 1px solid var(--gray-200);
+  }
+  .scale-row.head {
+    background: var(--gray-50);
+  }
+  .scale-row.head .scale-cell {
+    font-size: 7pt;
+    font-weight: 700;
+    color: var(--gray-700);
+    padding: 1mm 0.5mm;
+    text-align: center;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    border-left: 1px solid var(--gray-200);
+  }
+  .scale-row .scale-label {
+    font-size: 6.4pt;
+    font-weight: 700;
+    color: var(--gray-700);
+    padding: 1mm 2mm;
+    line-height: 1.1;
+  }
+  .scale-row .scale-label small {
+    display: block;
+    font-size: 5.4pt;
+    font-weight: 500;
+    color: var(--gray-500);
+    text-transform: none;
+    letter-spacing: 0;
+    line-height: 1.05;
+    margin-top: 0.2mm;
+  }
+  .scale-row .scale-cell {
+    font-size: 7pt;
+    font-weight: 700;
+    color: var(--gray-700);
+    text-align: center;
+    padding: 1mm 0.5mm;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    border-left: 1px solid var(--gray-200);
+  }
+  .scale-row.cashbak .scale-label { color: var(--emerald-700, #047857); }
+  .scale-row.cashbak .scale-cell { color: var(--emerald-700, #047857); font-size: 7.6pt; }
+  .scale-col-active {
+    position: relative;
+    background: var(--emerald-50);
+    box-shadow: inset 0 0 0 0.4mm var(--emerald-600);
+    color: var(--emerald-700, #047857) !important;
+    font-weight: 800;
+  }
+  .scale-mark-inline {
+    display: block;
+    font-size: 4.2pt;
+    font-weight: 800;
+    color: var(--emerald-700, #047857);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+    margin-bottom: 0.4mm;
+    white-space: nowrap;
+  }
+  .scale-cell-num {
+    display: block;
+    line-height: 1;
+  }
+
+  .disclaimer {
+    margin-top: auto;
+    padding-top: 2.4mm;
+    font-size: 6.2pt;
+    color: var(--gray-500);
+    font-style: italic;
+    text-align: center;
+    line-height: 1.25;
+    border-top: 1px dashed var(--gray-200);
+  }
+
+  /* ───────────────────────────────────────────────
+     Inside-3 closing block
+     ─────────────────────────────────────────────── */
+  .closing-card {
+    margin-top: auto;
+    background: var(--green-900);
+    color: #fff;
+    border-radius: 3mm;
+    padding: 4mm 4.5mm;
+    text-align: center;
+  }
+  .closing-card h4 {
+    font-size: 10pt;
+    font-weight: 800;
+    margin-bottom: 1.5mm;
+    line-height: 1.15;
+  }
+  .closing-card p {
+    font-size: 7.8pt;
+    color: var(--emerald-100);
+    line-height: 1.4;
+  }
+  .closing-card .url {
+    margin-top: 2mm;
+    font-size: 8pt;
+    font-weight: 800;
+    color: var(--emerald-200);
+    letter-spacing: 0.02em;
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════
+     CARA EXTERIOR (lo que se ve cuando está doblado)
+     Orden de izq a der al imprimir:
+       Solapa interior · Contraportada · TAPA
+     ════════════════════════════════════════════════ -->
+<div class="sheet outside">
+
+  <!-- ───── SOLAPA INTERIOR (panel izquierdo) ───── -->
+  <div class="panel inside-flap">
+    <div class="if-eyebrow">Por qué vender en CashBak</div>
+    <h2 class="if-title">Tres razones para vender con nosotros.</h2>
+    <p class="if-sub">CashBak hace que tus productos compitan con una ventaja que ningún otro marketplace en Chile ofrece hoy.</p>
+
+    <div class="if-benefits">
+      <div class="if-benefit">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        <h3>Oferta más atractiva</h3>
+        <p>Un <strong>CashBak de hasta 100%</strong> convierte visitantes indecisos en compradores. Nadie te ofrece algo similar.</p>
+      </div>
+      <div class="if-benefit">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+        <h3>Más visibilidad</h3>
+        <p>Tus productos aparecen expuestos a clientes que ya vienen a <strong>comprar impulsados por los beneficios del CashBak</strong>.</p>
+      </div>
+      <div class="if-benefit">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+        <h3>Clientes que vuelven</h3>
+        <p>Una compra distinta a cualquier otra. El CashBak <strong>transforma cada venta en una experiencia memorable</strong>, gane o no gane el cliente.</p>
+      </div>
+    </div>
+
+    <div class="if-foot">
+      Abre el tríptico para ver cómo funciona
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+    </div>
+  </div>
+
+  <!-- ───── CONTRATAPA (panel central) ───── -->
+  <div class="panel back-cover">
+    <span class="bc-tag">Para vendedores · Chile</span>
+    <h2 class="bc-title">Abre tu tienda en CashBak hoy.</h2>
+    <p class="bc-sub">Sin costos fijos ni mensualidad. <strong>Potencia tus ventas con CashBak</strong> y ofrece promociones que tus clientes no van a encontrar en otro lado.</p>
+
+    <div class="bc-qr">
+      <img src="cashbak-flyer-qr.png" alt="QR solicitar tienda" />
+      <div class="cap">Escanea y solicita tu tienda</div>
+    </div>
+
+    <div class="bc-baki">
+      <span class="baki-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </span>
+      <span><b>Habla con Baki</b> <span class="baki-sub">— asistente 24/7</span></span>
+    </div>
+
+    <div class="bc-contacts">
+      <div class="bc-contact">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+        <b>www.cashbak.cl</b>
+      </div>
+      <div class="bc-contact">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg></span>
+        cashbak.ops@gmail.com
+      </div>
+      <div class="bc-contact">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></span>
+        Instagram <b>&nbsp;@cashbak.cl</b>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── TAPA / FRONT COVER (panel derecho) ───── -->
+  <div class="panel front-cover">
+    <div class="fc-brand">
+      <img src="cashbak-flyer-logo.png" alt="CashBak" />
+      <span class="wordmark">CashBak</span>
+    </div>
+    <span class="fc-tag">Para vendedores · Marketplace en Chile</span>
+    <h1 class="fc-headline">Vende más ofreciendo <span class="hl">CashBak</span> — un beneficio extra en cada compra.</h1>
+    <p class="fc-lede">El marketplace chileno donde tus clientes pueden recuperar hasta el <strong>100% del dinero de su compra</strong>, asociado a un evento deportivo de su elección. Y lo mejor de todo: <strong>esto no afecta tu ingreso</strong>, tu ganancia por venta es fija, pase lo que pase.</p>
+
+    <div class="fc-foot">
+      <span class="fc-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        Abre el tríptico
+      </span>
+      <span class="fc-url"><b>www.cashbak.cl</b></span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════════
+     CARA INTERIOR (al desplegar el tríptico)
+     Orden de izq a der:
+       Cómo funciona · Ejemplo numérico · Abre tu tienda
+     ════════════════════════════════════════════════ -->
+<div class="sheet inside">
+
+  <!-- ───── INSIDE-1: CÓMO FUNCIONA ───── -->
+  <div class="panel inner inside-1">
+    <div class="inner-eyebrow">Cómo funciona</div>
+    <h2 class="inner-title">Tres pasos. <span class="hl">Sin letra chica.</span></h2>
+
+    <div class="steps">
+      <div class="step-card">
+        <span class="step-num">1</span>
+        <div class="step-head">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <h3>El cliente compra y elige evento</h3>
+        </div>
+        <p>El cliente compra tu producto y selecciona uno de los eventos deportivos disponibles. La compra es <strong>completamente normal</strong>: paga por su producto y tú recibes tu dinero, sin más vueltas.</p>
+      </div>
+
+      <div class="step-card">
+        <span class="step-num">2</span>
+        <div class="step-head">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+          <h3>Si el evento se cumple</h3>
+        </div>
+        <p>El cliente recibe el CashBak prometido. Tu ingreso <strong>no se ve afectado en absoluto</strong>: nosotros nos encargamos de cubrirlo. Tus productos se vuelven mucho más atractivos y fáciles de vender.</p>
+      </div>
+
+      <div class="step-card">
+        <span class="step-num">3</span>
+        <div class="step-head">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+          <h3>Si el evento no ocurre</h3>
+        </div>
+        <p>No hay CashBak para el cliente, pero <strong>tu ingreso no cambia</strong> — y lo repetimos porque es clave: <strong>tu ganancia por venta es fija, pase lo que pase</strong>. La compra sigue siendo completamente normal.</p>
+      </div>
+    </div>
+
+    <!-- Flow del dinero -->
+    <div class="flow-card">
+      <div class="flow-title">El evento no afecta tu ingreso</div>
+
+      <div class="flow-row">
+        <div class="flow-node">
+          <div class="flow-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+          </div>
+          <div class="flow-lbl">Cliente</div>
+        </div>
+        <div class="flow-arrow">
+          <div class="flow-arrow-lbl">compra</div>
+          <div class="flow-arrow-line"></div>
+        </div>
+        <div class="flow-node flow-node-strong flow-node-check">
+          <div class="flow-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M5 9v11h14V9"/><path d="M9 22V12h6v10"/></svg>
+          </div>
+          <div class="flow-lbl">Tú (vendedor)</div>
+          <div class="flow-tag">ingreso garantizado</div>
+        </div>
+      </div>
+
+      <div class="flow-row">
+        <div class="flow-node">
+          <div class="flow-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+          </div>
+          <div class="flow-lbl">Resultado<br>del evento</div>
+        </div>
+        <div class="flow-arrow">
+          <div class="flow-arrow-lbl">define</div>
+          <div class="flow-arrow-line"></div>
+        </div>
+        <div class="flow-node">
+          <div class="flow-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+          </div>
+          <div class="flow-lbl">CashBak<br>al cliente</div>
+        </div>
+      </div>
+
+      <div class="flow-foot">Tu ingreso queda asegurado al momento de la compra. <strong>El resultado del evento solo decide el cashbak del cliente.</strong></div>
+    </div>
+  </div>
+
+  <!-- ───── INSIDE-2: EJEMPLO CON NÚMEROS REALES ───── -->
+  <div class="panel inner inside-2">
+    <div class="inner-eyebrow">Ejemplo de cómo funciona</div>
+    <h2 class="inner-title">Caso real, <span class="hl">números reales.</span></h2>
+
+    <div class="example-wrap">
+
+      <!-- Sección 1: el producto -->
+      <div class="ex-section">
+        <div class="ex-section-eyebrow"><svg class="ex-section-num" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12"/><text x="12" y="12">1</text></svg>Tu producto</div>
+        <div class="ex-product-card">
+          <div class="ex-product-icon">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+              <path d="M14 18 L24 12 L26 14 Q32 18 38 14 L40 12 L50 18 L54 26 L48 30 L44 28 L44 56 L20 56 L20 28 L16 30 L10 26 Z" fill="currentColor" fill-opacity="0.16"/>
+            </svg>
+          </div>
+          <div class="ex-product-info">
+            <div class="ex-product-meta">Vendes</div>
+            <div class="ex-product-name">Tu producto</div>
+            <div class="ex-product-price">$20.000</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 2: tu fondo CashBak -->
+      <div class="ex-section">
+        <div class="ex-section-eyebrow"><svg class="ex-section-num" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12"/><text x="12" y="12">2</text></svg>Tu fondo CashBak</div>
+        <p class="ex-desc">
+          Al publicar tu producto defines el <strong>precio de venta</strong> (ej. $20.000) y eliges qué porcentaje de ese precio quieres invertir en el <strong>fondo CashBak</strong> (ej. 10%), el cual financia las promociones para el cliente; el resto es tu <strong>ingreso garantizado por venta</strong>. Tú decides cuánto invertir: a mayor porcentaje, más atractivo es el CashBak, lo que se traduce en <strong>más clientes y más ventas</strong> que compensan tu inversión.
+        </p>
+        <div class="compare">
+          <div class="compare-eyebrow">Por qué vale la pena usar este sistema</div>
+          <div class="compare-title">Mismo 10%, dos formas de usarlo</div>
+          <div class="compare-grid">
+            <div class="compare-col compare-bad">
+              <div class="compare-tag">Descuento directo</div>
+              <div class="compare-pct">10%</div>
+              <div class="compare-money">$2.000 al cliente</div>
+              <div class="compare-desc">Bajo incentivo. Poco diferenciador.</div>
+            </div>
+            <div class="compare-col compare-good">
+              <div class="compare-tag">Invertido en CashBak</div>
+              <div class="compare-pct"><span class="lead">hasta</span>100%</div>
+              <div class="compare-money">hasta $20.000 al cliente</div>
+              <div class="compare-desc"><strong>10× más atractivo</strong> para tus clientes.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 3: el cliente elige el evento -->
+      <div class="ex-section">
+        <div class="ex-section-eyebrow"><svg class="ex-section-num" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12"/><text x="12" y="12">3</text></svg>El cliente compra y elige su evento</div>
+        <div class="event-btn">
+          <div class="evt-main">
+            <svg class="evt-icon" viewBox="0 0 28 28" aria-hidden="true">
+              <rect class="icon-bg" x="0" y="0" width="28" height="28" rx="3" ry="3"/>
+              <g transform="translate(2 2)" fill="none" class="icon-stroke" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                <path d="M4 22h16"/>
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+              </g>
+            </svg>
+            <div class="evt-body">
+              <div class="evt-name">Francia gana el Mundial</div>
+              <div class="evt-lbl">Si acierta, le devolvemos <strong>$11.000</strong></div>
+            </div>
+            <div class="evt-pct">55%</div>
+          </div>
+        </div>
+        <div class="scale-caption">Una pequeña diferencia en la inversión hace <em>un gran aporte al CashBak que ofreces</em>.</div>
+        <div class="scale">
+          <div class="scale-row head">
+            <div class="scale-label">% del precio invertido<small>(Fondo CashBak)</small></div>
+            <div class="scale-cell">7,5%</div>
+            <div class="scale-cell scale-col-active"><span class="scale-mark-inline">Este ejemplo</span><span class="scale-cell-num">10%</span></div>
+            <div class="scale-cell">12,5%</div>
+            <div class="scale-cell">15%</div>
+          </div>
+          <div class="scale-row cashbak">
+            <div class="scale-label">CashBak<small>al cliente si acierta</small></div>
+            <div class="scale-cell">40%</div>
+            <div class="scale-cell scale-col-active">55%</div>
+            <div class="scale-cell">70%</div>
+            <div class="scale-cell">100%</div>
+          </div>
+        </div>
+        <div class="scale-foot">El % final varía según el evento.</div>
+      </div>
+
+      <!-- Sección 4: ingreso final -->
+      <div class="ex-section">
+        <div class="ex-section-eyebrow"><svg class="ex-section-num" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12"/><text x="12" y="12">4</text></svg>Tu ingreso final</div>
+        <div class="breakdown">
+          <div class="row">
+            <span class="label">Precio de venta al cliente</span>
+            <span class="val">$20.000</span>
+          </div>
+          <div class="row">
+            <span class="label">Tu fondo CashBak (10%)</span>
+            <span class="val neg">−$2.000</span>
+          </div>
+          <div class="row">
+            <span class="label">Procesamiento de pago (2%)</span>
+            <span class="val neg">−$400</span>
+          </div>
+          <div class="row total">
+            <span class="label">Tu ingreso final</span>
+            <span class="val">$17.600</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="disclaimer">
+      * Ejemplo ilustrativo. Montos, porcentajes y eventos pueden variar según el producto y el catálogo deportivo vigente.
+    </div>
+  </div>
+
+  <!-- ───── INSIDE-3: ABRE TU TIENDA EN 3 PASOS ───── -->
+  <div class="panel inner inside-3">
+    <div class="inner-eyebrow">Abre tu tienda en 3 pasos</div>
+    <h2 class="inner-title">Empezar a vender es <span class="hl">rápido y gratis.</span></h2>
+
+    <div class="steps">
+      <div class="step-card alt">
+        <span class="step-num">1</span>
+        <div class="step-head">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+          <h3>Postula tu tienda</h3>
+        </div>
+        <p>Cuéntanos qué vendes en un formulario corto. Sin papeleo eterno: lo importante es entender tu rubro y tu catálogo.</p>
+      </div>
+
+      <div class="step-card alt">
+        <span class="step-num">2</span>
+        <div class="step-head">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <h3>Aprobamos tu tienda</h3>
+        </div>
+        <p>Revisamos tu solicitud y te avisamos por correo. Si todo está OK, dejamos lista tu tienda con tu nombre y tu logo.</p>
+      </div>
+
+      <div class="step-card alt">
+        <span class="step-num">3</span>
+        <div class="step-head">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18l-2 13H5L3 3z"/><path d="M16 16a4 4 0 0 1-8 0"/><path d="M12 7v5"/><path d="m9 10 3 2 3-2"/></svg>
+          <h3>Publica y empieza a vender</h3>
+        </div>
+        <p>Sube tus productos, define tu precio, tu ingreso y el fondo CashBak. Empieza a recibir compras desde el primer día.</p>
+      </div>
+    </div>
+
+    <div class="features-card">
+      <div class="features-title">Qué incluye tu tienda</div>
+      <ul class="features-list">
+        <li>
+          <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span><strong>Tienda con tu logo</strong> y URL propia en cashbak.cl</span>
+        </li>
+        <li>
+          <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span><strong>Dashboard</strong> con métricas, pedidos y pagos</span>
+        </li>
+        <li>
+          <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span><strong>Pagos por WebPay</strong> (Transbank), seguros y rápidos</span>
+        </li>
+        <li>
+          <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span><strong>Soporte directo</strong> por chat para tus dudas</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="closing-card">
+      <h4>Sin costos fijos. Sin mensualidad.</h4>
+      <p>Tú decides cuánto invertir en CashBak y nosotros nos encargamos del resto.</p>
+      <div class="url">www.cashbak.cl/sell</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
