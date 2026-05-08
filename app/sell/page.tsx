@@ -225,9 +225,12 @@ export default function SellPage() {
                       <span className="font-bold text-emerald-700 shrink-0">{formatCLP(resultado.margenVendedorNeto)}</span>
                     </div>
 
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="text-gray-600">Fondo CashBak</span>
-                      <span className="font-semibold text-gray-500">{formatCLP(resultado.comisionDisplay + resultado.montoApuestaDisplay)}</span>
+                    <div className="flex justify-between items-start gap-3 py-2 border-b border-gray-100">
+                      <div>
+                        <span className="text-gray-600">Fondo CashBak</span>
+                        <p className="text-xs text-gray-400">Cubre promociones de CashBak para tus clientes</p>
+                      </div>
+                      <span className="font-semibold text-gray-500 shrink-0">{formatCLP(resultado.comisionDisplay + resultado.montoApuestaDisplay)}</span>
                     </div>
 
                     <div className="flex justify-between items-start gap-3 py-2 border-b border-gray-100">

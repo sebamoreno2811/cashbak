@@ -1218,9 +1218,12 @@ function ProductFormModal({
                     </div>
                     <span className="text-emerald-700">${FMT(sim.margenVendedorNeto)}</span>
                   </div>
-                  <div className="flex justify-between text-sm pt-1 border-t border-gray-100">
-                    <span className="text-gray-500">Fondo CashBak</span>
-                    <span className="text-gray-600">${FMT(sim.comisionDisplay + sim.montoApuestaDisplay)}</span>
+                  <div className="flex justify-between text-sm items-start gap-3 pt-1 border-t border-gray-100">
+                    <div>
+                      <span className="text-gray-500">Fondo CashBak</span>
+                      <p className="text-xs text-gray-400">Cubre promociones de CashBak para tus clientes</p>
+                    </div>
+                    <span className="text-gray-600 shrink-0">${FMT(sim.comisionDisplay + sim.montoApuestaDisplay)}</span>
                   </div>
                   <div className="flex justify-between text-sm gap-3">
                     <div className="min-w-0">
