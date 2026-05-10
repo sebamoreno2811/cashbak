@@ -128,7 +128,7 @@ export default function TerminosPage() {
 
         <Sub title="5.4 Monto recibido por el vendedor">
           <p>
-            El monto que recibe el vendedor corresponde al precio de venta menos la tarifa de procesamiento de pago (2%) y la comisión de CashBak. Este monto queda fijado al momento de la compra y no varía independiente de que se cumpla el evento elegido o no. El CashBak es financiado por el margen que el vendedor declara en la plataforma y no afecta el ingreso neto del vendedor.
+            El monto que recibe el vendedor corresponde al precio de venta menos la tarifa de procesamiento de pago (2%) y la comisión que el vendedor elige dejarle a CashBak. Este monto queda fijado al momento de la compra y no varía independiente de que se cumpla el evento elegido o no. Las promociones de CashBak se ofrecen según la comisión configurada por el vendedor y no afectan el ingreso neto del vendedor.
           </p>
         </Sub>
       </Section>

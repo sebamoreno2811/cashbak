@@ -13,7 +13,7 @@ import {
   Banknote, CheckCircle2, Loader2, Building2, ExternalLink, Search,
 } from "lucide-react"
 import type { DeliveryOption } from "@/types/delivery"
-import CashbakFundBar from "@/components/cashbak-fund-bar"
+import CashbakCommissionSelector from "@/components/cashbak-commission-selector"
 
 function selectVariedBets(bets: Bet[], maxCount = 4): Bet[] {
   if (bets.length <= maxCount) return bets
@@ -975,19 +975,13 @@ function ProductFormModal({
   const priceNum = Number(price) || 0
   const valid = priceNum > 0
 
-  const pricing = useMemo(() => {
-    if (!valid) return null
-    const recMonto = calcularRecomendado(priceNum)
-    return { recMonto: recMonto > 0 ? recMonto : null }
-  }, [priceNum, valid])
-
   const maxCashbackAtRec = useMemo(() => {
-    if (!valid || !pricing?.recMonto || bets.length === 0) return null
+    if (!valid || bets.length === 0) return null
     return bets.reduce((acc, bet) => {
-      const r = calculateExternalCashbak({ precioVenta: priceNum, costo: 0, cuota: bet.odd, margenVendedorPct: pricing.recMonto! / priceNum })
+      const r = calculateExternalCashbak({ precioVenta: priceNum, costo: 0, cuota: bet.odd, margenVendedorPct: 0.85 })
       return Math.max(acc, r.cashbackPct)
     }, 0)
-  }, [valid, pricing, bets, priceNum])
+  }, [valid, bets, priceNum])
 
   useEffect(() => {
     if (!initial) setGananciaCLP(calcularRecomendado(priceNum))
@@ -1172,27 +1166,22 @@ function ProductFormModal({
               )}
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">¿Cuánto deseas invertir en las promociones de CashBak para tus clientes?</label>
-                <CashbakFundBar price={priceNum} gananciaCLP={gananciaCLP} onChange={setGananciaCLP} />
+                <label className="text-sm font-semibold text-gray-700">¿Qué comisión deseas dejar a CashBak para este producto?</label>
+                <p className="text-xs text-gray-400">Recuerda que entre más comisión dejes, más atractivas serán las promociones de CashBak que ofreces a tus clientes.</p>
+                <CashbakCommissionSelector price={priceNum} gananciaCLP={gananciaCLP} onChange={setGananciaCLP} />
 
-                {pricing?.recMonto && (() => {
-                  const rSellerPct = Math.max(2, Math.min(98, Math.round(pricing.recMonto! / priceNum * 100)))
-                  const rFondoPct = 100 - rSellerPct
-                  const rFondoCLP = Math.round(priceNum * rFondoPct / 100)
-                  const rSnapped = Math.round(priceNum * rSellerPct / 100)
-                  return (
-                    <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-                      <p className="text-xs text-emerald-800">
-                        💡 Destinando <strong>${FMT(rFondoCLP)}</strong> ({rFondoPct}% del precio) al fondo puedes ofrecer hasta{" "}
-                        <strong>{maxCashbackAtRec ?? 0}% de CashBak</strong> con los eventos actuales.
-                      </p>
-                      <button type="button" onClick={() => setGananciaCLP(rSnapped)}
-                        className="ml-3 shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline cursor-pointer">
-                        Aplicar
-                      </button>
-                    </div>
-                  )
-                })()}
+                {valid && (
+                  <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                    <p className="text-xs text-emerald-800">
+                      💡 Con una comisión del <strong>15%</strong> puedes ofrecer hasta{" "}
+                      <strong>{maxCashbackAtRec ?? 0}% de CashBak</strong> con los eventos actuales.
+                    </p>
+                    <button type="button" onClick={() => setGananciaCLP(Math.round(priceNum * 0.85))}
+                      className="ml-3 shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline cursor-pointer">
+                      Aplicar
+                    </button>
+                  </div>
+                )}
               </div>
 
               {sim && (
@@ -1220,8 +1209,8 @@ function ProductFormModal({
                   </div>
                   <div className="flex justify-between text-sm items-start gap-3 pt-1 border-t border-gray-100">
                     <div>
-                      <span className="text-gray-500">Fondo CashBak</span>
-                      <p className="text-xs text-gray-400">Cubre promociones de CashBak para tus clientes</p>
+                      <span className="text-gray-500">Comisión a CashBak</span>
+                      <p className="text-xs text-gray-400">Según esta comisión ofrecemos promociones más o menos atractivas a tus clientes</p>
                     </div>
                     <span className="text-gray-600 shrink-0">${FMT(sim.comisionDisplay + sim.montoApuestaDisplay)}</span>
                   </div>

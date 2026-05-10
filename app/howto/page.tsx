@@ -90,15 +90,15 @@ export default function HowToPage() {
         {/* Para vendedores */}
         <Section title="Cómo funciona para vendedores">
           <p className="text-gray-600">
-            Como vendedor defines el precio de venta y cuánto quieres recibir por cada venta. La diferencia financia el cashback del cliente y la comisión de CashBak. Tu ingreso es fijo y garantizado — gane o pierda el evento el comprador, tú siempre recibes lo acordado.
+            Como vendedor defines el precio de venta y eliges qué comisión dejarle a CashBak. Según la comisión que dejes, las promociones que ofrecemos para tus productos serán más o menos atractivas. Tu ingreso por venta es fijo y garantizado — el resultado de los eventos no te afecta en nada.
           </p>
 
           <div className="space-y-5">
             <Step number={1} title="Simula antes de publicar">
-              Usa el simulador en <Link href="/sell" className="text-green-700 underline font-medium">Vende con nosotros</Link>. Ingresa el precio de venta y haz clic en <strong>"Valor recomendado"</strong> — CashBak calcula automáticamente el ingreso óptimo para ofrecer un cashback atractivo sin sacrificar tu margen.
+              Usa el simulador en <Link href="/sell" className="text-green-700 underline font-medium">Vende con nosotros</Link>. Ingresa el precio de venta y elige qué comisión dejarle a CashBak — a mayor comisión, más atractivas serán las promociones que ofrecemos a tus clientes.
             </Step>
             <Step number={2} title="Publica tu producto">
-              Desde <strong>Mi Tienda → Productos</strong>, agrega tu producto con nombre, descripción, precio, categorías, stock por talla y el monto que quieres recibir. El costo es opcional — solo lo necesitas si quieres ver tu ganancia neta en el simulador.
+              Desde <strong>Mi Tienda → Productos</strong>, agrega tu producto con nombre, descripción, precio, categorías, stock por talla y la comisión que deseas dejarle a CashBak. El costo es opcional — solo lo necesitas si quieres ver tu ganancia neta en el simulador.
             </Step>
             <Step number={3} title="Gestiona tus pedidos">
               Cuando llega una venta te notificamos por email. Desde <strong>Mi Tienda → Pedidos</strong> puedes ver los detalles y actualizar el estado: Preparando → Listo para entrega → Enviado. Al marcar como Enviado, el comprador recibe un email automático.

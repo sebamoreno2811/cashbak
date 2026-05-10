@@ -180,35 +180,33 @@ Cuando recibes una nueva venta, el email que te llega incluye un botón para mar
 
 ---
 
-## Cómo configurar el margen para ofrecer un buen cashback (GUÍA PRÁCTICA PARA VENDEDORES)
+## Cómo configurar la comisión para ofrecer un buen cashback (GUÍA PRÁCTICA PARA VENDEDORES)
 
-Esta es la parte más importante para los vendedores. El cashback que ven los compradores depende directamente del margen que configuras.
+Esta es la parte más importante para los vendedores. Las promociones que ven los compradores dependen directamente de la comisión que configuras.
 
 ### La lógica básica
-Defines cuánto quieres recibir por cada venta. Ese monto es fijo y garantizado — sin importar si el evento que eligió el comprador se cumple o no. Tu ingreso no depende del resultado del evento.
+Defines el precio de venta y eliges qué comisión dejarle a CashBak. Tu ingreso por venta es fijo y garantizado — sin importar si el evento que eligió el comprador se cumple o no. El resultado de los eventos nunca afecta lo que tú recibes.
 
 ### El simulador es tu mejor herramienta — siempre úsalo primero
 
-Antes de publicar cualquier producto, ve al simulador en [Vende con nosotros](/sell). Ingresa el precio de venta y el simulador te muestra cuánto cashback estarías ofreciendo según el monto que quieres recibir, con los eventos activos hoy.
+Antes de publicar cualquier producto, ve al simulador en [Vende con nosotros](/sell). Ingresa el precio de venta y elige qué comisión dejarle a CashBak — el simulador te muestra en tiempo real qué promociones estarías ofreciendo a tus clientes con los eventos activos hoy.
 
-**Lo más importante del simulador: el botón "Valor recomendado".** Úsalo. CashBak calcula automáticamente el ingreso óptimo para que puedas ofrecer un cashback competitivo sin sacrificar demasiado margen. Es el punto de equilibrio ideal entre lo que ganas tú y lo que recibe el cliente. Si no sabes qué margen poner, ese valor recomendado es el punto de partida correcto.
-
-Cuando un vendedor te pregunte cuánto debería cobrar o qué margen poner, siempre dile que use el simulador: está en la sección **[Vende con nosotros](/sell)** del menú superior de la plataforma. Ahí ingresa su precio de venta y hace clic en **"Valor recomendado"** — el simulador calcula el número exacto con los eventos activos hoy. El costo es opcional y solo sirve para ver la ganancia neta ilustrativa; no es necesario para configurar el cashback. Nunca le pidas el costo al vendedor para responder su consulta.
+Cuando un vendedor te pregunte cuánto debería cobrar o qué comisión elegir, siempre dile que use el simulador: está en la sección **[Vende con nosotros](/sell)** del menú superior de la plataforma. Ahí ingresa su precio de venta y selecciona el porcentaje de comisión que quiere dejar — a mayor comisión, más atractivas son las promociones para sus clientes. El costo es opcional y solo sirve para ver la ganancia neta ilustrativa. Nunca le pidas el costo al vendedor para responder su consulta.
 
 ### Comisión de CashBak
-CashBak cobra una comisión por el servicio. El simulador la muestra desglosada. Si alguien pregunta cómo se calcula o cómo CashBak se cubre del cashback, responde que es parte del modelo interno de la plataforma y que no corresponde detallarlo — deriva al simulador para ver los números finales.
+CashBak cobra una comisión por el servicio. El simulador la muestra desglosada. Si alguien pregunta cómo se calcula o cómo funciona internamente, responde que es parte del modelo interno de la plataforma y que no corresponde detallarlo — deriva al simulador para ver los números finales.
 
 ---
 
 ## Casos prácticos para vendedores
 
 ### Caso 1: "Vendo poleras a $15.000. ¿Cómo lo configuro?"
-El paso exacto: ve al simulador en [Vende con nosotros](/sell), ingresa tu precio de venta ($15.000) y haz clic en **"Valor recomendado"**. El simulador te dice exactamente cuánto deberías recibir por venta para ofrecer un cashback competitivo con los eventos activos hoy. Ese es el número que pones en el campo "¿Cuánto quieres recibir?" al crear el producto.
+El paso exacto: ve al simulador en [Vende con nosotros](/sell), ingresa tu precio de venta ($15.000) y elige qué comisión dejarle a CashBak. El simulador te muestra en tiempo real qué CashBak estarías ofreciendo con los eventos activos. Con una comisión del 15% sueles ofrecer promociones muy atractivas para los compradores.
 
-Si quieres ver también cuánto te queda después de tu costo, puedes ingresarlo opcionalmente en el simulador — pero no es obligatorio para configurar el cashback.
+Si quieres ver también cuánto te queda después de tu costo, puedes ingresarlo opcionalmente en el simulador — pero no es obligatorio.
 
 ### Caso 2: "¿Qué pasa si mi producto tiene poco margen? ¿Igual puedo vender?"
-Sí. El simulador en [Vende con nosotros](/sell) te muestra el cashback que puedes ofrecer según el monto que quieres recibir. Si el cashback resultante es bajo, puedes ajustar el precio de venta o el monto que quieres recibir hasta encontrar el equilibrio que te acomode.
+Sí. El simulador en [Vende con nosotros](/sell) te muestra el cashback que puedes ofrecer según la comisión que elijas dejar a CashBak. Si el cashback resultante es bajo, puedes ajustar el precio de venta o la comisión hasta encontrar el equilibrio que te acomode.
 
 ### Caso 3: "¿Cuándo me pagan?"
 El flujo de pago es:
@@ -238,7 +236,7 @@ No controlas qué evento elige el comprador — ellos lo eligen libremente entre
 
 ## Consejos para maximizar ventas en CashBak
 
-1. **Usa el valor recomendado del simulador:** ve a [Vende con nosotros](/sell), ingresa tu precio y costo, y haz clic en "Valor recomendado". Ese número está calculado para que el cashback sea competitivo sin sacrificar tu margen.
+1. **Usa el simulador antes de publicar:** ve a [Vende con nosotros](/sell), ingresa tu precio de venta y prueba distintos porcentajes de comisión. A mayor comisión a CashBak, más atractivas son las promociones que ven tus clientes. Una comisión del 15% suele ser un buen punto de partida.
 
 2. **Activa ambas opciones de entrega si puedes:** tener tanto envío a domicilio como retiro en tienda amplía tu alcance de compradores.
 

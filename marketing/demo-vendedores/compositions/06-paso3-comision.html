@@ -38,25 +38,30 @@
       .priceRow .label { font-size: 16px; color: #6b7280; font-weight: 600; }
       .priceRow .val { font-weight: 800; font-size: 40px; color: #111827; font-variant-numeric: tabular-nums; }
 
-      .sliderBlock { display: flex; flex-direction: column; gap: 14px; }
-      .sliderHeader { display: flex; justify-content: space-between; align-items: baseline; }
-      .sliderHeader .left { font-weight: 700; font-size: 18px; color: #111827; }
-      .sliderHeader .right { font-weight: 800; font-size: 28px; color: #10b981; font-variant-numeric: tabular-nums; }
+      .qBlock { display: flex; flex-direction: column; gap: 8px; }
+      .qBlock .qTitle {
+        font-weight: 800; font-size: 20px; color: #111827; line-height: 1.3;
+      }
+      .qBlock .qHint {
+        font-weight: 500; font-size: 15px; color: #6b7280; line-height: 1.45;
+      }
 
-      .track {
-        position: relative; height: 10px; background: #e5e7eb; border-radius: 999px;
+      .pills {
+        display: flex; flex-wrap: wrap; gap: 10px;
       }
-      .fill {
-        position: absolute; left: 0; top: 0; bottom: 0;
-        background: #10b981; border-radius: 999px;
-        width: 92%;
+      .opt {
+        flex: 0 0 auto;
+        padding: 14px 22px; border: 1px solid #e5e7eb; border-radius: 12px;
+        background: #fff; color: #111827;
+        font-weight: 800; font-size: 22px;
+        font-variant-numeric: tabular-nums;
+        min-width: 96px; text-align: center;
+        transition: none;
       }
-      .thumb {
-        position: absolute; top: 50%; transform: translate(-50%, -50%);
-        width: 26px; height: 26px; border-radius: 50%;
-        background: #fff; border: 3px solid #10b981;
-        box-shadow: 0 4px 12px rgba(5,150,105,0.4);
-        left: 92%;
+      .opt.other { font-weight: 700; font-size: 18px; }
+      .opt.selected {
+        background: #047857; color: #fff; border-color: #047857;
+        box-shadow: 0 8px 22px rgba(5,150,105,0.35);
       }
 
       .breakdown {
@@ -152,26 +157,29 @@
   <body>
     <div id="root" data-composition-id="paso3" data-start="0" data-width="1920" data-height="1080">
       <div class="stage">
-        <div class="pill"><span class="num">3</span>de 3 — Define tu ingreso</div>
+        <div class="pill"><span class="num">3</span>de 3 — Define tu comisión</div>
 
         <div class="row" id="p3-row">
           <div class="calc" id="p3-calc">
-            <h2>Define tu ingreso por venta</h2>
+            <h2>Tu producto</h2>
 
             <div class="priceRow">
               <span class="label">Precio de venta</span>
               <span class="val">$24.990</span>
             </div>
 
-            <div class="sliderBlock">
-              <div class="sliderHeader">
-                <span class="left">Tu ingreso fijo</span>
-                <span class="right" id="p3-ingreso">$23.500</span>
-              </div>
-              <div class="track">
-                <div class="fill" id="p3-fill"></div>
-                <div class="thumb" id="p3-thumb"></div>
-              </div>
+            <div class="qBlock">
+              <span class="qTitle">¿Qué comisión deseas dejar a CashBak para este producto?</span>
+              <span class="qHint">Recuerda que entre más comisión dejes, más atractivas serán las promociones de CashBak que ofreces a tus clientes.</span>
+            </div>
+
+            <div class="pills" id="p3-pills">
+              <div class="opt" id="p3-opt-0" data-pct="8">8%</div>
+              <div class="opt" id="p3-opt-1" data-pct="10">10%</div>
+              <div class="opt" id="p3-opt-2" data-pct="12">12%</div>
+              <div class="opt" id="p3-opt-3" data-pct="15">15%</div>
+              <div class="opt" id="p3-opt-4" data-pct="20">20%</div>
+              <div class="opt other">Otro</div>
             </div>
 
             <div class="breakdown">
@@ -180,16 +188,12 @@
                 <span class="num">$24.990</span>
               </div>
               <div class="brow">
-                <span class="name invest"><span class="arrow">→</span>Aporte al CashBak</span>
-                <span class="num neutral" id="p3-aporte">−$1.242</span>
-              </div>
-              <div class="brow">
-                <span class="name">Comisión plataforma</span>
-                <span class="num neutral" id="p3-comision">−$248</span>
+                <span class="name invest"><span class="arrow">→</span>Comisión a CashBak (<span id="p3-pct">8</span>%)</span>
+                <span class="num neutral" id="p3-comision">−$1.999</span>
               </div>
               <div class="brow divider total">
                 <span class="name">Tu ingreso</span>
-                <span class="num" id="p3-total">$23.500</span>
+                <span class="num" id="p3-total">$22.991</span>
               </div>
             </div>
           </div>
@@ -235,63 +239,83 @@
       // Quote appears EARLY — anchors the message ("ingreso fijo") from the start
       tl.to("#p3-quote", { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 1.4);
 
-      // Animate slider DOWN — less ingreso → más fondo → más CashBak hasta
-      // Slider 92% → 60% over 3.0s (reads clearly)
-      tl.to("#p3-fill",  { width: "60%", duration: 3.0, ease: "power2.inOut" }, 2.8);
-      tl.to("#p3-thumb", { left: "60%",  duration: 3.0, ease: "power2.inOut" }, 2.8);
-
-      // Animated counters — driven from a single "ingreso" value.
-      // Math: deducción_total = precio − ingreso. Aporte y comisión se reparten desde ahí
-      // según una proporción interna (no expuesta en el copy externo).
+      // Step data — each pill maps to fixed pct + cashback values.
+      // Numbers SNAP to these on each pill change (no smooth tween) so the
+      // displayed % only grows when the selection actually moves.
       const PRECIO = 24990;
-      const ingresoEl  = () => document.getElementById("p3-ingreso");
+      const stepData = [
+        { pct: 8,  cashback: 40 },
+        { pct: 10, cashback: 55 },
+        { pct: 12, cashback: 68 },
+        { pct: 15, cashback: 82 },
+        { pct: 20, cashback: 100 },
+      ];
       const totalEl    = () => document.getElementById("p3-total");
-      const aporteEl   = () => document.getElementById("p3-aporte");
       const comisionEl = () => document.getElementById("p3-comision");
+      const pctEl      = () => document.getElementById("p3-pct");
       const badgeNumEl = () => document.getElementById("p3-badgeNum");
+      const fmt = (n) => "$" + Math.round(n).toLocaleString("es-CL");
+      const setStep = (idx) => {
+        const d = stepData[idx];
+        const comision = PRECIO * d.pct / 100;
+        const ingreso  = PRECIO - comision;
+        totalEl().textContent    = fmt(ingreso);
+        comisionEl().textContent = "−" + fmt(comision);
+        pctEl().textContent      = d.pct;
+        badgeNumEl().textContent = d.cashback;
+      };
 
-      const counter = { ingreso: 23500, cashback: 40 };
-      tl.to(counter, {
-        ingreso: 22000,
-        cashback: 85,
-        duration: 3.0,
-        ease: "power2.inOut",
-        onUpdate: () => {
-          const fmt = (n) => "$" + Math.round(n).toLocaleString("es-CL");
-          const ingreso = counter.ingreso;
-          const deduccion = PRECIO - ingreso;     // total que sale del precio
-          const comision  = deduccion / 6;        // se reparte internamente
-          const aporte    = deduccion - comision; // el resto va al fondo
-          ingresoEl().textContent  = fmt(ingreso);
-          totalEl().textContent    = fmt(ingreso);
-          aporteEl().textContent   = "−" + fmt(aporte);
-          comisionEl().textContent = "−" + fmt(comision);
-          badgeNumEl().textContent = Math.round(counter.cashback);
-        },
-      }, 2.8);
+      // Initial: pill 0 (8%) selected, counters at step 0.
+      document.getElementById("p3-opt-0").classList.add("selected");
+      setStep(0);
 
-      // Badge GROWS noticeably while % rises — emphasizes "hasta 85%"
-      tl.to("#p3-badge", { scale: 1.18, duration: 3.0, ease: "power2.inOut" }, 2.8);
+      // Walk the selection through pills: 8% → 10% → 12% → 15% → 20%
+      // Each step ALSO snaps the counters/badge text to the matching values.
+      const pills = [0, 1, 2, 3, 4];
+      const stepTimes = [3.2, 3.9, 4.6, 5.3, 6.0]; // when each pill becomes selected
+      pills.forEach((idx, i) => {
+        if (i === 0) return; // first pill already selected
+        tl.add(() => {
+          pills.forEach((j) => document.getElementById("p3-opt-" + j).classList.remove("selected"));
+          document.getElementById("p3-opt-" + idx).classList.add("selected");
+          setStep(idx);
+        }, stepTimes[i]);
+        tl.fromTo("#p3-opt-" + idx,
+          { scale: 1 },
+          { scale: 1.06, duration: 0.18, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" },
+          stepTimes[i]
+        );
+        // Pulse the total/badge num together with each selection so they feel "snapped"
+        tl.fromTo("#p3-total",
+          { scale: 1 },
+          { scale: 1.05, duration: 0.18, yoyo: true, repeat: 1, ease: "sine.inOut" },
+          stepTimes[i]
+        );
+        tl.fromTo("#p3-badgeNum",
+          { scale: 1 },
+          { scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" },
+          stepTimes[i]
+        );
+      });
 
-      // Subtle pulse on quote as the % rises — reinforces "ingreso fijo" while cashback grows
-      tl.to("#p3-quote", { scale: 1.03, duration: 0.4, yoyo: true, repeat: 1, ease: "sine.inOut" }, 4.0);
+      // Badge GROWS during the pill walk — visual reward, aligned with the walk window (3.9 → 6.0).
+      tl.to("#p3-badge", { scale: 1.18, duration: 2.1, ease: "power2.inOut" }, 3.9);
 
-      // Repeating halo pulses while % climbs (continuous visual reward)
+      // Subtle pulse on quote midway through the walk
+      tl.to("#p3-quote", { scale: 1.03, duration: 0.4, yoyo: true, repeat: 1, ease: "sine.inOut" }, 4.6);
+
+      // Halo pulses while the selection walks (visual continuity)
       tl.fromTo("#p3-halo",
         { opacity: 0.7, scale: 1 },
-        { opacity: 0, scale: 1.5, duration: 1.0, ease: "power2.out", repeat: 2 }, 3.0);
+        { opacity: 0, scale: 1.5, duration: 1.0, ease: "power2.out", repeat: 1 }, 3.9);
 
-      // Final emphasis pulse when reaching 85%
-      tl.to("#p3-badge", { scale: 1.28, duration: 0.35, ease: "back.out(1.8)" }, 5.8);
-      tl.to("#p3-badge", { scale: 1.18, duration: 0.35, ease: "power2.inOut" }, 6.15);
+      // Final emphasis pulse when reaching 100% (synced with last pill at 6.0)
+      tl.to("#p3-badge", { scale: 1.28, duration: 0.35, ease: "back.out(1.8)", overwrite: "auto" }, 6.0);
+      tl.to("#p3-badge", { scale: 1.18, duration: 0.35, ease: "power2.inOut", overwrite: "auto" }, 6.35);
 
       tl.fromTo("#p3-pcard",
         { boxShadow: "0 14px 36px rgba(17,24,39,0.10)" },
-        { boxShadow: "0 22px 56px rgba(16,185,129,0.50)", duration: 0.7 }, 5.8);
-
-      tl.fromTo("#p3-total",
-        { scale: 1 },
-        { scale: 1.08, duration: 0.35, yoyo: true, repeat: 1 }, 6.0);
+        { boxShadow: "0 22px 56px rgba(16,185,129,0.50)", duration: 0.7 }, 6.0);
 
       // FLUID EXIT — soft fade & lift in last 0.8s, prepares the eye for slide 7's dark green CTA
       tl.to([".row", ".pill"],

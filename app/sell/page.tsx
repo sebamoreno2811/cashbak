@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { createClient } from "@/utils/supabase/client"
-import CashbakFundBar from "@/components/cashbak-fund-bar"
+import CashbakCommissionSelector from "@/components/cashbak-commission-selector"
 
 function formatCLP(value: number) {
   return value.toLocaleString("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 })
@@ -33,7 +33,7 @@ function selectVariedBets(bets: Bet[], maxCount = 4): Bet[] {
 export default function SellPage() {
   const [precioVenta, setPrecioVenta] = useState<string>("20000")
   const calcularRecomendado = (p: number) => Math.max(0, Math.round(p - (0.15 * p / 1.5) / 0.80))
-  const [gananciaCLP, setGananciaCLP] = useState<number>(() => calcularRecomendado(20000))
+  const [gananciaCLP, setGananciaCLP] = useState<number>(() => Math.round(20000 * 0.85))
   const [bets, setBets] = useState<Bet[]>([])
   const [selectedBetId, setSelectedBetId] = useState<number | null>(null)
 
@@ -43,8 +43,7 @@ export default function SellPage() {
   const margenVendedorPct = precio > 0 ? gananciaCLP / precio : 0
 
   useEffect(() => {
-    // Cuando cambia el precio, mantener el mismo % aproximado
-    setGananciaCLP(calcularRecomendado(precio))
+    setGananciaCLP(Math.round(precio * 0.85))
   }, [precio])
 
   // Fetch apuestas activas
@@ -75,21 +74,19 @@ export default function SellPage() {
 
   const bestCuota = bets.length > 0 ? Math.max(...bets.map(b => b.odd)) : cuota
 
-  const recMonto = resultado ? resultado.margenRecomendadoMonto : null
-  const recSellerPct = recMonto && precio > 0 ? Math.max(2, Math.min(98, Math.round(recMonto / precio * 100))) : null
-  const recFondoPct = recSellerPct != null ? 100 - recSellerPct : null
-  const recFondoCLP = recFondoPct != null ? Math.round(precio * recFondoPct / 100) : null
-  const recMontoSnapped = recSellerPct != null ? Math.round(precio * recSellerPct / 100) : null
+  const recFondoPct = 15
+  const recFondoCLP = inputsValidos ? Math.round(precio * 0.15) : 0
+  const recMontoSnapped = inputsValidos ? Math.round(precio * 0.85) : 0
 
   const cashbackAtRec = useMemo(() => {
-    if (!inputsValidos || !recMonto) return 0
+    if (!inputsValidos) return 0
     return calculateExternalCashbak({
       precioVenta: precio,
       costo: 0,
       cuota: bestCuota,
-      margenVendedorPct: recMonto / precio,
+      margenVendedorPct: 0.85,
     }).cashbackPct
-  }, [precio, bestCuota, recMonto, inputsValidos])
+  }, [precio, bestCuota, inputsValidos])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -97,7 +94,7 @@ export default function SellPage() {
       <section className="py-14 bg-green-900 text-white text-center px-4">
         <h1 className="text-4xl font-bold mb-3">Vende con nosotros</h1>
         <p className="text-green-200 text-lg max-w-xl mx-auto mb-8">
-          Simula cómo funcionaría vender tu producto en CashBak. Ingresa tu precio y descubre cuánto CashBak puedes ofrecer a tus clientes.
+          Tú defines el precio y eliges qué comisión dejarle a CashBak. Nosotros usamos esa comisión para ofrecerles promociones atractivas a tus clientes. Tu ingreso por venta siempre está garantizado.
         </p>
         <Link
           href="/sell/aplicar"
@@ -129,12 +126,13 @@ export default function SellPage() {
               </div>
 
               <div className="space-y-3">
-                <Label>¿Cuánto deseas invertir en las promociones de CashBak para tus clientes?</Label>
-                <CashbakFundBar price={precio} gananciaCLP={gananciaCLP} onChange={setGananciaCLP} />
+                <Label>¿Qué comisión deseas dejar a CashBak para este producto?</Label>
+                <p className="text-xs text-gray-400">Recuerda que entre más comisión dejes, más atractivas serán las promociones de CashBak que ofreces a tus clientes.</p>
+                <CashbakCommissionSelector price={precio} gananciaCLP={gananciaCLP} onChange={setGananciaCLP} />
                 {recMontoSnapped != null && recFondoCLP != null && recFondoPct != null && (
                   <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
                     <p className="text-xs text-emerald-800">
-                      💡 Destinando <strong>{formatCLP(recFondoCLP)}</strong> ({recFondoPct}% del precio) al fondo puedes ofrecer hasta <strong>{cashbackAtRec}% de CashBak</strong> — muy atractivo para compradores.
+                      💡 Con una comisión del <strong>15%</strong> puedes ofrecer hasta <strong>{cashbackAtRec}% de CashBak</strong> a tus clientes — muy atractivo para compradores.
                     </p>
                     <button
                       type="button"
@@ -220,23 +218,23 @@ export default function SellPage() {
                     <div className="flex justify-between items-start gap-3 py-2 border-b border-gray-100">
                       <div className="min-w-0">
                         <span className="text-gray-700 font-semibold">Tu ingreso neto por venta</span>
-                        <p className="text-xs text-gray-400">Monto exacto que recibirás por cada venta, sin variaciones</p>
+                        <p className="text-xs text-gray-400">Lo que recibes por cada venta, independiente del resultado de los eventos</p>
                       </div>
                       <span className="font-bold text-emerald-700 shrink-0">{formatCLP(resultado.margenVendedorNeto)}</span>
                     </div>
 
                     <div className="flex justify-between items-start gap-3 py-2 border-b border-gray-100">
                       <div>
-                        <span className="text-gray-600">Fondo CashBak</span>
-                        <p className="text-xs text-gray-400">Cubre promociones de CashBak para tus clientes</p>
+                        <span className="text-gray-600">Comisión a CashBak</span>
+                        <p className="text-xs text-gray-400">Según esta comisión ofrecemos promociones más o menos atractivas a tus clientes</p>
                       </div>
                       <span className="font-semibold text-gray-500 shrink-0">{formatCLP(resultado.comisionDisplay + resultado.montoApuestaDisplay)}</span>
                     </div>
 
                     <div className="flex justify-between items-start gap-3 py-2 border-b border-gray-100">
                       <div className="min-w-0">
-                        <span className="text-gray-600">CashBak al cliente</span>
-                        <p className="text-xs text-gray-400 mt-0.5">Simulación con los eventos disponibles.<br/>Varía según el evento que elija el cliente,<br/>pero nunca afecta tu ingreso neto.</p>
+                        <span className="text-gray-600">Promoción CashBak al cliente</span>
+                        <p className="text-xs text-gray-400 mt-0.5">Varía según el evento que elija el cliente.<br/>El resultado del evento nunca afecta tu ingreso neto.</p>
                       </div>
                       <span className="font-semibold text-gray-500 shrink-0">{resultado.cashbackPct}%</span>
                     </div>
@@ -253,23 +251,23 @@ export default function SellPage() {
           <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex flex-col gap-2">
               <span className="text-2xl">🎯</span>
-              <p className="font-semibold text-gray-800">Oferta más atractiva</p>
+              <p className="font-semibold text-gray-800">Tú decides la comisión</p>
               <p className="text-sm text-gray-600">
-                Un CashBak de hasta <strong className="text-emerald-700">{resultado.cashbackPct}%</strong> convierte visitantes indecisos en compradores. Pocos competidores pueden ofrecer algo similar.
+                Eliges qué comisión dejarle a CashBak. Según eso, las promociones que ofrecemos para tus productos serán más o menos atractivas. Tu ingreso siempre está garantizado.
               </p>
             </div>
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex flex-col gap-2">
               <span className="text-2xl">📣</span>
-              <p className="font-semibold text-gray-800">Más visibilidad</p>
+              <p className="font-semibold text-gray-800">Más visibilidad, sin esfuerzo</p>
               <p className="text-sm text-gray-600">
-                Tus productos aparecen en la plataforma CashBak, exponiéndote a clientes que ya están buscando comprar con una promoción de CashBak. Sin costo adicional de publicidad.
+                Tus productos aparecen en CashBak ante clientes que ya buscan comprar con promociones. A mayor comisión, más atractivas son las ofertas y más probabilidad de vender.
               </p>
             </div>
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex flex-col gap-2">
-              <span className="text-2xl">🔁</span>
-              <p className="font-semibold text-gray-800">Clientes que vuelven</p>
+              <span className="text-2xl">🔒</span>
+              <p className="font-semibold text-gray-800">Ingreso garantizado</p>
               <p className="text-sm text-gray-600">
-                El CashBak crea una experiencia memorable. Los clientes que reciben dinero de vuelta tienen muchas más probabilidades de volver a comprar.
+                El resultado de los eventos deportivos nunca afecta lo que tú recibes. Vendiste, cobras. Así de simple, sin riesgo para tu negocio.
               </p>
             </div>
           </div>

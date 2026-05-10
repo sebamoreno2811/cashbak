@@ -2,7 +2,6 @@ import type { Product } from "@/types/product"
 import type { Bet } from "@/context/bet-context"
 
 const COMISION_PLATAFORMA = 20 / 100  // 20% del fondo cashback (gananciaBruta - margenVendedor)
-const COMISION_MAXIMA_PCT = 0.035     // máximo 3.5% del precio de venta
 const CASHBACK_MINIMO = 0.10          // 10% mínimo de cashback ofrecido
 const CASHBACK_RECOMENDADO = 0.15     // 15% cashback recomendado
 const CUOTA_MINIMA = 1.5              // cuota mínima considerada
@@ -50,12 +49,10 @@ export function calculateExternalCashbak(params: {
   const margenVendedor = margenVendedorPct * precioVenta
   const fondoBruto = Math.max(0, precioVenta - margenVendedor)
 
-  // Comisión: 20% del fondoBruto, mínimo 1% del precio, máximo 3% del precio
-  // Si el 20% supera el 3%, el exceso va al montoApuesta (más cashback)
+  // Comisión: 20% del fondoBruto, mínimo 1% del precio, sin tope máximo
   const comisionBase = COMISION_PLATAFORMA * fondoBruto
   const comisionMinima = 0.01 * precioVenta
-  const comisionMaxima = COMISION_MAXIMA_PCT * precioVenta
-  const comisionPlataforma = Math.max(comisionMinima, Math.min(comisionBase, comisionMaxima))
+  const comisionPlataforma = Math.max(comisionMinima, comisionBase)
 
   const montoApuestaCalculado = Math.max(0, fondoBruto - comisionPlataforma)
 
@@ -67,16 +64,8 @@ export function calculateExternalCashbak(params: {
   const comisionTotal = comisionPlataforma + excesoComision
 
   // Helper: dado un montoApuesta objetivo, calcula el fondoBruto necesario
-  // considerando si aplica el cap de comisión o el 20% estándar
-  const fondoBrutoParaMonto = (targetMonto: number): number => {
-    const fondoSinCap = targetMonto / (1 - COMISION_PLATAFORMA)
-    const comisionSinCap = COMISION_PLATAFORMA * fondoSinCap
-    const comisionMax = COMISION_MAXIMA_PCT * precioVenta
-    // Si sin cap la comisión no supera el máximo, usar fórmula estándar
-    if (comisionSinCap <= comisionMax) return fondoSinCap
-    // Si el cap aplica: fondoBruto = targetMonto + comisionMaxima
-    return targetMonto + comisionMax
-  }
+  const fondoBrutoParaMonto = (targetMonto: number): number =>
+    targetMonto / (1 - COMISION_PLATAFORMA)
 
   // Margen máximo para dar cashback mínimo (10% a cuota 1.5)
   const montoApuestaMinimo = (CASHBACK_MINIMO * precioVenta) / CUOTA_MINIMA
