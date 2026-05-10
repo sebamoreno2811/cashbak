@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { width: 1080px; height: 1920px; overflow: hidden; font-family: "Inter", system-ui, sans-serif; color: #111827; }
+      .stage {
+        width: 1080px; height: 1920px; position: relative;
+        background: radial-gradient(circle at 70% 30%, #ffffff 0%, #f3f4f6 80%);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .pill {
+        position: absolute; top: 60px; left: 60px;
+        background: #10b981; color: #fff;
+        padding: 18px 32px; border-radius: 999px;
+        font-weight: 800; font-size: 30px;
+        box-shadow: 0 12px 28px rgba(5,150,105,0.35);
+        z-index: 10;
+      }
+      .pill .num { background: #fff; color: #10b981; padding: 2px 12px; border-radius: 999px; margin-right: 12px; }
+
+      /* Vertical stack: calc on top, preview below */
+      .row {
+        display: flex; flex-direction: column; gap: 36px;
+        padding: 170px 50px 50px;
+        align-items: center;
+        transform-origin: 50% 50%;
+      }
+
+      /* Calculator card — full-width in vertical */
+      .calc {
+        width: 980px; background: #fff; border: 1px solid #e5e7eb;
+        border-radius: 24px; padding: 44px;
+        box-shadow: 0 20px 60px rgba(17,24,39,0.10);
+        display: flex; flex-direction: column; gap: 28px;
+      }
+      .calc h2 {
+        font-weight: 800; font-size: 38px; color: #111827;
+      }
+      .priceRow { display: flex; align-items: baseline; gap: 16px; }
+      .priceRow .label { font-size: 24px; color: #6b7280; font-weight: 600; }
+      .priceRow .val { font-weight: 800; font-size: 56px; color: #111827; font-variant-numeric: tabular-nums; }
+
+      .qBlock { display: flex; flex-direction: column; gap: 12px; }
+      .qBlock .qTitle {
+        font-weight: 800; font-size: 30px; color: #111827; line-height: 1.25;
+      }
+      .qBlock .qHint {
+        font-weight: 500; font-size: 22px; color: #6b7280; line-height: 1.4;
+      }
+
+      .pills {
+        display: flex; flex-wrap: wrap; gap: 14px;
+      }
+      .opt {
+        flex: 0 0 auto;
+        padding: 22px 32px; border: 1px solid #e5e7eb; border-radius: 16px;
+        background: #fff; color: #111827;
+        font-weight: 800; font-size: 32px;
+        font-variant-numeric: tabular-nums;
+        min-width: 140px; text-align: center;
+        transition: none;
+      }
+      .opt.other { font-weight: 700; font-size: 26px; }
+      .opt.selected {
+        background: #047857; color: #fff; border-color: #047857;
+        box-shadow: 0 10px 28px rgba(5,150,105,0.40);
+      }
+
+      .breakdown {
+        background: #f9fafb; border: 1px solid #e5e7eb;
+        border-radius: 16px; padding: 28px;
+        display: flex; flex-direction: column; gap: 14px;
+      }
+      .brow { display: flex; justify-content: space-between; align-items: center; font-size: 26px; }
+      .brow .name { color: #4b5563; }
+      .brow .num { font-weight: 700; color: #111827; font-variant-numeric: tabular-nums; }
+      .brow .num.neutral { color: #6b7280; }
+      .brow .name.invest { color: #047857; font-weight: 700; }
+      .brow .name.invest .arrow { color: #10b981; margin-right: 8px; font-weight: 800; }
+      .brow.divider { border-top: 1px dashed #d1d5db; padding-top: 16px; margin-top: 6px; }
+      .brow.total .name { font-weight: 800; font-size: 28px; color: #111827; }
+      .brow.total .num { font-weight: 900; font-size: 44px; color: #10b981; }
+
+      /* Preview row: product card + quote side-by-side */
+      .preview {
+        width: 980px;
+        display: flex; flex-direction: row; gap: 30px;
+        align-items: center; justify-content: center;
+      }
+      .pcard {
+        width: 540px; background: #fff;
+        border: 1px solid #e5e7eb; border-radius: 22px;
+        padding: 26px; display: flex; flex-direction: column; gap: 16px;
+        box-shadow: 0 14px 36px rgba(17,24,39,0.10); position: relative;
+        flex-shrink: 0;
+      }
+      .pcard .img {
+        height: 320px; border-radius: 16px;
+        background: #f9fafb;
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden;
+      }
+      .pcard .img img { max-width: 90%; max-height: 90%; object-fit: contain; }
+      .pcard .name { font-weight: 700; font-size: 30px; }
+      .pcard .price { font-weight: 800; font-size: 38px; color: #111827; }
+
+      /* Mega-badge — bigger to match the new card scale */
+      .megaBadge {
+        position: absolute; top: -28px; right: -24px;
+        background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+        color: #fff;
+        padding: 22px 30px; border-radius: 28px;
+        font-weight: 900;
+        line-height: 1.05;
+        box-shadow: 0 16px 40px rgba(5,150,105,0.55);
+        text-align: center;
+        min-width: 240px;
+        transform-origin: 100% 0%;
+      }
+      .megaBadge .label { display: block; font-size: 18px; font-weight: 700; opacity: 0.9; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+      .megaBadge .value { display: block; font-weight: 900; }
+      .megaBadge .value .num { font-size: 60px; }
+      .megaBadge .value .pct { font-size: 38px; }
+
+      .badgeHalo {
+        position: absolute; top: -28px; right: -24px;
+        width: 240px; height: 116px; border-radius: 28px;
+        border: 5px solid rgba(16,185,129,0.6);
+        opacity: 0; pointer-events: none;
+      }
+
+      .quote {
+        position: relative;
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid rgba(16,185,129,0.35);
+        border-radius: 22px;
+        padding: 30px 32px;
+        font-weight: 700; font-size: 30px; color: #065f46;
+        text-align: center; line-height: 1.3;
+        flex: 1 1 auto;
+        box-shadow: 0 16px 36px rgba(16,185,129,0.18);
+        opacity: 0;
+      }
+      .quote .accent {
+        color: #10b981;
+        font-weight: 900;
+        background: rgba(16,185,129,0.12);
+        padding: 1px 10px;
+        border-radius: 8px;
+      }
+      .quote::before {
+        content: "";
+        position: absolute; left: 32px; top: -10px;
+        width: 48px; height: 6px; border-radius: 999px;
+        background: #10b981;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="paso3" data-start="0" data-width="1080" data-height="1920">
+      <div class="stage">
+        <div class="pill"><span class="num">3</span>de 3 — Define tu comisión</div>
+
+        <div class="row" id="p3-row">
+          <div class="calc" id="p3-calc">
+            <h2>Tu producto</h2>
+
+            <div class="priceRow">
+              <span class="label">Precio de venta</span>
+              <span class="val">$24.990</span>
+            </div>
+
+            <div class="qBlock">
+              <span class="qTitle">¿Qué comisión deseas dejar a CashBak para este producto?</span>
+              <span class="qHint">Recuerda que entre más comisión dejes, más atractivas serán las promociones de CashBak que ofreces a tus clientes.</span>
+            </div>
+
+            <div class="pills" id="p3-pills">
+              <div class="opt" id="p3-opt-0" data-pct="8">8%</div>
+              <div class="opt" id="p3-opt-1" data-pct="10">10%</div>
+              <div class="opt" id="p3-opt-2" data-pct="12">12%</div>
+              <div class="opt" id="p3-opt-3" data-pct="15">15%</div>
+              <div class="opt" id="p3-opt-4" data-pct="20">20%</div>
+              <div class="opt other">Otro</div>
+            </div>
+
+            <div class="breakdown">
+              <div class="brow">
+                <span class="name">Precio de venta</span>
+                <span class="num">$24.990</span>
+              </div>
+              <div class="brow">
+                <span class="name invest"><span class="arrow">→</span>Comisión a CashBak (<span id="p3-pct">8</span>%)</span>
+                <span class="num neutral" id="p3-comision">−$1.999</span>
+              </div>
+              <div class="brow divider total">
+                <span class="name">Tu ingreso</span>
+                <span class="num" id="p3-total">$22.991</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview">
+            <div class="pcard" id="p3-pcard">
+              <span class="badgeHalo" id="p3-halo"></span>
+              <div class="megaBadge" id="p3-badge">
+                <span class="label">CashBak hasta</span>
+                <span class="value"><span class="num" id="p3-badgeNum">40</span><span class="pct">%</span></span>
+              </div>
+              <div class="img"><img src="../assets/pelota-basket-1.webp" alt="Pelota de Basket" /></div>
+              <div class="name">Pelota de Basket Pro</div>
+              <div class="price">$24.990</div>
+            </div>
+            <div class="quote" id="p3-quote">
+              Tu ingreso queda <span class="accent">fijo</span>.<br/>
+              Lo recibes igual, gane o pierda el cliente.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      gsap.set("#p3-calc",    { y: 30, opacity: 0 });
+      gsap.set("#p3-pcard",   { y: 30, opacity: 0 });
+      gsap.set("#p3-quote",   { y: 14, opacity: 0 });
+      tl.to("#p3-calc",  { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0);
+      tl.to("#p3-pcard", { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.12);
+      tl.from(".pill", { x: -30, opacity: 0, duration: 0.4 }, 0.3);
+
+      tl.fromTo("#p3-badge",
+        { scale: 0.6, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.6)" }, 0.7);
+
+      tl.to("#p3-quote", { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 1.4);
+
+      const PRECIO = 24990;
+      const stepData = [
+        { pct: 8,  cashback: 40 },
+        { pct: 10, cashback: 55 },
+        { pct: 12, cashback: 68 },
+        { pct: 15, cashback: 82 },
+        { pct: 20, cashback: 100 },
+      ];
+      const totalEl    = () => document.getElementById("p3-total");
+      const comisionEl = () => document.getElementById("p3-comision");
+      const pctEl      = () => document.getElementById("p3-pct");
+      const badgeNumEl = () => document.getElementById("p3-badgeNum");
+      const fmt = (n) => "$" + Math.round(n).toLocaleString("es-CL");
+      const setStep = (idx) => {
+        const d = stepData[idx];
+        const comision = PRECIO * d.pct / 100;
+        const ingreso  = PRECIO - comision;
+        totalEl().textContent    = fmt(ingreso);
+        comisionEl().textContent = "−" + fmt(comision);
+        pctEl().textContent      = d.pct;
+        badgeNumEl().textContent = d.cashback;
+      };
+
+      document.getElementById("p3-opt-0").classList.add("selected");
+      setStep(0);
+
+      const pills = [0, 1, 2, 3, 4];
+      const stepTimes = [3.2, 3.9, 4.6, 5.3, 6.0];
+      pills.forEach((idx, i) => {
+        if (i === 0) return;
+        tl.add(() => {
+          pills.forEach((j) => document.getElementById("p3-opt-" + j).classList.remove("selected"));
+          document.getElementById("p3-opt-" + idx).classList.add("selected");
+          setStep(idx);
+        }, stepTimes[i]);
+        tl.fromTo("#p3-opt-" + idx,
+          { scale: 1 },
+          { scale: 1.06, duration: 0.18, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" },
+          stepTimes[i]
+        );
+        tl.fromTo("#p3-total",
+          { scale: 1 },
+          { scale: 1.05, duration: 0.18, yoyo: true, repeat: 1, ease: "sine.inOut" },
+          stepTimes[i]
+        );
+        tl.fromTo("#p3-badgeNum",
+          { scale: 1 },
+          { scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" },
+          stepTimes[i]
+        );
+      });
+
+      tl.to("#p3-badge", { scale: 1.18, duration: 2.1, ease: "power2.inOut" }, 3.9);
+      tl.to("#p3-quote", { scale: 1.03, duration: 0.4, yoyo: true, repeat: 1, ease: "sine.inOut" }, 4.6);
+
+      tl.fromTo("#p3-halo",
+        { opacity: 0.7, scale: 1 },
+        { opacity: 0, scale: 1.5, duration: 1.0, ease: "power2.out", repeat: 1 }, 3.9);
+
+      tl.to("#p3-badge", { scale: 1.28, duration: 0.35, ease: "back.out(1.8)", overwrite: "auto" }, 6.0);
+      tl.to("#p3-badge", { scale: 1.18, duration: 0.35, ease: "power2.inOut", overwrite: "auto" }, 6.35);
+
+      tl.fromTo("#p3-pcard",
+        { boxShadow: "0 14px 36px rgba(17,24,39,0.10)" },
+        { boxShadow: "0 22px 56px rgba(16,185,129,0.50)", duration: 0.7 }, 6.0);
+
+      tl.to([".row", ".pill"],
+        { y: -18, opacity: 0, duration: 0.8, ease: "power2.in" }, 9.2);
+
+      window.__timelines["paso3"] = tl;
+    </script>
+  </body>
+</html>

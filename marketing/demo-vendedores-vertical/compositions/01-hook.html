@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { width: 1080px; height: 1920px; overflow: hidden; font-family: "Inter", system-ui, sans-serif; color: #111827; }
+      .stage {
+        width: 1080px; height: 1920px; position: relative;
+        background: linear-gradient(160deg, #14532d 0%, #166534 60%, #059669 130%);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        color: #fff;
+      }
+      .stage::before {
+        content: ""; position: absolute; top: -260px; right: -260px;
+        width: 1100px; height: 1100px;
+        background: radial-gradient(circle, rgba(16,185,129,0.28), transparent 60%);
+      }
+      .stage::after {
+        content: ""; position: absolute; bottom: -240px; left: -240px;
+        width: 900px; height: 900px;
+        background: radial-gradient(circle, rgba(255,255,255,0.06), transparent 65%);
+      }
+      .logo {
+        width: 160px; height: 160px; margin-bottom: 32px;
+        background: #fff; border-radius: 36px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 16px 48px rgba(5,150,105,0.45);
+        position: relative; z-index: 2;
+      }
+      .logo img { width: 112px; height: 112px; object-fit: contain; }
+      .wordmark {
+        font-weight: 800; font-size: 72px; letter-spacing: -0.02em;
+        color: #ffffff; margin-bottom: 120px; position: relative; z-index: 2;
+      }
+      .wordmark .accent { color: #a7f3d0; }
+      .h1 {
+        font-weight: 900; font-size: 132px; letter-spacing: -0.02em;
+        line-height: 1.05; text-align: center; max-width: 980px;
+        position: relative; z-index: 2;
+      }
+      .h1 .line { display: block; overflow: hidden; }
+      .h1 .line span { display: inline-block; }
+      .sub {
+        margin-top: 48px; font-weight: 500; font-size: 46px;
+        color: #a7f3d0; max-width: 920px; text-align: center;
+        position: relative; z-index: 2; letter-spacing: -0.005em;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="hook" data-start="0"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div class="stage">
+        <div class="logo" id="hk-logo">
+          <img src="../assets/logo.png" alt="CashBak" />
+        </div>
+        <div class="wordmark" id="hk-wordmark">Cash<span class="accent">Bak</span></div>
+        <h1 class="h1">
+          <span class="line"><span id="hk-l1">Un beneficio extra</span></span>
+          <span class="line"><span id="hk-l2">en cada compra.</span></span>
+        </h1>
+        <p class="sub" id="hk-sub">Más clientes para tu tienda.</p>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from("#hk-logo", { scale: 0.7, opacity: 0, duration: 0.9, ease: "power2.out" }, 0);
+      tl.from("#hk-wordmark", { y: 30, opacity: 0, duration: 0.7, ease: "power2.out" }, 0.5);
+      tl.from("#hk-l1", { yPercent: 110, duration: 0.95, ease: "power3.out" }, 1.1);
+      tl.from("#hk-l2", { yPercent: 110, duration: 0.95, ease: "power3.out" }, 1.5);
+      tl.from("#hk-sub", { y: 20, opacity: 0, duration: 0.7, ease: "power2.out" }, 2.5);
+      tl.fromTo(".stage", { scale: 1 }, { scale: 1.025, duration: 4, ease: "power1.inOut" }, 0);
+      tl.fromTo("#hk-logo", { rotation: 0 }, { rotation: 1.2, duration: 4, ease: "sine.inOut" }, 0);
+      window.__timelines["hook"] = tl;
+    </script>
+  </body>
+</html>
