@@ -141,7 +141,7 @@ export async function markAllVendorPaid(orderIds: string[], storeId: string) {
     .in("id", validIds)
   if (error) return { error: error.message }
 
-  await Promise.all(validIds.map(id =>
+  await Promise.all(validIds.map((id: string) =>
     sendVendorPaidEmail(supabase, id).catch(e =>
       console.error(`[markAllVendorPaid] email error for ${id}:`, e?.message)
     )
