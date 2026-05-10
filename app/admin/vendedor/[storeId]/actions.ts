@@ -129,8 +129,9 @@ export async function markAllVendorPaid(orderIds: string[], storeId: string) {
     .in("id", orderIds)
 
   const validIds = (orders ?? [])
-    .filter(o => o.shipping_status === "Entregado" && o.customer_confirmed === true && !o.vendor_paid)
-    .map(o => o.id)
+    .filter((o: { id: string; shipping_status: string; customer_confirmed: boolean; vendor_paid: boolean }) =>
+      o.shipping_status === "Entregado" && o.customer_confirmed === true && !o.vendor_paid)
+    .map((o: { id: string }) => o.id)
 
   if (validIds.length === 0) return { error: "Ningún pedido cumple las condiciones para ser pagado" }
 

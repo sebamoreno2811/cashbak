@@ -297,6 +297,70 @@ export async function saveCheckoutData(
       }
     }
 
+    // 11. Email de notificación al admin
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "cashbak.ops@gmail.com"
+    try {
+      const orderRef = orderId.slice(0, 8).toUpperCase()
+      const adminItemsHtml = orderItems.map((item) => {
+        const storeName = storeEmailMap[cartItems.find((c: any) => c.productId.toString() === item.product_id)?.product?.store_id]?.name ?? "CashBak Store"
+        const betName = cartItems.find((c: any) => c.productId.toString() === item.product_id)?.betName ?? "—"
+        const comisionTotal = (item.comision_cashbak ?? 0) + (item.tarifa_procesamiento ?? 0)
+        return `
+          <tr style="border-bottom:1px solid #f3f4f6;">
+            <td style="padding:10px 12px;vertical-align:top;">
+              <p style="margin:0;font-weight:600;color:#111;">${item.product_name}${item.size ? ` (${item.size})` : ""} ×${item.quantity}</p>
+              <p style="margin:2px 0 0 0;font-size:12px;color:#6b7280;">Tienda: ${storeName}</p>
+              <p style="margin:2px 0 0 0;font-size:12px;color:#6b7280;">Evento: ${betName}</p>
+            </td>
+            <td style="padding:10px 12px;text-align:right;vertical-align:top;white-space:nowrap;">
+              <p style="margin:0;font-size:13px;">Precio: <strong>$${(item.price * item.quantity).toLocaleString("es-CL")}</strong></p>
+              <p style="margin:2px 0 0 0;font-size:12px;color:#2563eb;">Monto a apostar: $${(item.bet_amount ?? 0).toLocaleString("es-CL")}</p>
+              <p style="margin:2px 0 0 0;font-size:12px;color:#7c3aed;">Comisión CashBak + procesamiento: $${comisionTotal.toLocaleString("es-CL")}</p>
+              <p style="margin:2px 0 0 0;font-size:12px;color:#059669;font-weight:600;">Ingreso neto vendedor: $${(item.vendor_net_amount ?? 0).toLocaleString("es-CL")}</p>
+            </td>
+          </tr>`
+      }).join("")
+
+      await resend.emails.send({
+        from: EMAIL_FROM,
+        to: ADMIN_EMAIL,
+        subject: `🛍️ Nueva compra — Pedido #${orderRef} ($${serverTotal.toLocaleString("es-CL")})`,
+        html: `
+          <div style="font-family:Arial,sans-serif;background:#f9fafb;padding:32px;">
+            <h2 style="color:#14532d;margin:0 0 4px 0;">Nueva compra en CashBak</h2>
+            <p style="color:#6b7280;margin:0 0 20px 0;font-size:13px;">Pedido #${orderRef} · ${new Date().toLocaleString("es-CL", { timeZone: "America/Santiago" })}</p>
+
+            <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;margin-bottom:16px;">
+              <thead>
+                <tr style="background:#f0fdf4;">
+                  <th style="padding:10px 12px;text-align:left;font-size:12px;color:#166534;font-weight:600;">PRODUCTO / EVENTO</th>
+                  <th style="padding:10px 12px;text-align:right;font-size:12px;color:#166534;font-weight:600;">MONTOS</th>
+                </tr>
+              </thead>
+              <tbody>${adminItemsHtml}</tbody>
+            </table>
+
+            <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;border:1px solid #e5e7eb;margin-bottom:16px;">
+              <tr>
+                <td style="padding:10px 16px;font-size:13px;color:#374151;">Cliente</td>
+                <td style="padding:10px 16px;font-size:13px;font-weight:600;text-align:right;">${user.email}</td>
+              </tr>
+              <tr style="background:#f9fafb;">
+                <td style="padding:10px 16px;font-size:13px;color:#374151;">Total orden</td>
+                <td style="padding:10px 16px;font-size:15px;font-weight:800;color:#14532d;text-align:right;">$${serverTotal.toLocaleString("es-CL")}</td>
+              </tr>
+            </table>
+
+            <p style="font-size:12px;color:#9ca3af;margin:0;">
+              <a href="${APP_URL}/admin/dashboard" style="color:#14532d;">Ver en el dashboard →</a>
+            </p>
+          </div>
+        `,
+      })
+    } catch (adminEmailError) {
+      console.error("Error enviando email al admin:", adminEmailError)
+    }
+
     return { success: true, orderId }
   } catch (error: any) {
     console.error("Error al guardar datos de checkout:", error)
