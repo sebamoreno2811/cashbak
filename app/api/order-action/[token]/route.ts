@@ -41,6 +41,18 @@ export async function GET(
     return NextResponse.redirect(`${APP_URL}/order-action-result?status=shipped`)
 
   } else if (action === "confirm_received") {
+    // Fix 3: marcar token como usado de forma atómica antes de actualizar la orden
+    const { data: claimed } = await supabase
+      .from("order_tokens")
+      .update({ used: true })
+      .eq("id", tokenRow.id)
+      .eq("used", false)
+      .select("id")
+
+    if (!claimed || claimed.length === 0) {
+      return NextResponse.redirect(`${APP_URL}/order-action-result?status=already_used`)
+    }
+
     await supabase
       .from("orders")
       .update({
@@ -49,8 +61,6 @@ export async function GET(
         updated_at: new Date().toISOString(),
       })
       .eq("id", order_id)
-
-    await supabase.from("order_tokens").update({ used: true }).eq("id", tokenRow.id)
 
     return NextResponse.redirect(`${APP_URL}/order-action-result?status=confirmed`)
   }

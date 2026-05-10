@@ -27,7 +27,7 @@ export default async function AdminDashboardPage() {
   const orderIds = (orders ?? []).map((o: { id: string }) => o.id)
   const { data: orderItems } = await supabase
     .from("order_items")
-    .select("id, order_id, product_id, bet_option_id, vendor_net_amount, comision_cashbak, cashback_percentage, product_name, quantity, price, bet_amount, bet_placed")
+    .select("id, order_id, product_id, bet_option_id, vendor_net_amount, comision_cashbak, tarifa_procesamiento, cashback_percentage, product_name, quantity, price, bet_amount, bet_placed")
     .in("order_id", orderIds.length > 0 ? orderIds : ["none"])
 
   // Productos para obtener store_id
@@ -112,7 +112,7 @@ export default async function AdminDashboardPage() {
       if (storeId) orderStoreMap[item.order_id] = storeId
     }
     orderVendorNetMap[item.order_id] = (orderVendorNetMap[item.order_id] ?? 0) + (item.vendor_net_amount ?? 0) * (item.quantity ?? 1)
-    orderComisionMap[item.order_id] = (orderComisionMap[item.order_id] ?? 0) + (item.comision_cashbak ?? 0)
+    orderComisionMap[item.order_id] = (orderComisionMap[item.order_id] ?? 0) + (item.comision_cashbak ?? 0) + (item.tarifa_procesamiento ?? 0)
   }
 
   // Merge final

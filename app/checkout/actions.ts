@@ -4,6 +4,7 @@ import { createSupabaseClientWithCookies, createSupabaseAdminClient } from "@/ut
 import type { CheckoutFormData } from "@/types/checkout"
 import { Resend } from 'resend'
 import { sendPushToUser } from "@/lib/push"
+import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -60,12 +61,22 @@ export async function saveCheckoutData(
     const productIds = cartItems.map((item) => item.productId)
     const { data: dbProducts, error: productsError } = await supabase
       .from("products")
-      .select("id, price, stock")
+      .select("id, price, stock, margin_pct")
       .in("id", productIds)
 
     if (productsError || !dbProducts) {
       return { success: false, error: "No se pudieron verificar los productos" }
     }
+
+    // Fix 7: obtener cuotas de los eventos desde la DB
+    const betOptionIds = [...new Set(cartItems.map((i: any) => i.betOptionId).filter(Boolean))]
+    const { data: dbBets } = await supabase
+      .from("bets")
+      .select("id, odd")
+      .in("id", betOptionIds.length > 0 ? betOptionIds : [-1])
+    const betOddMap: Record<string, number> = Object.fromEntries(
+      (dbBets ?? []).map((b: { id: number; odd: number }) => [String(b.id), b.odd])
+    )
 
     let serverTotal = shippingCost
     for (const item of cartItems) {
@@ -101,23 +112,45 @@ export async function saveCheckoutData(
 
     const orderId = orderData.id
 
-    // 6. Insertar items
-    const orderItems = cartItems.map((item) => ({
-      order_id: orderId,
-      product_id: item.productId.toString(),
-      product_name: item.product.name,
-      quantity: item.quantity,
-      price: item.product.price,
-      bet_option_id: item.betOptionId,
-      bet_name: item.betName,
-      cashback_percentage: item.cashbakPercentage,
-      order_id_client: item.order_id,
-      bet_amount: item.bet_amount,
-      size: item.size,
-      comision_cashbak: item.comision_cashbak ?? null,
-      tarifa_procesamiento: item.tarifa_procesamiento ?? null,
-      vendor_net_amount: item.vendor_net_amount ?? null,
-    }))
+    // 6. Insertar items — Fix 7: recalcular valores financieros server-side
+    const orderItems = cartItems.map((item: any) => {
+      const dbProduct = dbProducts.find((p: any) => p.id === item.productId)
+      const precioVenta = dbProduct?.price ?? item.product.price
+      const margenVendedorPct = dbProduct?.margin_pct ?? 0.85
+      const cuota = betOddMap[String(item.betOptionId)] ?? 0
+
+      let vendor_net_amount = item.vendor_net_amount ?? null
+      let comision_cashbak = item.comision_cashbak ?? null
+      let tarifa_procesamiento = item.tarifa_procesamiento ?? null
+      let cashback_percentage = item.cashbakPercentage
+      let bet_amount = item.bet_amount
+
+      if (dbProduct && cuota > 0) {
+        const sim = calculateExternalCashbak({ precioVenta, costo: 0, cuota, margenVendedorPct })
+        vendor_net_amount = sim.margenVendedorNeto
+        comision_cashbak = sim.comisionDisplay
+        tarifa_procesamiento = sim.tarifaProcesamiento
+        cashback_percentage = sim.cashbackPct
+        bet_amount = sim.montoApuesta
+      }
+
+      return {
+        order_id: orderId,
+        product_id: item.productId.toString(),
+        product_name: item.product.name,
+        quantity: item.quantity,
+        price: precioVenta,
+        bet_option_id: item.betOptionId,
+        bet_name: item.betName,
+        cashback_percentage,
+        order_id_client: item.order_id,
+        bet_amount,
+        size: item.size,
+        comision_cashbak,
+        tarifa_procesamiento,
+        vendor_net_amount,
+      }
+    })
 
     const { error: itemsError } = await admin.from("order_items").insert(orderItems)
 

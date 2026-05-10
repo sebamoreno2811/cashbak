@@ -428,7 +428,7 @@ export default function DashboardClient({ orders, stores, betEvents }: { orders:
         <MetricCard
           label="Ganancias CashBak"
           value={`$${metrics.gananciasCashbak.toLocaleString("es-CL")}`}
-          sub="Comisiones + exceso cobertura"
+          sub="Comisiones + procesamiento Transbank"
           icon={<DollarSign className="w-5 h-5 text-violet-700" />}
           color="bg-violet-50"
         />

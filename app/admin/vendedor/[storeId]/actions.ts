@@ -89,6 +89,18 @@ async function sendVendorPaidEmail(supabase: any, orderId: string) {
 
 export async function markOrderVendorPaid(orderId: string, storeId: string) {
   const supabase = await requireAdmin()
+
+  // Fix 5: verificar condiciones antes de pagar
+  const { data: order } = await supabase
+    .from("orders")
+    .select("shipping_status, customer_confirmed, vendor_paid")
+    .eq("id", orderId)
+    .single()
+
+  if (order?.vendor_paid) return { error: "Este pedido ya fue pagado" }
+  if (order?.shipping_status !== "Entregado") return { error: "Solo se puede pagar pedidos con estado Entregado" }
+  if (!order?.customer_confirmed) return { error: "El cliente aún no ha confirmado la recepción" }
+
   const { error } = await supabase
     .from("orders")
     .update({ vendor_paid: true, updated_at: new Date().toISOString() })
@@ -109,13 +121,26 @@ export async function markOrderVendorPaid(orderId: string, storeId: string) {
 
 export async function markAllVendorPaid(orderIds: string[], storeId: string) {
   const supabase = await requireAdmin()
+
+  // Fix 5: filtrar solo los pedidos que cumplen condiciones
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("id, shipping_status, customer_confirmed, vendor_paid")
+    .in("id", orderIds)
+
+  const validIds = (orders ?? [])
+    .filter(o => o.shipping_status === "Entregado" && o.customer_confirmed === true && !o.vendor_paid)
+    .map(o => o.id)
+
+  if (validIds.length === 0) return { error: "Ningún pedido cumple las condiciones para ser pagado" }
+
   const { error } = await supabase
     .from("orders")
     .update({ vendor_paid: true, updated_at: new Date().toISOString() })
-    .in("id", orderIds)
+    .in("id", validIds)
   if (error) return { error: error.message }
 
-  await Promise.all(orderIds.map(id =>
+  await Promise.all(validIds.map(id =>
     sendVendorPaidEmail(supabase, id).catch(e =>
       console.error(`[markAllVendorPaid] email error for ${id}:`, e?.message)
     )

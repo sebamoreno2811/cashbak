@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      [data-composition-id="cierre"] { width: 1080px; height: 1920px; overflow: hidden; font-family: "Inter", system-ui, sans-serif; color: #ffffff; }
+
+      [data-composition-id="cierre"] .stage {
+        width: 1080px; height: 1920px; position: relative;
+        background:
+          radial-gradient(ellipse 80% 60% at 50% 30%, rgba(16,185,129,0.32), transparent 60%),
+          linear-gradient(160deg, #052e1a 0%, #14532d 32%, #166534 70%, #059669 130%);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 160px 80px;
+      }
+      [data-composition-id="cierre"] .blob-a {
+        position: absolute; top: -260px; right: -260px;
+        width: 1100px; height: 1100px;
+        background: radial-gradient(circle, rgba(52,211,153,0.30), transparent 60%);
+        will-change: transform;
+      }
+      [data-composition-id="cierre"] .blob-b {
+        position: absolute; bottom: -240px; left: -240px;
+        width: 900px; height: 900px;
+        background: radial-gradient(circle, rgba(255,255,255,0.05), transparent 65%);
+        will-change: transform;
+      }
+      [data-composition-id="cierre"] .grid-overlay {
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 80px 80px;
+        mask-image: radial-gradient(ellipse 70% 50% at 50% 50%, #000 30%, transparent 80%);
+        -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 50%, #000 30%, transparent 80%);
+      }
+
+      [data-composition-id="cierre"] .logo {
+        width: 200px; height: 200px;
+        background: #fff; border-radius: 44px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 24px 64px rgba(5,150,105,0.55);
+        margin-bottom: 44px;
+        position: relative; z-index: 2;
+      }
+      [data-composition-id="cierre"] .logo img { width: 130px; height: 130px; object-fit: contain; }
+
+      [data-composition-id="cierre"] .pre {
+        font-weight: 600; font-size: 56px;
+        color: #a7f3d0;
+        letter-spacing: -0.005em;
+        margin-bottom: 8px;
+        position: relative; z-index: 2;
+      }
+      [data-composition-id="cierre"] .url {
+        font-weight: 900; font-size: 132px;
+        color: #ffffff;
+        letter-spacing: -0.025em;
+        line-height: 1;
+        position: relative; z-index: 2;
+        overflow: hidden;
+        background: linear-gradient(180deg, #ffffff 0%, #d1fae5 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      [data-composition-id="cierre"] .url span { display: inline-block; }
+
+      [data-composition-id="cierre"] .sub {
+        margin-top: 36px;
+        font-weight: 600; font-size: 50px;
+        color: #d1fae5;
+        text-align: center;
+        max-width: 920px;
+        line-height: 1.15;
+        position: relative; z-index: 2;
+      }
+
+      [data-composition-id="cierre"] .cta {
+        margin-top: 72px;
+        display: inline-flex; align-items: center; gap: 24px;
+        padding: 30px 60px;
+        background: #ffffff; color: #059669;
+        border-radius: 999px;
+        font-weight: 900; font-size: 50px;
+        box-shadow: 0 22px 56px rgba(0,0,0,0.30);
+        position: relative; z-index: 2;
+      }
+      [data-composition-id="cierre"] .cta .arrow {
+        font-size: 54px; line-height: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="cierre" data-start="0" data-width="1080" data-height="1920">
+      <div class="stage">
+        <div class="blob-a" id="cl-blob-a"></div>
+        <div class="blob-b" id="cl-blob-b"></div>
+        <div class="grid-overlay" id="cl-grid"></div>
+
+        <div class="logo" id="cl-logo">
+          <img src="../assets/logo.png" alt="CashBak" />
+        </div>
+        <div class="pre" id="cl-pre">Compra en</div>
+        <div class="url"><span id="cl-url">www.cashbak.cl</span></div>
+        <p class="sub" id="cl-sub">Tu producto + tu CashBak.</p>
+        <div class="cta" id="cl-cta">
+          <span>Ver productos</span>
+          <span class="arrow">→</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      gsap.set("#cl-grid", { opacity: 0 });
+      gsap.set("#cl-logo", { scale: 0.6, opacity: 0, transformOrigin: "50% 50%" });
+      gsap.set("#cl-pre", { y: 24, opacity: 0 });
+      gsap.set("#cl-url", { yPercent: 110 });
+      gsap.set("#cl-sub", { y: 24, opacity: 0 });
+      gsap.set("#cl-cta", { y: 30, opacity: 0, scale: 0.92, transformOrigin: "50% 50%" });
+
+      tl.to("#cl-grid", { opacity: 1, duration: 1.2, ease: "power1.out" }, 0);
+      tl.to("#cl-logo", { scale: 1, opacity: 1, duration: 0.85, ease: "back.out(1.5)" }, 0.1);
+      tl.to("#cl-pre", { y: 0, opacity: 1, duration: 0.55, ease: "power2.out" }, 0.55);
+      tl.to("#cl-url", { yPercent: 0, duration: 0.95, ease: "power3.out" }, 0.75);
+      tl.to("#cl-sub", { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 1.5);
+
+      tl.to("#cl-cta", { y: 0, opacity: 1, scale: 1, duration: 0.65, ease: "back.out(1.5)" }, 1.95);
+      tl.to("#cl-cta", { scale: 1.06, duration: 0.4, yoyo: true, repeat: 3, ease: "sine.inOut", transformOrigin: "50% 50%" }, 2.7);
+
+      // ambient drift
+      tl.fromTo("#cl-blob-a", { x: 0, y: 0 }, { x: -30, y: 30, duration: 5, ease: "sine.inOut" }, 0);
+      tl.fromTo("#cl-blob-b", { x: 0, y: 0 }, { x: 30, y: -20, duration: 5, ease: "sine.inOut" }, 0);
+      tl.fromTo(".stage", { scale: 1 }, { scale: 1.03, duration: 5, ease: "power1.inOut" }, 0);
+      tl.fromTo("#cl-logo", { rotation: -1 }, { rotation: 1.5, duration: 5, ease: "sine.inOut" }, 0);
+
+      // final fade out (allowed on last scene)
+      tl.to(["#cl-logo", "#cl-pre", "#cl-url", "#cl-sub", "#cl-cta"], { opacity: 0.0, duration: 0.4, ease: "power1.in" }, 4.6);
+
+      window.__timelines["cierre"] = tl;
+    </script>
+  </body>
+</html>

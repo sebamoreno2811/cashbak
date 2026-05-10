@@ -40,8 +40,25 @@ export async function updateShippingStatus(orderId: string, shipping_status: str
 
   if (shipping_status === "Entregado") return { error: "No autorizado" }
 
-  // Usar admin client para el update (la verificación de acceso ya se hizo arriba)
+  // Fix 1 & 2: leer estado actual y aplicar transiciones válidas
   const admin = createSupabaseAdminClient()
+  const { data: currentOrder } = await admin
+    .from("orders")
+    .select("shipping_status")
+    .eq("id", orderId)
+    .single()
+
+  const currentStatus = currentOrder?.shipping_status ?? ""
+
+  if (currentStatus === "Entregado") return { error: "Este pedido ya fue entregado y no puede modificarse" }
+
+  const STATUS_ORDER = ["Preparando pedido", "Listo para entrega", "Enviado"]
+  const currentIdx = STATUS_ORDER.indexOf(currentStatus)
+  const newIdx = STATUS_ORDER.indexOf(shipping_status)
+  if (currentIdx !== -1 && newIdx !== -1 && newIdx < currentIdx) {
+    return { error: "No se puede retroceder el estado de un pedido" }
+  }
+
   const { error } = await admin
     .from("orders")
     .update({ shipping_status, updated_at: new Date().toISOString() })
@@ -72,8 +89,15 @@ export async function updateShippingStatus(orderId: string, shipping_status: str
       const isPickup = chosenOption?.type === "pickup"
       const pickupAddress = chosenOption?.address ?? ""
 
-      // Generar token de confirmación (requiere service role para saltarse RLS)
+      // Fix 4: invalidar tokens anteriores antes de crear uno nuevo
       const supabaseAdmin = createSupabaseClientWithoutCookies()
+      await supabaseAdmin
+        .from("order_tokens")
+        .update({ used: true })
+        .eq("order_id", orderId)
+        .eq("action", "confirm_received")
+        .eq("used", false)
+
       const { data: tokenRow } = await supabaseAdmin
         .from("order_tokens")
         .insert({ order_id: orderId, action: "confirm_received" })
