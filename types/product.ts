@@ -13,7 +13,7 @@ export type Product = {
   category_names: string[] | null
   brand: string | null
   stock: Record<string, number>
-  margin_pct?: number | null  // margen neto del vendedor como fracción (ej: 0.40 = 40%)
-  net_margin?: number | null  // margen neto en CLP
+  margin_pct?: number | null  // ingreso bruto del vendedor como fracción del precio (ej: 0.85 = comisión 15% a CashBak)
+  net_margin?: number | null  // ingreso neto del vendedor en CLP (ya descontado 2% Transbank)
   store_id?: string | null
 }

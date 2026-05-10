@@ -1041,7 +1041,7 @@ function ProductFormModal({
     const payload = {
       name, price: priceNum, cost: 0,
       margin_pct: priceNum > 0 ? gananciaCLP / priceNum : 0,
-      net_margin: sim?.margenVendedor ?? 0,
+      net_margin: sim?.margenVendedorNeto ?? 0,
       category_name: categoryNames[0] ?? "",
       category_names: categoryNames,
       description, image_url: imageUrl, images: finalImages, stock: stockPayload,
