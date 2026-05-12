@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { TrendingUp, ShoppingBag, Users, CheckCircle2, Clock, Package, AlertTriangle, BarChart3, Repeat2 } from "lucide-react"
+import { TrendingUp, ShoppingBag, Users, CheckCircle2, Clock, Package, AlertTriangle, BarChart3, Repeat } from "lucide-react"
 
 const fmt = (n: number) => Math.round(n).toLocaleString("es-CL")
 
@@ -147,7 +147,7 @@ export default function SellerDashboard({
             label="Clientes que repiten"
             value={String(recurringCount)}
             sub="Más de 1 compra"
-            icon={<Repeat2 className="w-5 h-5 text-indigo-600" />}
+            icon={<Repeat className="w-5 h-5 text-indigo-600" />}
             color="bg-indigo-50"
           />
         </div>
