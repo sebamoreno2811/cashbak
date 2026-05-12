@@ -10,7 +10,7 @@ import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
 import { addProduct, updateProduct, deleteProduct, updateStoreDeliveryOptions, updateStoreBankAccount } from "./actions"
 import {
   Pencil, Trash2, Plus, X, Truck, MapPin, Package, ShoppingBag,
-  Banknote, CheckCircle2, Loader2, Building2, ExternalLink, Search,
+  Banknote, CheckCircle2, Loader2, Building2, ExternalLink, Search, LayoutDashboard,
 } from "lucide-react"
 import type { DeliveryOption } from "@/types/delivery"
 import CashbakCommissionSelector from "@/components/cashbak-commission-selector"
@@ -408,6 +408,11 @@ export default function StoreManager({
         <nav className="flex-1 p-3 space-y-0.5 pt-4">
           <p className="text-green-500 text-[10px] font-semibold uppercase tracking-wider px-3 mb-2">Gestión</p>
           <SidebarItem
+            icon={LayoutDashboard}
+            label="Resumen"
+            href="/mi-tienda/resumen"
+          />
+          <SidebarItem
             icon={Package}
             label="Productos"
             active={activeTab === "productos"}
@@ -464,6 +469,7 @@ export default function StoreManager({
           </div>
           {/* Horizontal scrollable tabs */}
           <div className="flex gap-1 overflow-x-auto pb-3 -mx-4 px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <MobileTab icon={LayoutDashboard} label="Resumen" href="/mi-tienda/resumen" />
             <MobileTab icon={Package} label="Productos" active={activeTab === "productos"} onClick={() => setActiveTab("productos")} />
             <MobileTab icon={ShoppingBag} label="Pedidos" href="/mi-tienda/pedidos" />
             <MobileTab icon={Truck} label="Entregas" active={activeTab === "entregas"} onClick={() => setActiveTab("entregas")} dot={deliveryHasChanges} dotColor="bg-amber-400" />
