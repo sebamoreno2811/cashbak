@@ -1002,7 +1002,7 @@ function ProductRow({
               className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-700 transition-colors cursor-pointer"
             >
               <Pencil className="w-3 h-3" />
-              Editar
+              Editar stock
             </button>
           </div>
         )}
@@ -1011,15 +1011,17 @@ function ProductRow({
       <div className="flex flex-col gap-1 shrink-0">
         <button
           onClick={() => onEdit(product)}
-          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 hover:bg-gray-100 px-2 py-1.5 rounded-lg transition-colors cursor-pointer"
         >
-          <Pencil className="w-4 h-4" />
+          <Pencil className="w-3.5 h-3.5 shrink-0" />
+          <span>Editar producto</span>
         </button>
         <button
           onClick={() => onDelete(product.id)}
-          className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-600 hover:bg-red-50 px-2 py-1.5 rounded-lg transition-colors cursor-pointer"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-3.5 h-3.5 shrink-0" />
+          <span>Eliminar</span>
         </button>
       </div>
     </div>
