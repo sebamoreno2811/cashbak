@@ -135,6 +135,24 @@ export async function updateStoreBankAccount(data: {
   return { success: true }
 }
 
+export async function updateProductStock(productId: number, stock: Record<string, number>) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "No autorizado" }
+
+  const store = await getVendorStore(supabase, user.id)
+  if (!store) return { error: "No tienes una tienda aprobada" }
+
+  const { error } = await supabase.from("products")
+    .update({ stock })
+    .eq("id", productId)
+    .eq("store_id", store.id)
+
+  if (error) return { error: error.message }
+  revalidatePath("/mi-tienda")
+  return { success: true }
+}
+
 export async function deleteProduct(productId: number) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

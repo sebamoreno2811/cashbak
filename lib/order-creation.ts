@@ -437,9 +437,9 @@ async function sendEmailsBestEffort(ctx: EmailContext) {
             </td>
             <td style="padding:10px 12px;text-align:right;vertical-align:top;white-space:nowrap;">
               <p style="margin:0;font-size:13px;">Precio: <strong>$${(item.price * item.quantity).toLocaleString("es-CL")}</strong></p>
-              <p style="margin:2px 0 0 0;font-size:12px;color:#2563eb;">Monto a apostar: $${(item.bet_amount ?? 0).toLocaleString("es-CL")}</p>
-              <p style="margin:2px 0 0 0;font-size:12px;color:#7c3aed;">Comisión CashBak + procesamiento: $${comisionTotal.toLocaleString("es-CL")}</p>
-              <p style="margin:2px 0 0 0;font-size:12px;color:#059669;font-weight:600;">Ingreso neto vendedor: $${(item.vendor_net_amount ?? 0).toLocaleString("es-CL")}</p>
+              <p style="margin:2px 0 0 0;font-size:12px;color:#2563eb;">Monto a apostar: $${((item.bet_amount ?? 0) * item.quantity).toLocaleString("es-CL")}</p>
+              <p style="margin:2px 0 0 0;font-size:12px;color:#7c3aed;">Comisión CashBak + procesamiento: $${(comisionTotal * item.quantity).toLocaleString("es-CL")}</p>
+              <p style="margin:2px 0 0 0;font-size:12px;color:#059669;font-weight:600;">Ingreso neto vendedor: $${((item.vendor_net_amount ?? 0) * item.quantity).toLocaleString("es-CL")}</p>
             </td>
           </tr>`
       })

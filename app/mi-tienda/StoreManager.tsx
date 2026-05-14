@@ -7,10 +7,10 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
 import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
-import { addProduct, updateProduct, deleteProduct, updateStoreDeliveryOptions, updateStoreBankAccount } from "./actions"
+import { addProduct, updateProduct, deleteProduct, updateProductStock, updateStoreDeliveryOptions, updateStoreBankAccount } from "./actions"
 import {
   Pencil, Trash2, Plus, X, Truck, MapPin, Package, ShoppingBag,
-  Banknote, CheckCircle2, Loader2, Building2, ExternalLink, Search, LayoutDashboard,
+  Banknote, CheckCircle2, Loader2, Building2, ExternalLink, Search, LayoutDashboard, Check,
 } from "lucide-react"
 import type { DeliveryOption } from "@/types/delivery"
 import CashbakCommissionSelector from "@/components/cashbak-commission-selector"
@@ -371,6 +371,12 @@ export default function StoreManager({
     else setProducts(prev => prev.filter(p => p.id !== id))
   }
 
+  async function handleStockUpdate(id: number, stock: Record<string, number>) {
+    const res = await updateProductStock(id, stock)
+    if (!res.error) setProducts(prev => prev.map(p => p.id === id ? { ...p, stock } : p))
+    return res
+  }
+
   const storeCategories = store.categories?.length ? store.categories : store.category ? [store.category] : []
 
   const TAB_LABELS: Record<Tab, string> = {
@@ -556,7 +562,7 @@ export default function StoreManager({
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {filteredProducts.map(p => (
-                        <ProductRow key={p.id} product={p} onEdit={openEdit} onDelete={handleDelete} />
+                        <ProductRow key={p.id} product={p} onEdit={openEdit} onDelete={handleDelete} onStockUpdate={handleStockUpdate} />
                       ))}
                     </div>
                   )}
@@ -865,13 +871,53 @@ function ProductRow({
   product,
   onEdit,
   onDelete,
+  onStockUpdate,
 }: {
   product: StoreProduct
   onEdit: (p: StoreProduct) => void
   onDelete: (id: number) => void
+  onStockUpdate: (id: number, stock: Record<string, number>) => Promise<{ error?: string }>
 }) {
   const marginPct = product.margin_pct ?? 0
   const ganancia = Math.round(marginPct * product.price) - Math.round(0.02 * product.price)
+
+  const currentStock = product.stock ?? {}
+  const isSingleMode = "Única" in currentStock
+  const totalStock = Object.values(currentStock).reduce((s, n) => s + n, 0)
+
+  const [editingStock, setEditingStock] = useState(false)
+  const [stockValues, setStockValues] = useState<Record<string, number>>({})
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  function openStockEdit() {
+    setStockValues(isSingleMode
+      ? { "Única": currentStock["Única"] ?? 0 }
+      : Object.fromEntries(SIZES.map(s => [s, currentStock[s] ?? 0]))
+    )
+    setSaveError(null)
+    setEditingStock(true)
+  }
+
+  async function saveStock() {
+    setSaving(true)
+    setSaveError(null)
+    const res = await onStockUpdate(product.id, stockValues)
+    setSaving(false)
+    if (res.error) { setSaveError(res.error); return }
+    setEditingStock(false)
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") saveStock()
+    if (e.key === "Escape") setEditingStock(false)
+  }
+
+  const stockBadgeColor = totalStock === 0
+    ? "bg-red-100 text-red-700"
+    : totalStock <= 3
+      ? "bg-amber-100 text-amber-700"
+      : "bg-gray-100 text-gray-600"
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 flex gap-3 hover:border-gray-300 hover:shadow-sm transition-all">
@@ -884,6 +930,7 @@ function ProductRow({
           </div>
         )}
       </div>
+
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-gray-800 truncate">{product.name}</p>
         <p className="text-sm text-gray-600">${FMT(product.price)}</p>
@@ -891,7 +938,70 @@ function ProductRow({
           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           <span className="text-xs text-emerald-700 font-semibold">Ganas ${FMT(ganancia)}</span>
         </div>
+
+        {/* Stock inline */}
+        {editingStock ? (
+          <div className="mt-2.5" onKeyDown={handleKeyDown}>
+            {isSingleMode ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 shrink-0">Stock</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={9999}
+                  value={stockValues["Única"] ?? 0}
+                  onChange={e => setStockValues({ "Única": Math.max(0, Number(e.target.value)) })}
+                  autoFocus
+                  className="w-20 text-sm border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-1.5">
+                {SIZES.map(size => (
+                  <div key={size} className="flex flex-col items-center gap-0.5">
+                    <span className="text-[10px] text-gray-400 font-medium">{size}</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={9999}
+                      value={stockValues[size] ?? 0}
+                      onChange={e => setStockValues(prev => ({ ...prev, [size]: Math.max(0, Number(e.target.value)) }))}
+                      autoFocus={size === "S"}
+                      className="w-full text-sm text-center border border-gray-300 rounded-lg px-1 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+            {saveError && <p className="text-xs text-red-500 mt-1">{saveError}</p>}
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                onClick={saveStock}
+                disabled={saving}
+                className="flex items-center gap-1 text-xs bg-green-600 hover:bg-green-700 text-white font-medium px-2.5 py-1 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                Guardar
+              </button>
+              <button
+                onClick={() => setEditingStock(false)}
+                className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={openStockEdit}
+            className={`mt-2 inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer hover:opacity-75 transition-opacity ${stockBadgeColor}`}
+          >
+            <Package className="w-3 h-3" />
+            {totalStock === 0 ? "Agotado — actualizar" : `${totalStock} en stock`}
+          </button>
+        )}
       </div>
+
       <div className="flex flex-col gap-1 shrink-0">
         <button
           onClick={() => onEdit(product)}
