@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, CreditCard, AlertCircle, CheckCircle, XCircle, Loader2, Truck, MapPin } from "lucide-react"
 import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
-import { saveCheckoutData, updateProductStock, verifyCartStock } from "./actions"
-import { saveCheckoutSession, getCheckoutSession, deleteCheckoutSession } from "@/app/actions/checkout-session"
+import { verifyCartStock, verifyOrderCreated } from "./actions"
+import { saveCheckoutSession } from "@/app/actions/checkout-session"
 import posthog from "posthog-js"
 import AuthModal from "@/components/auth/auth-modal"
 import useSupabaseUser from "@/hooks/use-supabase-user"
@@ -129,67 +129,32 @@ export default function CheckoutPage() {
   }, [])
 
   const handleSuccessfulPayment = async (orderIdParam: string | null) => {
-  // Si ya procesamos este pago en esta sesión del browser (ej: refresh), mostrar éxito directo
-  if (orderIdParam && sessionStorage.getItem(`paid_${orderIdParam}`)) {
-    setPaymentSuccess(true)
-    setIsLoading(false)
-    return
-  }
-
-  try {
-    let cartItems: any[] = []
-    let cashbakTotal = 0
-    let deliveryType = ""
-    let shippingCost = 0
-    let formData: any = null
-    let resolvedFromDB = false
-
-    // 1. Intentar obtener datos desde Supabase (fuente principal)
-    if (orderIdParam) {
-      const session = await getCheckoutSession(orderIdParam)
-      if (session) {
-        cartItems = session.cart_items
-        cashbakTotal = Number(session.cashbak_total)
-        deliveryType = session.delivery_type ?? ""
-        shippingCost = Number(session.shipping_cost)
-        resolvedFromDB = true
-      }
+    // La orden ya fue creada server-side en /api/webpay/commit a partir del resultado
+    // de tx.commit() de Transbank. Acá solo verificamos que efectivamente exista y mostramos
+    // el estado al usuario.
+    if (!orderIdParam) {
+      setPaymentError("cobro_sin_orden")
+      setIsLoading(false)
+      return
     }
 
-    // 2. Fallback a localStorage si Supabase no tiene la sesión
-    if (!resolvedFromDB) {
-      const cartItemsStr = localStorage.getItem("checkout_cart_items")
-      const cashbakTotalStr = localStorage.getItem("checkout_cashbak_total")
-      const deliveryTypeStr = localStorage.getItem("checkout_delivery_type")
-      const shippingCostStr = localStorage.getItem("checkout_shipping_cost")
-      if (!cartItemsStr) {
-        console.error("[checkout] Sin datos de sesión en DB ni localStorage. orderIdParam:", orderIdParam)
+    // Cache local para no re-pingear la DB en cada refresh
+    if (sessionStorage.getItem(`paid_${orderIdParam}`)) {
+      setPaymentSuccess(true)
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const result = await verifyOrderCreated(orderIdParam)
+      if (!result.exists) {
+        console.error("[checkout] orden no encontrada para buyOrder=", orderIdParam)
         setPaymentError("cobro_sin_orden")
         return
       }
-      cartItems = JSON.parse(cartItemsStr)
-      cashbakTotal = Number.parseFloat(cashbakTotalStr ?? "0") || 0
-      deliveryType = String(deliveryTypeStr ?? "")
-      shippingCost = Number.parseFloat(shippingCostStr ?? "0") || 0
-    }
 
-    const formDataStr = localStorage.getItem("checkout_form_data")
-    formData = formDataStr ? JSON.parse(formDataStr) : {}
-
-    const result = await saveCheckoutData(formData, cartItems, 0, cashbakTotal, deliveryType, shippingCost)
-
-    if (result.success) {
-      const stockResult = await updateProductStock(cartItems)
-      if (!stockResult.success) {
-        console.error("Error al actualizar stock (orden ya creada):", stockResult.error)
-      }
-
-      if (orderIdParam) await deleteCheckoutSession(orderIdParam)
-
-      // Marcar como exitoso en sessionStorage para manejar refresh sin re-procesar
-      if (orderIdParam) sessionStorage.setItem(`paid_${orderIdParam}`, "1")
-
-      posthog.capture("compra_completada", { order_id: orderIdParam, cashbak_total: cashbakTotal })
+      sessionStorage.setItem(`paid_${orderIdParam}`, "1")
+      posthog.capture("compra_completada", { order_id: orderIdParam })
       setPaymentSuccess(true)
       if (!bankAccount) setShowBankReminder(true)
       clearCart()
@@ -200,17 +165,13 @@ export default function CheckoutPage() {
       localStorage.removeItem("checkout_order_id")
       localStorage.removeItem("checkout_delivery_type")
       localStorage.removeItem("checkout_delivery_option")
-    } else {
-      console.error("[checkout] saveCheckoutData falló. orderIdParam:", orderIdParam, "error:", result.error)
+    } catch (err: any) {
+      console.error("[checkout] Error verificando orden:", err)
       setPaymentError("cobro_sin_orden")
+    } finally {
+      setIsLoading(false)
     }
-  } catch (err: any) {
-    console.error("[checkout] Error inesperado en handleSuccessfulPayment:", err)
-    setPaymentError("cobro_sin_orden")
-  } finally {
-    setIsLoading(false)
   }
-}
 
 
   const handlePayment = async () => {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { createSupabaseClientWithoutCookies } from "@/utils/supabase/server"
+import { safeJsonForScript } from "@/lib/utils"
 
 function slugify(text: string) {
   return text
@@ -85,7 +86,7 @@ export default async function ProductLayout({
       {jsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonForScript(jsonLd) }}
         />
       )}
       {children}

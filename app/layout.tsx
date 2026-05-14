@@ -15,6 +15,7 @@ import { ShippingAddressProvider } from "@/context/shipping-context"
 import { CommentProvider } from "@/context/comment-context"
 import { CustomerProvider } from "@/context/customer-context"
 import PushProvider from "@/components/push-provider"
+import { safeJsonForScript } from "@/lib/utils"
 
 
 
@@ -89,7 +90,7 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: safeJsonForScript({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "CashBak",
