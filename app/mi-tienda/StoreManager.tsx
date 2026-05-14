@@ -992,13 +992,19 @@ function ProductRow({
             </div>
           </div>
         ) : (
-          <button
-            onClick={openStockEdit}
-            className={`mt-2 inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer hover:opacity-75 transition-opacity ${stockBadgeColor}`}
-          >
-            <Package className="w-3 h-3" />
-            {totalStock === 0 ? "Agotado — actualizar" : `${totalStock} en stock`}
-          </button>
+          <div className="mt-2 flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${stockBadgeColor}`}>
+              <Package className="w-3 h-3" />
+              {totalStock === 0 ? "Agotado" : `${totalStock} en stock`}
+            </span>
+            <button
+              onClick={openStockEdit}
+              className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-700 transition-colors cursor-pointer"
+            >
+              <Pencil className="w-3 h-3" />
+              Editar
+            </button>
+          </div>
         )}
       </div>
 
