@@ -462,7 +462,7 @@ export default function StoreManager({
               <textarea
                 value={descriptionDraft}
                 onChange={e => setDescriptionDraft(e.target.value)}
-                maxLength={300}
+                maxLength={160}
                 rows={3}
                 autoFocus
                 placeholder="Describe tu tienda..."
@@ -485,16 +485,19 @@ export default function StoreManager({
               </div>
             </div>
           ) : (
-            <div className="flex items-start gap-1.5 group">
-              <p className="flex-1 text-xs text-green-400 line-clamp-3 leading-relaxed">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-semibold text-green-600 uppercase tracking-wider">Descripción</span>
+                <button
+                  onClick={() => { setDescriptionDraft(description); setEditingDescription(true) }}
+                  className="text-green-700 hover:text-green-300 transition-colors cursor-pointer"
+                >
+                  <Pencil className="w-3 h-3" />
+                </button>
+              </div>
+              <p className="text-xs text-green-400 line-clamp-3 leading-relaxed">
                 {description || <span className="italic text-green-700">Sin descripción</span>}
               </p>
-              <button
-                onClick={() => { setDescriptionDraft(description); setEditingDescription(true) }}
-                className="shrink-0 text-green-700 hover:text-green-300 transition-colors cursor-pointer mt-0.5"
-              >
-                <Pencil className="w-3 h-3" />
-              </button>
             </div>
           )}
         </div>
@@ -579,7 +582,7 @@ export default function StoreManager({
               <textarea
                 value={descriptionDraft}
                 onChange={e => setDescriptionDraft(e.target.value)}
-                maxLength={300}
+                maxLength={160}
                 rows={2}
                 autoFocus
                 placeholder="Describe tu tienda..."
@@ -740,12 +743,12 @@ export default function StoreManager({
 
                 <div>
                   <label className="text-xs font-medium text-gray-600 block mb-1">
-                    Descripción <span className="text-gray-400 font-normal">({descriptionDraft.length}/300)</span>
+                    Descripción <span className="text-gray-400 font-normal">({descriptionDraft.length}/160)</span>
                   </label>
                   <textarea
                     value={descriptionDraft}
                     onChange={e => setDescriptionDraft(e.target.value)}
-                    maxLength={300}
+                    maxLength={160}
                     rows={4}
                     placeholder="Cuéntale a tus clientes de qué trata tu tienda, qué vendes, tu historia..."
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 resize-none"
