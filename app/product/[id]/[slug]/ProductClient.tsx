@@ -84,11 +84,11 @@ function StarDisplay({ rating, count, size = "sm" }: { rating: number; count?: n
 
 // ─── Main client component ────────────────────────────────────────────────────
 
-export default function ProductClient() {
+export default function ProductClient({ initialProduct }: { initialProduct: Product | null }) {
   const params = useParams()
   const router = useRouter()
   const { products, loading, error } = useProducts()
-  const [product, setProduct] = useState<Product | null>(null)
+  const [product, setProduct] = useState<Product | null>(initialProduct)
   const { selectedOption, setSelectedOption } = useBetOption()
   const [cashbak, setcashbak] = useState(0)
   const [quantity, setQuantity] = useState(1)
@@ -148,30 +148,30 @@ export default function ProductClient() {
   const { addItem, items } = useCart()
 
   useEffect(() => {
-    if (!loading && products) {
-      const foundProduct = products.find(p => p.id.toString() === params.id)
-      if (foundProduct) {
-        import("posthog-js").then(({ default: posthog }) => {
-          posthog.capture("producto_visto", { product_id: foundProduct.id, product_name: foundProduct.name, price: foundProduct.price })
+    const target = product ?? (!loading && products ? products.find(p => p.id.toString() === params.id) ?? null : null)
+    if (!target) return
+
+    if (!product) setProduct(target)
+
+    import("posthog-js").then(({ default: posthog }) => {
+      posthog.capture("producto_visto", { product_id: target.id, product_name: target.name, price: target.price })
+    })
+
+    const keys = Object.keys(target.stock ?? {})
+    const single = keys.length === 1 && keys[0] === "Única"
+    setSize(single ? "Única" : (["S", "M", "L", "XL"].find(s => (target.stock?.[s] ?? 0) > 0) ?? "L"))
+
+    if (target.store_id) {
+      createClient()
+        .from("stores")
+        .select("id, name, slug, logo_url")
+        .eq("id", target.store_id)
+        .single()
+        .then(({ data }: { data: { id: string; name: string; slug: string | null; logo_url: string | null } | null }) => {
+          if (data) setStore(data)
         })
-      }
-      setProduct(foundProduct ?? null)
-      if (foundProduct) {
-        const keys = Object.keys(foundProduct.stock ?? {})
-        const single = keys.length === 1 && keys[0] === "Única"
-        setSize(single ? "Única" : (["S", "M", "L", "XL"].find(s => (foundProduct.stock?.[s] ?? 0) > 0) ?? "L"))
-        if (foundProduct.store_id) {
-          createClient()
-            .from("stores")
-            .select("id, name, slug, logo_url")
-            .eq("id", foundProduct.store_id)
-            .single()
-            .then(({ data }: { data: { id: string; name: string; slug: string | null; logo_url: string | null } | null }) => {
-              if (data) setStore(data)
-            })
-        }
-      }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id, products, loading])
 
   useEffect(() => {

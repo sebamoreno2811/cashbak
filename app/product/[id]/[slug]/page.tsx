@@ -6,11 +6,11 @@ import ProductClient from "./ProductClient"
 
 type Props = { params: Promise<{ id: string; slug: string }> }
 
-const getProductMeta = cache(async (id: string) => {
+const getProduct = cache(async (id: string) => {
   const supabase = createSupabaseClientWithoutCookies()
   const { data } = await supabase
     .from("products")
-    .select("name, description, image, images, price, brand")
+    .select("*")
     .eq("id", id)
     .single()
   return data
@@ -18,7 +18,7 @@ const getProductMeta = cache(async (id: string) => {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-  const p = await getProductMeta(id)
+  const p = await getProduct(id)
   if (!p) return { title: "Producto | CashBak" }
 
   const img = p.images?.[0] ?? p.image ?? null
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { id, slug } = await params
-  const p = await getProductMeta(id)
+  const p = await getProduct(id)
 
   const schema = p
     ? {
@@ -69,7 +69,7 @@ export default async function ProductPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: safeJsonForScript(schema) }}
         />
       )}
-      <ProductClient />
+      <ProductClient initialProduct={p as any} />
     </>
   )
 }
