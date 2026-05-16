@@ -1339,6 +1339,9 @@ function ProductFormModal({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!valid) return
+    if (imageSlots.length === 0) { setError("Debes agregar al menos una foto del producto."); return }
+    if (!name.trim()) { setError("El nombre del producto es obligatorio."); return }
+    if (categoryNames.length === 0) { setError("Selecciona al menos una categoría."); return }
     setSaving(true); setError(null)
 
     const supabase = createClient()
@@ -1484,7 +1487,7 @@ function ProductFormModal({
                         className={`flex items-center justify-between px-3 py-2 rounded-lg border text-left text-sm transition-colors cursor-pointer ${
                           selectedBetId === bet.id ? "bg-green-900 border-green-900 text-white" : "bg-white border-gray-200 text-gray-700 hover:border-green-700"
                         }`}>
-                        <span className="font-medium truncate">{bet.name}</span>
+                        <span className="font-medium leading-snug">{bet.name}</span>
                       </button>
                     ))}
                   </div>
@@ -1604,10 +1607,13 @@ function ProductFormModal({
             <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
           )}
 
-          <button type="submit" disabled={saving || !valid || !name.trim() || categoryNames.length === 0}
+          <button type="submit" disabled={saving || !valid || !name.trim() || categoryNames.length === 0 || imageSlots.length === 0}
             className="w-full py-3 bg-green-900 text-white rounded-xl font-semibold hover:bg-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
             {uploading ? "Subiendo imagen..." : saving ? "Guardando..." : initial ? "Guardar cambios" : "Agregar producto"}
           </button>
+          {imageSlots.length === 0 && (
+            <p className="text-xs text-center text-gray-400">Agrega al menos una foto para poder publicar el producto</p>
+          )}
         </form>
       </div>
     </div>
