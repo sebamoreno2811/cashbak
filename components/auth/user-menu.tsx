@@ -13,7 +13,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { createClient } from "@/utils/supabase/client"
 import { User, LogOut, ShoppingBag, Shield, Building2, LayoutDashboard, ChevronDown, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import BankAccountReminderModal from "@/components/bank-account-reminder-modal"
 
 
 interface UserMenuProps {
@@ -25,7 +24,6 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [hasStore, setHasStore] = useState(false)
-  const [showBankReminder, setShowBankReminder] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const supabase = createClient()
   const router = useRouter()
@@ -49,31 +47,9 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event: any, session: { user: any }) => {
+    } = supabase.auth.onAuthStateChange((event: any, session: { user: any }) => {
       setUser(session?.user ?? null)
       setLoading(false)
-
-      // Mostrar recordatorio si no tiene cuenta bancaria
-      // SIGNED_IN = login fresco, INITIAL_SESSION = sesión existente al cargar página
-      if (event === "SIGNED_OUT") {
-        sessionStorage.removeItem("bank_reminder_shown")
-      }
-
-      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user) {
-        const alreadyShown = sessionStorage.getItem("bank_reminder_shown")
-        if (alreadyShown) return
-
-        const { data } = await supabase
-          .from("bank_accounts")
-          .select("id")
-          .eq("customer_id", session.user.id)
-          .maybeSingle()
-
-        if (!data) {
-          setShowBankReminder(true)
-          sessionStorage.setItem("bank_reminder_shown", "1")
-        }
-      }
     })
 
     return () => subscription.unsubscribe()
@@ -114,12 +90,6 @@ export default function UserMenu({ onAuthRequired }: UserMenuProps) {
 
   return (
     <>
-    <BankAccountReminderModal
-      open={showBankReminder}
-      onClose={() => setShowBankReminder(false)}
-      context="login"
-    />
-
     {/* Acceso rápido a Mi Tienda — visible en el navbar para vendedores */}
     {hasStore && (
       <a
