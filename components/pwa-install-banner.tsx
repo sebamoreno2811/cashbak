@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { X, Download, Share } from "lucide-react"
+import Image from "next/image"
 import useSupabaseUser from "@/hooks/use-supabase-user"
 
 const STORAGE_KEY = "cashbak_pwa_dismissed"
@@ -13,7 +14,7 @@ function isIos() {
 
 function isAlreadyInstalled() {
   if (typeof window === "undefined") return true
-  // @ts-ignore — navigator.standalone es solo Safari/iOS
+  // @ts-ignore
   return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true
 }
 
@@ -26,7 +27,6 @@ export default function PwaInstallBanner() {
   const { user } = useSupabaseUser()
   const [visible, setVisible] = useState(false)
   const [isIosDevice, setIsIosDevice] = useState(false)
-  // deferredPrompt solo existe en Android/Chrome
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
 
   useEffect(() => {
@@ -61,59 +61,69 @@ export default function PwaInstallBanner() {
     if (deferredPrompt) {
       deferredPrompt.prompt()
       const { outcome } = await deferredPrompt.userChoice
-      if (outcome === "accepted") {
-        localStorage.setItem(STORAGE_KEY, "1")
-      }
+      if (outcome === "accepted") localStorage.setItem(STORAGE_KEY, "1")
       setDeferredPrompt(null)
     }
     setVisible(false)
   }
 
-  // En iOS no hay beforeinstallprompt — igual mostramos el banner con instrucciones
-  // En Android esperamos el evento; si no llega (ya instalada / no soportado) no mostramos
   if (!visible) return null
   if (!isIosDevice && !deferredPrompt) return null
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-3 pointer-events-none">
-      <div className="pointer-events-auto bg-white border border-gray-200 rounded-2xl shadow-xl p-4 flex items-start gap-3 max-w-sm mx-auto">
-        {/* Ícono app */}
-        <div className="w-12 h-12 rounded-xl bg-green-900 flex items-center justify-center shrink-0">
-          <span className="text-white text-lg font-extrabold leading-none">CB</span>
+    // z-[55] queda sobre Baki (z-50); bottom-20 deja espacio sobre el botón de Baki
+    <div className="fixed bottom-20 left-3 right-3 z-[55] flex justify-center pointer-events-none">
+      <div className="pointer-events-auto w-full max-w-sm bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden">
+
+        {/* Header verde */}
+        <div className="bg-green-900 px-4 py-3 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl overflow-hidden bg-white/15 flex items-center justify-center shrink-0">
+            <Image
+              src="/img/logo_no_text.png"
+              alt="CashBak"
+              width={36}
+              height={36}
+              className="object-contain"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-bold text-sm leading-tight">Agrega CashBak a tu pantalla</p>
+            <p className="text-green-200 text-xs mt-0.5">Acceso rápido sin abrir el navegador</p>
+          </div>
+          <button
+            onClick={dismiss}
+            className="p-1 text-white/50 hover:text-white transition-colors cursor-pointer shrink-0"
+            aria-label="Cerrar"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900">Agrega CashBak a tu pantalla</p>
+        {/* Body */}
+        <div className="px-4 py-3">
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Déjala en tu pantalla de inicio y recibe notificaciones del estado de tus pedidos y tus CashBaks directamente en tu teléfono.
+          </p>
 
           {isIosDevice ? (
-            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-              Toca <Share className="w-3 h-3 inline mb-0.5" /> y luego{" "}
-              <strong className="text-gray-700">Agregar a pantalla de inicio</strong> para acceso rápido.
-            </p>
+            <div className="mt-3 flex items-start gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
+              <Share className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+              <p className="text-xs text-gray-600 leading-relaxed">
+                Toca <strong className="text-gray-800">Compartir</strong> en Safari y luego{" "}
+                <strong className="text-gray-800">Agregar a pantalla de inicio</strong>.
+              </p>
+            </div>
           ) : (
-            <p className="text-xs text-gray-500 mt-0.5">
-              Instálala en tu teléfono y accede más rápido, sin buscar el navegador.
-            </p>
-          )}
-
-          {!isIosDevice && (
             <button
               onClick={handleInstall}
-              className="mt-2.5 flex items-center gap-1.5 bg-green-900 hover:bg-green-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              className="mt-3 w-full flex items-center justify-center gap-2 bg-green-900 hover:bg-green-800 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-4 h-4" />
               Instalar app
             </button>
           )}
         </div>
 
-        <button
-          onClick={dismiss}
-          className="p-1 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer shrink-0 -mt-0.5"
-          aria-label="Cerrar"
-        >
-          <X className="w-4 h-4" />
-        </button>
       </div>
     </div>
   )
