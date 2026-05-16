@@ -1088,14 +1088,14 @@ function ProductRow({
   const totalStock = Object.values(currentStock).reduce((s, n) => s + n, 0)
 
   const [editingStock, setEditingStock] = useState(false)
-  const [stockValues, setStockValues] = useState<Record<string, number>>({})
+  const [stockValues, setStockValues] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
   function openStockEdit() {
     setStockValues(isSingleMode
-      ? { "Única": currentStock["Única"] ?? 0 }
-      : Object.fromEntries(SIZES.map(s => [s, currentStock[s] ?? 0]))
+      ? { "Única": String(currentStock["Única"] ?? 0) }
+      : Object.fromEntries(SIZES.map(s => [s, String(currentStock[s] ?? 0)]))
     )
     setSaveError(null)
     setEditingStock(true)
@@ -1104,7 +1104,10 @@ function ProductRow({
   async function saveStock() {
     setSaving(true)
     setSaveError(null)
-    const res = await onStockUpdate(product.id, stockValues)
+    const numericStock = Object.fromEntries(
+      Object.entries(stockValues).map(([k, v]) => [k, Math.max(0, parseInt(v) || 0)])
+    )
+    const res = await onStockUpdate(product.id, numericStock)
     setSaving(false)
     if (res.error) { setSaveError(res.error); return }
     setEditingStock(false)
@@ -1151,9 +1154,11 @@ function ProductRow({
                   type="number"
                   min={0}
                   max={9999}
-                  value={stockValues["Única"] ?? 0}
-                  onChange={e => setStockValues({ "Única": Math.max(0, Number(e.target.value)) })}
+                  value={stockValues["Única"] ?? ""}
+                  onChange={e => setStockValues({ "Única": e.target.value.replace(/[^0-9]/g, "") })}
+                  onBlur={e => { if (e.target.value === "") setStockValues({ "Única": "0" }) }}
                   onFocus={e => e.target.select()}
+                  onKeyDown={e => { if ([".", ",", "-", "+", "e", "E"].includes(e.key)) e.preventDefault() }}
                   autoFocus
                   className="w-20 text-sm border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
@@ -1167,9 +1172,11 @@ function ProductRow({
                       type="number"
                       min={0}
                       max={9999}
-                      value={stockValues[size] ?? 0}
-                      onChange={e => setStockValues(prev => ({ ...prev, [size]: Math.max(0, Number(e.target.value)) }))}
+                      value={stockValues[size] ?? ""}
+                      onChange={e => setStockValues(prev => ({ ...prev, [size]: e.target.value.replace(/[^0-9]/g, "") }))}
+                      onBlur={e => { if (e.target.value === "") setStockValues(prev => ({ ...prev, [size]: "0" })) }}
                       onFocus={e => e.target.select()}
+                      onKeyDown={e => { if ([".", ",", "-", "+", "e", "E"].includes(e.key)) e.preventDefault() }}
                       autoFocus={size === "S"}
                       className="w-full text-sm text-center border border-gray-300 rounded-lg px-1 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
@@ -1265,11 +1272,11 @@ function ProductFormModal({
     return keys.length === 1 && keys[0] === "Única" ? "single" : "sizes"
   }
   const [stockMode, setStockMode] = useState<"sizes" | "single">(initStockMode)
-  const [stockSizes, setStockSizes] = useState<Record<string, number>>(() => {
-    if (!initial?.stock || initStockMode() === "single") return { S: 0, M: 0, L: 0, XL: 0 }
-    return { S: initial.stock.S ?? 0, M: initial.stock.M ?? 0, L: initial.stock.L ?? 0, XL: initial.stock.XL ?? 0 }
+  const [stockSizes, setStockSizes] = useState<Record<string, string>>(() => {
+    if (!initial?.stock || initStockMode() === "single") return { S: "0", M: "0", L: "0", XL: "0" }
+    return { S: String(initial.stock.S ?? 0), M: String(initial.stock.M ?? 0), L: String(initial.stock.L ?? 0), XL: String(initial.stock.XL ?? 0) }
   })
-  const [stockSingle, setStockSingle] = useState<number>(() => initial?.stock?.["Única"] ?? 0)
+  const [stockSingle, setStockSingle] = useState<string>(() => String(initial?.stock?.["Única"] ?? 0))
   const [imageSlots, setImageSlots] = useState<{ url: string; file: File | null }[]>(() => {
     const existing: string[] = initial?.images?.length ? initial.images : initial?.image ? [initial.image] : []
     return existing.map(url => ({ url, file: null }))
@@ -1361,8 +1368,8 @@ function ProductFormModal({
     const imageUrl = finalImages[0] ?? null
 
     const stockPayload: Record<string, number> = stockMode === "sizes"
-      ? { S: stockSizes.S, M: stockSizes.M, L: stockSizes.L, XL: stockSizes.XL }
-      : { "Única": stockSingle }
+      ? { S: Math.max(0, parseInt(stockSizes.S) || 0), M: Math.max(0, parseInt(stockSizes.M) || 0), L: Math.max(0, parseInt(stockSizes.L) || 0), XL: Math.max(0, parseInt(stockSizes.XL) || 0) }
+      : { "Única": Math.max(0, parseInt(stockSingle) || 0) }
 
     if (Object.values(stockPayload).reduce((a, b) => a + b, 0) === 0) {
       setError("Debes agregar al menos 1 unidad de stock.")
@@ -1582,8 +1589,10 @@ function ProductFormModal({
                   <div key={s} className="text-center">
                     <div className="text-xs text-gray-500 mb-1 font-medium">{s}</div>
                     <input type="number" min={0} max={999} value={stockSizes[s]}
-                      onChange={e => setStockSizes(prev => ({ ...prev, [s]: Math.max(0, Number(e.target.value)) }))}
+                      onChange={e => setStockSizes(prev => ({ ...prev, [s]: e.target.value.replace(/[^0-9]/g, "") }))}
+                      onBlur={e => { if (e.target.value === "") setStockSizes(prev => ({ ...prev, [s]: "0" })) }}
                       onFocus={e => e.target.select()}
+                      onKeyDown={e => { if ([".", ",", "-", "+", "e", "E"].includes(e.key)) e.preventDefault() }}
                       className="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-700" />
                   </div>
                 ))}
@@ -1592,8 +1601,10 @@ function ProductFormModal({
               <div className="flex items-center gap-3">
                 <label className="text-sm text-gray-600">Cantidad disponible</label>
                 <input type="number" min={0} max={9999} value={stockSingle}
-                  onChange={e => setStockSingle(Math.max(0, Number(e.target.value)))}
+                  onChange={e => setStockSingle(e.target.value.replace(/[^0-9]/g, ""))}
+                  onBlur={e => { if (e.target.value === "") setStockSingle("0") }}
                   onFocus={e => e.target.select()}
+                  onKeyDown={e => { if ([".", ",", "-", "+", "e", "E"].includes(e.key)) e.preventDefault() }}
                   className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-700" />
               </div>
             )}
