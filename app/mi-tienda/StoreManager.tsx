@@ -495,7 +495,7 @@ export default function StoreManager({
                   <Pencil className="w-3 h-3" />
                 </button>
               </div>
-              <p className="text-xs text-green-400 line-clamp-3 leading-relaxed">
+              <p className="text-xs text-green-400 line-clamp-2 break-words leading-relaxed">
                 {description || <span className="italic text-green-700">Sin descripción</span>}
               </p>
             </div>
@@ -609,7 +609,7 @@ export default function StoreManager({
               onClick={() => { setDescriptionDraft(description); setEditingDescription(true) }}
               className="flex items-center gap-1.5 mb-2 text-left cursor-pointer group"
             >
-              <p className="text-xs text-green-400 line-clamp-1">
+              <p className="text-xs text-green-400 line-clamp-1 break-words">
                 {description || <span className="italic text-green-700">Agregar descripción...</span>}
               </p>
               <Pencil className="w-3 h-3 text-green-700 group-hover:text-green-300 transition-colors shrink-0" />
