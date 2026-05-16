@@ -51,7 +51,7 @@ export default function AplicarPage() {
   const [categories, setCategories] = useState<string[]>([])
   const [description, setDescription] = useState("")
   const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
+  const [phone, setPhone] = useState("+569")
   const [ownerRut, setOwnerRut] = useState("")
   const [instagram, setInstagram] = useState("")
   const [facebook, setFacebook] = useState("")
@@ -287,17 +287,25 @@ export default function AplicarPage() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center space-y-6">
-          <div className="text-6xl">🎉</div>
-          <h1 className="text-2xl font-bold text-gray-800">¡Solicitud enviada!</h1>
-          <p className="text-gray-600">
-            Revisaremos tu solicitud y te contactaremos pronto para confirmar tu tienda en CashBak.
+        <div className="max-w-md w-full text-center space-y-5">
+          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+            <svg className="w-10 h-10 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">¡Solicitud enviada!</h1>
+          <p className="text-gray-600 leading-relaxed">
+            Tu tienda será revisada por el equipo de CashBak. <strong>Te avisaremos por correo cuando sea aprobada.</strong>
           </p>
+          <div className="bg-green-50 border border-green-200 rounded-2xl px-6 py-5 text-left space-y-1">
+            <p className="font-semibold text-green-900 text-sm">Mientras tanto…</p>
+            <p className="text-green-800 text-sm">Visita tu tienda, personalízala y agrega tus productos. Todo quedará listo para cuando te aprobemos.</p>
+          </div>
           <Link
-            href="/"
-            className="inline-block mt-4 px-6 py-3 bg-green-900 text-white rounded-md font-semibold hover:bg-green-800 transition-colors"
+            href="/mi-tienda"
+            className="inline-flex items-center gap-2 mt-2 px-6 py-3 bg-green-900 text-white rounded-xl font-semibold hover:bg-green-800 transition-colors"
           >
-            Volver al inicio
+            Ir a Mi Tienda →
           </Link>
         </div>
       </div>

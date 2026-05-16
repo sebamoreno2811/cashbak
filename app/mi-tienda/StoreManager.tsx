@@ -7,10 +7,10 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
 import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
-import { addProduct, updateProduct, deleteProduct, updateProductStock, updateStoreDeliveryOptions, updateStoreBankAccount } from "./actions"
+import { addProduct, updateProduct, deleteProduct, updateProductStock, updateStoreDeliveryOptions, updateStoreBankAccount, updateStoreDescription } from "./actions"
 import {
   Pencil, Trash2, Plus, X, Truck, MapPin, Package, ShoppingBag,
-  Banknote, CheckCircle2, Loader2, Building2, ExternalLink, Search, LayoutDashboard, Check,
+  Banknote, CheckCircle2, Loader2, Building2, ExternalLink, Search, LayoutDashboard, Check, Lock,
 } from "lucide-react"
 import type { DeliveryOption } from "@/types/delivery"
 import CashbakCommissionSelector from "@/components/cashbak-commission-selector"
@@ -82,7 +82,7 @@ interface StoreProduct {
 const SIZES = ["S", "M", "L", "XL"]
 const FMT = (n: number) => n.toLocaleString("es-CL", { maximumFractionDigits: 0 })
 
-type Tab = "productos" | "entregas" | "pago"
+type Tab = "productos" | "perfil" | "entregas" | "pago"
 
 // ─── Sidebar nav item ─────────────────────────────────────────────────────────
 
@@ -96,6 +96,7 @@ function SidebarItem({
   dot,
   dotColor = "bg-red-400",
   external,
+  locked,
 }: {
   icon: React.ElementType
   label: string
@@ -106,13 +107,23 @@ function SidebarItem({
   dot?: boolean
   dotColor?: string
   external?: boolean
+  locked?: boolean
 }) {
   const pathname = usePathname()
   const router = useRouter()
   const [navigating, setNavigating] = useState(false)
 
-  // Reset loading state once the route has changed
   useEffect(() => { setNavigating(false) }, [pathname])
+
+  if (locked) {
+    return (
+      <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-green-700/40 cursor-not-allowed w-full select-none">
+        <Icon className="w-4 h-4 shrink-0" />
+        <span className="flex-1 truncate">{label}</span>
+        <Lock className="w-3 h-3 shrink-0" />
+      </div>
+    )
+  }
 
   const isActiveHref = href && !external && pathname.startsWith(href)
   const effectiveActive = active || isActiveHref
@@ -175,6 +186,7 @@ function MobileTab({
   href,
   dot,
   dotColor = "bg-red-400",
+  locked,
 }: {
   icon: React.ElementType
   label: string
@@ -183,12 +195,23 @@ function MobileTab({
   href?: string
   dot?: boolean
   dotColor?: string
+  locked?: boolean
 }) {
   const pathname = usePathname()
   const router = useRouter()
   const [navigating, setNavigating] = useState(false)
 
   useEffect(() => { setNavigating(false) }, [pathname])
+
+  if (locked) {
+    return (
+      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-green-200/30 cursor-not-allowed whitespace-nowrap shrink-0 select-none">
+        <Icon className="w-3.5 h-3.5 shrink-0" />
+        {label}
+        <Lock className="w-3 h-3 shrink-0" />
+      </div>
+    )
+  }
 
   const isActiveHref = href && pathname.startsWith(href)
   const effectiveActive = active || isActiveHref
@@ -230,9 +253,11 @@ function MobileTab({
 export default function StoreManager({
   store,
   initialProducts,
+  isPending = false,
 }: {
   store: Store
   initialProducts: StoreProduct[]
+  isPending?: boolean
 }) {
   const [products, setProducts] = useState<StoreProduct[]>(initialProducts)
   const [showForm, setShowForm] = useState(false)
@@ -260,6 +285,19 @@ export default function StoreManager({
       return matchesSearch && matchesCategory
     })
   }, [products, search, categoryFilter])
+
+  // Description state
+  const [description, setDescription] = useState(store.description ?? "")
+  const [descriptionDraft, setDescriptionDraft] = useState(store.description ?? "")
+  const [editingDescription, setEditingDescription] = useState(false)
+  const [savingDescription, setSavingDescription] = useState(false)
+
+  async function saveDescription() {
+    setSavingDescription(true)
+    const res = await updateStoreDescription(descriptionDraft)
+    if (!res.error) { setDescription(descriptionDraft); setEditingDescription(false) }
+    setSavingDescription(false)
+  }
 
   // Bank account state
   const [bank, setBank] = useState({
@@ -378,9 +416,11 @@ export default function StoreManager({
   }
 
   const storeCategories = store.categories?.length ? store.categories : store.category ? [store.category] : []
+  const effectiveTab = isPending ? "productos" as Tab : activeTab
 
   const TAB_LABELS: Record<Tab, string> = {
     productos: "Mis productos",
+    perfil: "Mi tienda",
     entregas: "Opciones de entrega",
     pago: "Datos bancarios",
   }
@@ -403,11 +443,60 @@ export default function StoreManager({
             </div>
             <div className="min-w-0">
               <p className="text-white font-bold text-sm truncate leading-tight">{store.name}</p>
-              {storeCategories.length > 0 && (
+              {isPending ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-300 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                  En revisión
+                </span>
+              ) : storeCategories.length > 0 ? (
                 <p className="text-green-400 text-xs truncate mt-0.5">{storeCategories[0]}</p>
-              )}
+              ) : null}
             </div>
           </div>
+        </div>
+
+        {/* Description */}
+        <div className="px-4 py-3 border-b border-green-800">
+          {editingDescription ? (
+            <div className="space-y-2">
+              <textarea
+                value={descriptionDraft}
+                onChange={e => setDescriptionDraft(e.target.value)}
+                maxLength={300}
+                rows={3}
+                autoFocus
+                placeholder="Describe tu tienda..."
+                className="w-full text-xs bg-green-800/60 text-white placeholder-green-600 border border-green-600 rounded-lg px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-green-400"
+              />
+              <div className="flex gap-1.5">
+                <button
+                  onClick={saveDescription}
+                  disabled={savingDescription}
+                  className="flex-1 text-xs bg-green-700 hover:bg-green-600 text-white rounded-lg py-1 font-medium transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {savingDescription ? "Guardando..." : "Guardar"}
+                </button>
+                <button
+                  onClick={() => { setEditingDescription(false); setDescriptionDraft(description) }}
+                  className="text-xs text-green-400 hover:text-green-200 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-1.5 group">
+              <p className="flex-1 text-xs text-green-400 line-clamp-3 leading-relaxed">
+                {description || <span className="italic text-green-700">Sin descripción</span>}
+              </p>
+              <button
+                onClick={() => { setDescriptionDraft(description); setEditingDescription(true) }}
+                className="shrink-0 text-green-700 hover:text-green-300 transition-colors cursor-pointer mt-0.5"
+              >
+                <Pencil className="w-3 h-3" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
@@ -417,6 +506,7 @@ export default function StoreManager({
             icon={LayoutDashboard}
             label="Resumen"
             href="/mi-tienda/resumen"
+            locked={isPending}
           />
           <SidebarItem
             icon={Package}
@@ -426,9 +516,16 @@ export default function StoreManager({
             badge={products.length}
           />
           <SidebarItem
+            icon={Building2}
+            label="Mi tienda"
+            active={activeTab === "perfil"}
+            onClick={() => setActiveTab("perfil")}
+          />
+          <SidebarItem
             icon={ShoppingBag}
             label="Pedidos"
             href="/mi-tienda/pedidos"
+            locked={isPending}
           />
           <SidebarItem
             icon={Truck}
@@ -437,6 +534,7 @@ export default function StoreManager({
             onClick={() => setActiveTab("entregas")}
             dot={deliveryHasChanges}
             dotColor="bg-amber-400"
+            locked={isPending}
           />
           <SidebarItem
             icon={Banknote}
@@ -445,6 +543,7 @@ export default function StoreManager({
             onClick={() => setActiveTab("pago")}
             dot={!bankComplete}
             dotColor="bg-red-400"
+            locked={isPending}
           />
 
           <div className="pt-4">
@@ -453,6 +552,7 @@ export default function StoreManager({
               icon={Building2}
               label="Ver tienda pública"
               href={`/tienda/${store.id}`}
+              locked={isPending}
             />
           </div>
         </nav>
@@ -473,27 +573,78 @@ export default function StoreManager({
             </div>
             <p className="font-bold text-sm">{store.name}</p>
           </div>
+          {/* Descripción editable mobile */}
+          {editingDescription ? (
+            <div className="space-y-2 mb-2">
+              <textarea
+                value={descriptionDraft}
+                onChange={e => setDescriptionDraft(e.target.value)}
+                maxLength={300}
+                rows={2}
+                autoFocus
+                placeholder="Describe tu tienda..."
+                className="w-full text-xs bg-green-800/60 text-white placeholder-green-600 border border-green-600 rounded-lg px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-green-400"
+              />
+              <div className="flex gap-1.5">
+                <button
+                  onClick={saveDescription}
+                  disabled={savingDescription}
+                  className="flex-1 text-xs bg-green-700 hover:bg-green-600 text-white rounded-lg py-1 font-medium transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {savingDescription ? "Guardando..." : "Guardar"}
+                </button>
+                <button
+                  onClick={() => { setEditingDescription(false); setDescriptionDraft(description) }}
+                  className="text-xs text-green-400 hover:text-green-200 px-2 py-1 rounded-lg cursor-pointer"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setDescriptionDraft(description); setEditingDescription(true) }}
+              className="flex items-center gap-1.5 mb-2 text-left cursor-pointer group"
+            >
+              <p className="text-xs text-green-400 line-clamp-1">
+                {description || <span className="italic text-green-700">Agregar descripción...</span>}
+              </p>
+              <Pencil className="w-3 h-3 text-green-700 group-hover:text-green-300 transition-colors shrink-0" />
+            </button>
+          )}
           {/* Horizontal scrollable tabs */}
           <div className="flex gap-1 overflow-x-auto pb-3 -mx-4 px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            <MobileTab icon={LayoutDashboard} label="Resumen" href="/mi-tienda/resumen" />
+            <MobileTab icon={LayoutDashboard} label="Resumen" href="/mi-tienda/resumen" locked={isPending} />
             <MobileTab icon={Package} label="Productos" active={activeTab === "productos"} onClick={() => setActiveTab("productos")} />
-            <MobileTab icon={ShoppingBag} label="Pedidos" href="/mi-tienda/pedidos" />
-            <MobileTab icon={Truck} label="Entregas" active={activeTab === "entregas"} onClick={() => setActiveTab("entregas")} dot={deliveryHasChanges} dotColor="bg-amber-400" />
-            <MobileTab icon={Banknote} label="Datos bancarios" active={activeTab === "pago"} onClick={() => setActiveTab("pago")} dot={!bankComplete} dotColor="bg-red-400" />
+            <MobileTab icon={Building2} label="Mi tienda" active={activeTab === "perfil"} onClick={() => setActiveTab("perfil")} />
+            <MobileTab icon={ShoppingBag} label="Pedidos" href="/mi-tienda/pedidos" locked={isPending} />
+            <MobileTab icon={Truck} label="Entregas" active={activeTab === "entregas"} onClick={() => setActiveTab("entregas")} dot={deliveryHasChanges} dotColor="bg-amber-400" locked={isPending} />
+            <MobileTab icon={Banknote} label="Datos bancarios" active={activeTab === "pago"} onClick={() => setActiveTab("pago")} dot={!bankComplete} dotColor="bg-red-400" locked={isPending} />
           </div>
         </div>
+
+        {/* Pending banner */}
+        {isPending && (
+          <div className="bg-amber-50 border-b border-amber-200 px-4 md:px-6 py-3 flex items-start gap-2.5">
+            <Lock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-amber-800">Tu tienda está siendo revisada</p>
+              <p className="text-xs text-amber-700 mt-0.5">Mientras tanto puedes agregar y gestionar tus productos. El resto de funciones se activarán cuando seas aprobado.</p>
+            </div>
+          </div>
+        )}
 
         {/* Content header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-gray-800">{TAB_LABELS[activeTab]}</h1>
-            {activeTab === "productos" && (
+            <h1 className="text-lg font-bold text-gray-800">{TAB_LABELS[effectiveTab]}</h1>
+            {effectiveTab === "productos" && (
               <p className="text-sm text-gray-400 mt-0.5">
                 {products.filter(p => (p.stock ? Object.values(p.stock).reduce((a, b) => a + b, 0) > 0 : false)).length} activos · {products.length} publicados
               </p>
             )}
           </div>
-          {activeTab === "productos" && (
+          {effectiveTab === "productos" && (
             <button
               onClick={openAdd}
               className="flex items-center gap-2 bg-green-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-800 transition-colors cursor-pointer"
@@ -509,7 +660,7 @@ export default function StoreManager({
         <div className="flex-1 p-4 md:p-8">
 
           {/* ── Tab: Productos ── */}
-          {activeTab === "productos" && (
+          {effectiveTab === "productos" && (
             <>
               {products.length === 0 && !showForm ? (
                 <div className="text-center py-20 text-gray-400">
@@ -571,8 +722,56 @@ export default function StoreManager({
             </>
           )}
 
+          {/* ── Tab: Mi tienda ── */}
+          {effectiveTab === "perfil" && (
+            <div className="max-w-lg">
+              <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-5">
+                <p className="text-xs text-gray-400">
+                  Esta información aparece en tu página pública cuando tu tienda sea aprobada.
+                </p>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1">Nombre de la tienda</label>
+                  <div className="w-full border border-gray-100 rounded-lg px-3 py-2 text-sm text-gray-400 bg-gray-50">
+                    {store.name}
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-1">El nombre se define al crear la tienda y no puede cambiarse aquí.</p>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1">
+                    Descripción <span className="text-gray-400 font-normal">({descriptionDraft.length}/300)</span>
+                  </label>
+                  <textarea
+                    value={descriptionDraft}
+                    onChange={e => setDescriptionDraft(e.target.value)}
+                    maxLength={300}
+                    rows={4}
+                    placeholder="Cuéntale a tus clientes de qué trata tu tienda, qué vendes, tu historia..."
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 resize-none"
+                  />
+                </div>
+
+                <button
+                  onClick={async () => {
+                    setSavingDescription(true)
+                    const res = await updateStoreDescription(descriptionDraft)
+                    if (!res.error) setDescription(descriptionDraft)
+                    setSavingDescription(false)
+                  }}
+                  disabled={savingDescription || descriptionDraft === description}
+                  className="w-full py-3 bg-green-900 text-white rounded-xl font-bold hover:bg-green-800 transition-colors disabled:opacity-50 text-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {savingDescription
+                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Guardando...</>
+                    : <><CheckCircle2 className="w-4 h-4" /> Guardar descripción</>}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* ── Tab: Datos bancarios ── */}
-          {activeTab === "pago" && (
+          {effectiveTab === "pago" && (
             <div className="max-w-lg">
               <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-5">
                 <p className="text-xs text-gray-400">
@@ -668,7 +867,7 @@ export default function StoreManager({
           )}
 
           {/* ── Tab: Entregas ── */}
-          {activeTab === "entregas" && (
+          {effectiveTab === "entregas" && (
             <div className="max-w-lg">
               <div className={`bg-white rounded-xl border p-5 space-y-4 ${deliveryHasChanges ? "border-amber-300 shadow-amber-100 shadow-md" : "border-gray-200"}`}>
                 <div className="flex items-start justify-between gap-4">

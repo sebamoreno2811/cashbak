@@ -15,20 +15,7 @@ export default async function MiTiendaPage() {
     .single()
 
   if (!store) redirect("/sell/aplicar")
-  if (store.status === "pending") {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center space-y-4">
-          <div className="text-5xl">⏳</div>
-          <h1 className="text-2xl font-bold text-gray-800">Solicitud en revisión</h1>
-          <p className="text-gray-500">
-            Tu solicitud para abrir <strong>{store.name}</strong> está siendo revisada por el equipo de CashBak.
-            Te avisaremos por correo cuando sea aprobada.
-          </p>
-        </div>
-      </div>
-    )
-  }
+
   if (store.status === "rejected") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -53,6 +40,7 @@ export default async function MiTiendaPage() {
     <StoreManager
       store={store}
       initialProducts={products ?? []}
+      isPending={store.status === "pending"}
     />
   )
 }

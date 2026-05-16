@@ -357,15 +357,22 @@ async function sendEmailsBestEffort(ctx: EmailContext) {
     }
     if (!store.email) continue
     const storeItems = ctx.cartItems.filter((i: any) => i.product?.store_id === storeId)
+    let storeNetTotal = 0
     const storeItemsHtml = storeItems
-      .map(
-        (item: any) =>
-          `<tr>
-            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">${escapeHtml(item.product?.name ?? "Producto")} ${item.size ? `(${escapeHtml(item.size)})` : ""}</td>
+      .map((item: any) => {
+        const orderItem = ctx.orderItems.find(
+          (o: any) => o.product_id === item.productId?.toString() && o.size === item.size
+        )
+        const netUnit = orderItem?.vendor_net_amount ?? 0
+        const netLine = netUnit * item.quantity
+        storeNetTotal += netLine
+        return `<tr>
+            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">${escapeHtml(item.product?.name ?? "Producto")}${item.size ? ` (${escapeHtml(item.size)})` : ""}</td>
             <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:center;">${escapeHtml(item.quantity)}</td>
-            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:right;">$${(item.product?.price * item.quantity).toLocaleString("es-CL")}</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:right;color:#6b7280;">$${(item.product?.price * item.quantity).toLocaleString("es-CL")}</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:right;color:#059669;font-weight:600;">$${netLine.toLocaleString("es-CL")}</td>
           </tr>`
-      )
+      })
       .join("")
 
     try {
@@ -376,7 +383,7 @@ async function sendEmailsBestEffort(ctx: EmailContext) {
         html: `
           <div style="font-family:Arial,sans-serif;background:#f9fafb;padding:40px;text-align:center;">
             <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
-            <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:560px;text-align:left;">
+            <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:580px;text-align:left;">
               <h2 style="color:#14532d;margin-top:0;">¡Tienes una nueva venta!</h2>
               <p style="color:#555;">Se realizó un pedido en tu tienda <strong>${escapeHtml(store.name)}</strong>.</p>
               <p style="font-size:15px;margin:16px 0;">
@@ -388,11 +395,19 @@ async function sendEmailsBestEffort(ctx: EmailContext) {
                   <tr style="background:#f9fafb;">
                     <th style="padding:8px 12px;text-align:left;color:#6b7280;">Producto</th>
                     <th style="padding:8px 12px;text-align:center;color:#6b7280;">Cant.</th>
-                    <th style="padding:8px 12px;text-align:right;color:#6b7280;">Subtotal</th>
+                    <th style="padding:8px 12px;text-align:right;color:#6b7280;">Precio venta</th>
+                    <th style="padding:8px 12px;text-align:right;color:#059669;">Tu ingreso</th>
                   </tr>
                 </thead>
                 <tbody>${storeItemsHtml}</tbody>
               </table>
+
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px 20px;margin:8px 0 20px 0;">
+                <p style="margin:0 0 4px 0;font-size:13px;color:#15803d;">Ingreso neto de esta venta</p>
+                <p style="margin:0;font-size:26px;font-weight:700;color:#14532d;">$${storeNetTotal.toLocaleString("es-CL")}</p>
+                <p style="margin:6px 0 0 0;font-size:11px;color:#6b7280;">Ya incluye la comisión de CashBak y el costo de procesamiento de pago. Este monto se te transfiere una vez que el pedido sea confirmado como entregado.</p>
+              </div>
+
               <p style="color:#374151;font-size:14px;">Coordina el envío o retiro con el cliente según el método elegido.</p>
               <div style="background:#f9fafb;border-radius:8px;padding:14px;margin:16px 0;font-size:13px;color:#374151;">
                 <p style="margin:0 0 6px 0;font-weight:600;">¿Cómo ver tus pedidos?</p>

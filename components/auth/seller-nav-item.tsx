@@ -16,7 +16,7 @@ export default function SellerNavItem({ onClick }: { onClick?: () => void }) {
         .from("stores")
         .select("id")
         .eq("owner_id", user.id)
-        .eq("status", "approved")
+        .in("status", ["approved", "pending"])
         .maybeSingle()
       setHasStore(!!data)
     })

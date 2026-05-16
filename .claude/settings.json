@@ -21,7 +21,8 @@
       "Bash(grep -n \"comment\\\\|star\\\\|insert\\\\|purchase\\\\|order\\\\|reseña\\\\|review\" /Users/sebastianmoreno/Desktop/cashbak/app/product/[id]/[slug]/page.tsx)",
       "Bash(git -C /Users/sebastianmoreno/Desktop/cashbak diff --stat HEAD)",
       "Bash(git -C /Users/sebastianmoreno/Desktop/cashbak status --short)",
-      "Bash(git -C /Users/sebastianmoreno/Desktop/cashbak show HEAD:\"app/products/page.tsx\")"
+      "Bash(git -C /Users/sebastianmoreno/Desktop/cashbak show HEAD:\"app/products/page.tsx\")",
+      "Bash(node -e \"const l = require\\('/Users/sebastianmoreno/Desktop/cashbak/node_modules/lucide-react'\\); const keys = Object.keys\\(l\\).filter\\(k => k.toLowerCase\\(\\).includes\\('store'\\) || k.toLowerCase\\(\\).includes\\('shop'\\)\\); console.log\\(keys\\)\")"
     ],
     "additionalDirectories": [
       "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]",

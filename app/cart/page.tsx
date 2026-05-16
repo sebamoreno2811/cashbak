@@ -339,6 +339,7 @@ export default function CartPage() {
                             })()}
                           </div>
 
+                          {!("Única" in (product?.stock || {})) && (
                           <div className="flex flex-col">
                             <label className="mb-1 text-sm text-gray-600">Talla</label>
                             <Select
@@ -357,6 +358,7 @@ export default function CartPage() {
                               </SelectContent>
                             </Select>
                           </div>
+                          )}
                         </div>
 
                         {/* Subtotal */}

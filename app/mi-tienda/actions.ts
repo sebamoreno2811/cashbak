@@ -9,7 +9,7 @@ async function getVendorStore(supabase: Awaited<ReturnType<typeof createClient>>
     .from("stores")
     .select("id, name, owner_id, status")
     .eq("owner_id", userId)
-    .eq("status", "approved")
+    .in("status", ["approved", "pending"])
     .single()
   return store
 }
@@ -147,6 +147,21 @@ export async function updateProductStock(productId: number, stock: Record<string
     .update({ stock })
     .eq("id", productId)
     .eq("store_id", store.id)
+
+  if (error) return { error: error.message }
+  revalidatePath("/mi-tienda")
+  return { success: true }
+}
+
+export async function updateStoreDescription(description: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "No autorizado" }
+
+  const { error } = await supabase
+    .from("stores")
+    .update({ description: description.trim() || null })
+    .eq("owner_id", user.id)
 
   if (error) return { error: error.message }
   revalidatePath("/mi-tienda")
