@@ -1,0 +1,352 @@
+"use client"
+
+import { useState, useEffect, useMemo } from "react"
+import { useSearchParams } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
+import { Search, SlidersHorizontal, X, ArrowUpDown } from "lucide-react"
+import { toSlug } from "@/lib/slug"
+import { calculateProductCashbak, calculateMaxProductCashbak } from "@/lib/cashbak-calculator"
+import { useBetOption } from "@/hooks/use-bet-option"
+import BetSelector from "@/components/bet-selector"
+import type { Product } from "@/types/product"
+import type { Bet } from "@/context/bet-context"
+
+interface Store {
+  id: string
+  name: string
+  slug: string
+  logo_url: string | null
+}
+
+type SortKey = "default" | "cashback_desc" | "price_asc" | "price_desc"
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "default", label: "Relevancia" },
+  { value: "cashback_desc", label: "Mayor cashback" },
+  { value: "price_asc", label: "Menor precio" },
+  { value: "price_desc", label: "Mayor precio" },
+]
+
+interface Props {
+  initialProducts: Product[]
+  initialStores: Store[]
+  initialBets: Bet[]
+}
+
+export default function ProductsClient({ initialProducts, initialStores, initialBets }: Props) {
+  const { selectedOption, setSelectedOption } = useBetOption()
+  const searchParams = useSearchParams()
+
+  const [search, setSearch] = useState("")
+  const [storeFilter, setStoreFilter] = useState<string | null>(null)
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(searchParams.get("category"))
+  const [sortBy, setSortBy] = useState<SortKey>("default")
+  const [showFilters, setShowFilters] = useState(false)
+  const [showSort, setShowSort] = useState(false)
+
+  useEffect(() => {
+    setCategoryFilter(searchParams.get("category"))
+  }, [searchParams])
+
+  const storeMap = useMemo(() =>
+    Object.fromEntries(initialStores.map(s => [s.id, s])),
+    [initialStores]
+  )
+
+  const nowChile = new Date(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Santiago", hour12: false,
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    }).format(new Date()).replace(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})/, "$3-$1-$2T$4:$5:$6")
+  )
+  const availableBets = initialBets.filter(b => new Date(b.end_date) > nowChile)
+  const selectedBet = initialBets.find(b => b.id === Number(selectedOption))
+
+  const categories = useMemo(() =>
+    Array.from(new Set(initialProducts.map(p => p.category_name).filter(Boolean))).sort(),
+    [initialProducts]
+  )
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    const base = initialProducts.filter(p => {
+      if (storeFilter && p.store_id !== storeFilter) return false
+      if (categoryFilter && p.category_name !== categoryFilter) return false
+      if (q && !p.name.toLowerCase().includes(q) && !p.category_name?.toLowerCase().includes(q)) return false
+      return true
+    })
+
+    if (sortBy === "price_asc") return [...base].sort((a, b) => a.price - b.price)
+    if (sortBy === "price_desc") return [...base].sort((a, b) => b.price - a.price)
+    if (sortBy === "cashback_desc") {
+      return [...base].sort((a, b) => calculateMaxProductCashbak(b, initialBets) - calculateMaxProductCashbak(a, initialBets))
+    }
+    return base
+  }, [initialProducts, search, storeFilter, categoryFilter, sortBy, initialBets])
+
+  const activeFilters = [
+    storeFilter ? storeMap[storeFilter]?.name : null,
+  ].filter(Boolean) as string[]
+
+  const selectedSortLabel = SORT_OPTIONS.find(o => o.value === sortBy)?.label ?? "Ordenar"
+
+  const getCashbackRange = (bet: Bet) => {
+    if (initialProducts.length === 0) return null
+    const values = initialProducts.map(p => calculateProductCashbak(p, bet.odd)).filter(v => v > 0)
+    if (values.length === 0) return null
+    return { min: Math.min(...values), max: Math.max(...values) }
+  }
+
+  return (
+    <main className="min-h-screen bg-gray-50">
+      {/* Header buscador — sticky debajo del navbar global (h-16 = top-16) */}
+      <div className="bg-white border-b border-gray-200 sticky top-16 z-20 shadow-sm">
+        <div className="container mx-auto max-w-5xl px-4 py-3 flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar producto..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-green-700 transition"
+              autoFocus
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer">
+                <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setShowFilters(v => !v)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition cursor-pointer ${showFilters || activeFilters.length > 0 ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-300 bg-white"}`}
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            Filtros
+            {activeFilters.length > 0 && (
+              <span className="bg-white text-green-900 rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold">
+                {activeFilters.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Barra de categorías */}
+        <div className="container mx-auto max-w-5xl px-4 pb-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex gap-2 min-w-max">
+            <button
+              onClick={() => setCategoryFilter(null)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap cursor-pointer ${categoryFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
+            >
+              Todas
+            </button>
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(categoryFilter === cat ? null : cat)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition whitespace-nowrap cursor-pointer ${categoryFilter === cat ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 bg-white hover:border-gray-400"}`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Panel filtro tienda */}
+        {showFilters && (
+          <div className="container mx-auto max-w-5xl px-4 pb-3">
+            <p className="text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Tienda</p>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => setStoreFilter(null)}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition cursor-pointer ${storeFilter === null ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
+              >
+                Todas
+              </button>
+              {initialStores.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => setStoreFilter(storeFilter === s.id ? null : s.id)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition cursor-pointer ${storeFilter === s.id ? "bg-green-900 text-white border-green-900" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}
+                >
+                  {s.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Selector de evento */}
+      {availableBets.length > 0 && (
+        <div className="bg-white border-b border-gray-100">
+          <div className="container mx-auto max-w-5xl px-4 py-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Evento seleccionado</p>
+            <BetSelector
+              value={selectedOption}
+              onChange={setSelectedOption}
+              getCashbackRange={getCashbackRange}
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="container mx-auto max-w-5xl px-4 py-6">
+        {/* Tags activos */}
+        {(activeFilters.length > 0 || categoryFilter) && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {storeFilter && (
+              <span className="flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-800 text-xs font-medium px-3 py-1 rounded-full">
+                {storeMap[storeFilter]?.name}
+                <button onClick={() => setStoreFilter(null)} className="cursor-pointer"><X className="w-3 h-3" /></button>
+              </span>
+            )}
+            {categoryFilter && (
+              <span className="flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-800 text-xs font-medium px-3 py-1 rounded-full">
+                {categoryFilter}
+                <button onClick={() => setCategoryFilter(null)} className="cursor-pointer"><X className="w-3 h-3" /></button>
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Barra de info + ordenamiento */}
+        <div className="flex items-center justify-between mb-5">
+          <p className="text-sm text-gray-500">
+            {filtered.length === 0
+              ? "Sin resultados"
+              : `${filtered.length} producto${filtered.length !== 1 ? "s" : ""}${search ? ` para "${search}"` : ""}`}
+          </p>
+
+          {/* Sort dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSort(v => !v)}
+              className="flex items-center gap-1.5 text-sm text-gray-600 border border-gray-200 rounded-xl px-3 py-2 bg-white hover:border-gray-300 transition cursor-pointer"
+            >
+              <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
+              {selectedSortLabel}
+            </button>
+            {showSort && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowSort(false)} />
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1 min-w-[160px]">
+                  {SORT_OPTIONS.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setSortBy(opt.value); setShowSort(false) }}
+                      className={`w-full text-left px-4 py-2 text-sm transition cursor-pointer ${sortBy === opt.value ? "text-green-800 font-semibold bg-green-50" : "text-gray-700 hover:bg-gray-50"}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Grilla — renderizada en servidor para SEO */}
+        {filtered.length > 0 ? (
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 list-none p-0 m-0">
+            {filtered.map(product => (
+              <li key={product.id}>
+                <ProductCard
+                  product={product}
+                  store={product.store_id ? storeMap[product.store_id] : undefined}
+                  bets={initialBets}
+                  selectedBetOdd={selectedBet?.odd ?? null}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="text-center py-20">
+            <div className="flex justify-center mb-4">
+              <Search className="w-12 h-12 text-gray-300" />
+            </div>
+            <p className="text-gray-500 text-lg font-medium">
+              {search ? `No encontramos "${search}"` : "No hay productos con estos filtros"}
+            </p>
+            <button
+              onClick={() => { setSearch(""); setStoreFilter(null); setCategoryFilter(null) }}
+              className="mt-4 text-sm text-green-700 underline cursor-pointer"
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        )}
+      </div>
+    </main>
+  )
+}
+
+function ProductCard({
+  product,
+  store,
+  bets,
+  selectedBetOdd,
+}: {
+  product: Product
+  store: Store | undefined
+  bets: Bet[]
+  selectedBetOdd: number | null
+}) {
+  const maxCashbak = calculateMaxProductCashbak(product, bets)
+  const selectedCashbak = selectedBetOdd ? calculateProductCashbak(product, selectedBetOdd) : null
+
+  const productHref = `/product/${product.id}/${toSlug(product.name)}`
+
+  return (
+    <Link href={productHref} className="group cursor-pointer">
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 h-full flex flex-col">
+        <div className="relative aspect-square overflow-hidden">
+          <Image
+            src={product.image || "/placeholder.svg"}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+          {maxCashbak > 0 && (
+            <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+              <div className="bg-green-900/80 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-lg">
+                hasta {maxCashbak}% CB
+              </div>
+              {selectedCashbak != null && selectedCashbak > 0 && (
+                <div className="bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-lg">
+                  {selectedCashbak}% con evento seleccionado
+                </div>
+              )}
+            </div>
+          )}
+          {store && (
+            <Link
+              href={`/tienda/${store.slug ?? store.id}`}
+              onClick={e => e.stopPropagation()}
+              className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 hover:bg-white transition-colors cursor-pointer"
+            >
+              {store.logo_url ? (
+                <Image src={store.logo_url} alt={store.name} width={14} height={14} className="rounded-full object-cover w-3.5 h-3.5" />
+              ) : (
+                <Image src="/img/logo.png" alt="CashBak" width={14} height={14} className="rounded-full object-contain w-3.5 h-3.5" />
+              )}
+              <span className="text-[10px] font-semibold text-gray-700 leading-none">{store.name}</span>
+            </Link>
+          )}
+        </div>
+
+        <div className="p-3 flex flex-col flex-1">
+          <p className="text-xs text-gray-400 mb-0.5">{product.category_name}</p>
+          <h3 className="text-sm font-semibold text-gray-800 leading-snug line-clamp-2 flex-1">{product.name}</h3>
+          <div className="mt-2">
+            <span className="font-bold text-gray-900">${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}</span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}

@@ -4,6 +4,7 @@ import { createSupabaseClientWithCookies as createClient, createSupabaseClientWi
 import { revalidatePath } from "next/cache"
 import { Resend } from "resend"
 import { sendPushToUser } from "@/lib/push"
+import { escapeHtml } from "@/lib/utils"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://cashbak.cl"
@@ -114,6 +115,13 @@ export async function updateShippingStatus(orderId: string, shipping_status: str
       let subject: string
       let html: string
 
+      const safeOrderRef = escapeHtml(orderRef)
+      const safeCustomerName = escapeHtml(customerName)
+      const safeStoreName = escapeHtml(store.name)
+      const safeShippingMethod = escapeHtml(shippingMethod)
+      const safePickupAddress = escapeHtml(pickupAddress)
+      const safeConfirmUrl = escapeHtml(confirmUrl)
+
       if (shipping_status === "Listo para entrega") {
         subject = `Tu pedido #${orderRef} está listo para retiro`
         html = `
@@ -121,15 +129,15 @@ export async function updateShippingStatus(orderId: string, shipping_status: str
             <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
             <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:520px;text-align:left;">
               <h2 style="color:#14532d;margin-top:0;">¡Tu pedido está listo para retiro!</h2>
-              <p style="color:#555;">Hola ${customerName}, tu pedido <strong>#${orderRef}</strong> en <strong>${store.name}</strong> ya está listo para que lo pases a buscar.</p>
+              <p style="color:#555;">Hola ${safeCustomerName}, tu pedido <strong>#${safeOrderRef}</strong> en <strong>${safeStoreName}</strong> ya está listo para que lo pases a buscar.</p>
               <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin:20px 0;">
                 <p style="color:#1e40af;margin:0;font-size:14px;">
-                  <strong>Lugar de retiro:</strong> ${shippingMethod}${pickupAddress ? `<br/><strong>Dirección:</strong> ${pickupAddress}` : ""}
+                  <strong>Lugar de retiro:</strong> ${safeShippingMethod}${pickupAddress ? `<br/><strong>Dirección:</strong> ${safePickupAddress}` : ""}
                 </p>
               </div>
               <p style="color:#555;font-size:14px;">Cuando lo retires, confirma la recepción:</p>
               <div style="text-align:center;margin:24px 0;">
-                <a href="${confirmUrl}" style="display:inline-block;padding:13px 28px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">
+                <a href="${safeConfirmUrl}" style="display:inline-block;padding:13px 28px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">
                   ✅ Confirmar retiro
                 </a>
               </div>
@@ -146,15 +154,15 @@ export async function updateShippingStatus(orderId: string, shipping_status: str
             <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
             <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:520px;text-align:left;">
               <h2 style="color:#14532d;margin-top:0;">¡Tu pedido está en camino!</h2>
-              <p style="color:#555;">Hola ${customerName}, el vendedor de <strong>${store.name}</strong> ha enviado tu pedido <strong>#${orderRef}</strong>.</p>
+              <p style="color:#555;">Hola ${safeCustomerName}, el vendedor de <strong>${safeStoreName}</strong> ha enviado tu pedido <strong>#${safeOrderRef}</strong>.</p>
               <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:20px 0;">
                 <p style="color:#166534;margin:0;font-size:14px;">
-                  <strong>Método de envío:</strong> ${shippingMethod}
+                  <strong>Método de envío:</strong> ${safeShippingMethod}
                 </p>
               </div>
               <p style="color:#555;font-size:14px;">Cuando lo recibas, confirma con un click:</p>
               <div style="text-align:center;margin:24px 0;">
-                <a href="${confirmUrl}" style="display:inline-block;padding:13px 28px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">
+                <a href="${safeConfirmUrl}" style="display:inline-block;padding:13px 28px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">
                   ✅ Confirmar recepción
                 </a>
               </div>

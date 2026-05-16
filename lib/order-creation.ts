@@ -20,23 +20,12 @@ import { createSupabaseAdminClient } from "@/utils/supabase/server"
 import { Resend } from "resend"
 import { sendPushToUser } from "@/lib/push"
 import { calculateExternalCashbak } from "@/lib/cashbak-calculator"
+import { escapeHtml } from "@/lib/utils"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://cashbak.cl"
 const EMAIL_FROM = process.env.EMAIL_FROM || "support@cashbak.cl"
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "cashbak.ops@gmail.com"
-
-// Escapa HTML para evitar inyección desde datos controlados por usuario (nombre de producto,
-// nombre de tienda, etc.) cuando se interpolan en cuerpos de email.
-function escapeHtml(value: unknown): string {
-  if (value === null || value === undefined) return ""
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;")
-}
 
 export type CreateOrderResult =
   | { ok: true; orderId: string; alreadyExisted: boolean }

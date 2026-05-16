@@ -23,3 +23,22 @@ export function safeJsonForScript(value: unknown): string {
     .replace(/\u2028/g, "\\u2028")
     .replace(/\u2029/g, "\\u2029")
 }
+
+/**
+ * Escapa caracteres especiales para inyectar texto controlado por usuario dentro de HTML
+ * (emails, plantillas server-side, etc.). Sin esto, el nombre de un cliente o el nombre
+ * de una tienda con `<a href="phishing">` se convierte en un link real en el email que
+ * se manda a otros usuarios desde nuestro dominio.
+ *
+ * Aplicar en TODA interpolaci\u00f3n de datos provenientes de DB controlada por usuario en HTML.
+ * No usar para HTML que el sistema controla (markup de plantilla).
+ */
+export function escapeHtml(value: unknown): string {
+  if (value === null || value === undefined) return ""
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}

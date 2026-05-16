@@ -4,6 +4,7 @@ import { createSupabaseClientWithCookies as createClient } from "@/utils/supabas
 import { revalidatePath } from "next/cache"
 import { Resend } from "resend"
 import { sendPushToUser } from "@/lib/push"
+import { escapeHtml } from "@/lib/utils"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://cashbak.cl"
@@ -80,7 +81,7 @@ async function sendVendorPaidEmail(supabase: any, orderId: string) {
           <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
           <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:520px;text-align:left;">
             <h2 style="color:#14532d;margin-top:0;">¡Transferencia realizada! 💸</h2>
-            <p style="color:#555;">Hola <strong>${store.name}</strong>, la transferencia correspondiente al pedido <strong>#${orderRef}</strong> ya fue realizada a tu cuenta bancaria registrada.</p>
+            <p style="color:#555;">Hola <strong>${escapeHtml(store.name)}</strong>, la transferencia correspondiente al pedido <strong>#${escapeHtml(orderRef)}</strong> ya fue realizada a tu cuenta bancaria registrada.</p>
             <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
               <p style="color:#166534;font-size:13px;margin:0 0 6px 0;">Monto transferido (neto)</p>
               <p style="color:#14532d;font-size:32px;font-weight:800;margin:0;">$${vendorNetAmount.toLocaleString("es-CL")}</p>
@@ -146,7 +147,7 @@ async function sendCashbackTransferredEmail(supabase: any, orderId: string) {
           <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
           <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:520px;text-align:left;">
             <h2 style="color:#14532d;margin-top:0;">¡Tu CashBak fue transferido! 🎉</h2>
-            <p style="color:#555;">Hola <strong>${nombre}</strong>, ya realizamos la transferencia de tu CashBak correspondiente al pedido <strong>#${orderRef}</strong>.</p>
+            <p style="color:#555;">Hola <strong>${escapeHtml(nombre)}</strong>, ya realizamos la transferencia de tu CashBak correspondiente al pedido <strong>#${escapeHtml(orderRef)}</strong>.</p>
             <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
               <p style="color:#166534;font-size:13px;margin:0 0 6px 0;">Monto transferido</p>
               <p style="color:#14532d;font-size:36px;font-weight:800;margin:0;">$${winningCashback.toLocaleString("es-CL")}</p>

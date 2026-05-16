@@ -21,10 +21,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select("id, name, updated_at")
     .eq("status", "active")
 
-  // Fetch all vendor stores
-  const { data: vendors } = await supabase
-    .from("vendor_profiles")
-    .select("user_id, store_name, updated_at")
+  // Fetch all approved stores
+  const { data: stores } = await supabase
+    .from("stores")
+    .select("id, slug, updated_at")
+    .eq("status", "approved")
 
   const productUrls: MetadataRoute.Sitemap = (products ?? []).map((p: { id: string; name: string; updated_at: string | null }) => ({
     url: `${BASE_URL}/product/${p.id}/${slugify(p.name)}`,
@@ -33,9 +34,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  const vendorUrls: MetadataRoute.Sitemap = (vendors ?? []).map((v: { user_id: string; updated_at: string | null }) => ({
-    url: `${BASE_URL}/tiendas/${v.user_id}`,
-    lastModified: v.updated_at ? new Date(v.updated_at) : new Date(),
+  const vendorUrls: MetadataRoute.Sitemap = (stores ?? []).map((s: { id: string; slug: string | null; updated_at: string | null }) => ({
+    url: `${BASE_URL}/tienda/${s.slug ?? s.id}`,
+    lastModified: s.updated_at ? new Date(s.updated_at) : new Date(),
     changeFrequency: "weekly",
     priority: 0.6,
   }))

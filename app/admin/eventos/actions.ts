@@ -4,6 +4,7 @@ import { createSupabaseClientWithCookies as createClient } from "@/utils/supabas
 import { revalidatePath } from "next/cache"
 import { Resend } from "resend"
 import { sendPushToUser } from "@/lib/push"
+import { escapeHtml } from "@/lib/utils"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://cashbak.cl"
@@ -91,9 +92,9 @@ export async function markBetWinner(betId: number) {
                 <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
                 <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:520px;text-align:left;">
                   <h2 style="color:#14532d;margin-top:0;">¡Felicidades, tu evento se cumplió! 🏆</h2>
-                  <p style="color:#555;">Hola ${customer.full_name ?? ""},  el evento que elegiste al momento de tu compra resultó a tu favor.</p>
+                  <p style="color:#555;">Hola ${escapeHtml(customer.full_name ?? "")},  el evento que elegiste al momento de tu compra resultó a tu favor.</p>
                   <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
-                    <p style="color:#166534;font-size:13px;margin:0 0 6px 0;">Tu CashBak para el pedido <strong>#${orderRef}</strong></p>
+                    <p style="color:#166534;font-size:13px;margin:0 0 6px 0;">Tu CashBak para el pedido <strong>#${escapeHtml(orderRef)}</strong></p>
                     <p style="color:#14532d;font-size:32px;font-weight:800;margin:0;">$${cashbackAmount.toLocaleString("es-CL")}</p>
                   </div>
                   <p style="color:#555;font-size:14px;">Recibirás esta transferencia pronto en la cuenta bancaria que registraste en tu perfil.</p>
@@ -194,7 +195,7 @@ export async function markBetLost(betId: number) {
                 <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
                 <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:520px;text-align:left;">
                   <h2 style="color:#374151;margin-top:0;">Esta vez no fue, ¡pero no te desanimes!</h2>
-                  <p style="color:#555;">Hola ${customer.full_name ?? ""}, el evento que elegiste para tu pedido <strong>#${orderRef}</strong> no se cumplió esta vez.</p>
+                  <p style="color:#555;">Hola ${escapeHtml(customer.full_name ?? "")}, el evento que elegiste para tu pedido <strong>#${escapeHtml(orderRef)}</strong> no se cumplió esta vez.</p>
                   <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:20px 0;">
                     <p style="color:#6b7280;font-size:14px;margin:0;">Tu producto llegó o llegará de todas formas y eso es lo importante. El próximo evento podría ser el que te otorgue ese CashBak que estás esperando. 💪</p>
                   </div>

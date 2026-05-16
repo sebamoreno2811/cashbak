@@ -2,6 +2,7 @@
 
 import { createSupabaseClientWithCookies, createSupabaseAdminClient } from "@/utils/supabase/server"
 import type { CheckoutFormData } from "@/types/checkout"
+import { checkAuthRateLimit } from "@/lib/rate-limit"
 
 /**
  * Verifica que una orden ya haya sido creada server-side para el buyOrder dado.
@@ -58,6 +59,12 @@ export async function createUserProfile(userData: {
   rut: string
 }) {
   try {
+    // Rate limit por IP — previene spam de signups y abuso del bucket de Supabase Auth.
+    const { success: rlOk } = await checkAuthRateLimit("signup")
+    if (!rlOk) {
+      return { success: false, error: "Demasiados intentos. Espera unos minutos antes de intentarlo de nuevo." }
+    }
+
     const supabase = await createSupabaseClientWithCookies()
 
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -97,6 +104,12 @@ export async function createUserProfile(userData: {
 
 export async function signInUser(email: string, password: string) {
   try {
+    // Rate limit por IP — defensa contra credential stuffing.
+    const { success: rlOk } = await checkAuthRateLimit("signin")
+    if (!rlOk) {
+      return { success: false, error: "Demasiados intentos. Espera unos minutos antes de intentarlo de nuevo." }
+    }
+
     const supabase = await createSupabaseClientWithCookies()
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) return { success: false, error: error.message }

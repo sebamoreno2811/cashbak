@@ -408,8 +408,7 @@ function ProductCard({
         <div className="relative aspect-square overflow-hidden">
           <Image
             src={product.image || "/placeholder.svg"}
-            alt=""
-            aria-hidden="true"
+            alt={product.name}
             fill
             sizes="176px"
             className="object-cover transition-transform duration-300 group-hover:scale-105"

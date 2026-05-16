@@ -3,6 +3,7 @@
 import { createSupabaseClientWithoutCookies } from "@/utils/supabase/server"
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
+import { escapeHtml } from "@/lib/utils"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://cashbak.cl"
@@ -76,6 +77,7 @@ export async function GET(request: Request) {
 
     const isPickup = shippingStatus === "Listo para entrega"
 
+    const safeOrderRef = escapeHtml(orderRef)
     const subject = isPickup
       ? `Recordatorio: ¿Ya retiraste tu pedido #${orderRef}?`
       : `Recordatorio: ¿Ya recibiste tu pedido #${orderRef}?`
@@ -83,22 +85,22 @@ export async function GET(request: Request) {
     const actionText = isPickup ? "retirarlo" : "recibirlo"
     const actionBtn = isPickup ? "✅ Confirmar retiro" : "✅ Confirmar recepción"
     const contextText = isPickup
-      ? `Tu pedido <strong>#${orderRef}</strong> lleva varios días listo para ser retirado. Si aún no lo has pasado a buscar, recuerda que tienes tiempo para hacerlo.`
-      : `Tu pedido <strong>#${orderRef}</strong> fue enviado hace varios días. Si ya lo recibiste, por favor confírmalo para que podamos completar el proceso.`
+      ? `Tu pedido <strong>#${safeOrderRef}</strong> lleva varios días listo para ser retirado. Si aún no lo has pasado a buscar, recuerda que tienes tiempo para hacerlo.`
+      : `Tu pedido <strong>#${safeOrderRef}</strong> fue enviado hace varios días. Si ya lo recibiste, por favor confírmalo para que podamos completar el proceso.`
 
     const html = `
       <div style="font-family:Arial,sans-serif;background:#f9fafb;padding:40px;text-align:center;">
         <img src="${APP_URL}/img/logo.png" alt="CashBak" style="max-width:140px;margin-bottom:28px;" />
         <div style="background:#fff;padding:32px;border-radius:12px;display:inline-block;max-width:520px;text-align:left;">
           <h2 style="color:#14532d;margin-top:0;">¿Ya ${actionText} tu pedido?</h2>
-          <p style="color:#555;">Hola ${customerName}, ${contextText}</p>
+          <p style="color:#555;">Hola ${escapeHtml(customerName)}, ${contextText}</p>
           <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:14px;margin:20px 0;">
             <p style="color:#92400e;margin:0;font-size:13px;">
               <strong>⚠️ Aviso:</strong> Si ya recibiste el pedido y no confirmas en los próximos días, tu pedido se confirmará automáticamente.
             </p>
           </div>
           <div style="text-align:center;margin:24px 0;">
-            <a href="${confirmUrl}" style="display:inline-block;padding:13px 28px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">
+            <a href="${escapeHtml(confirmUrl)}" style="display:inline-block;padding:13px 28px;background:#14532d;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">
               ${actionBtn}
             </a>
           </div>

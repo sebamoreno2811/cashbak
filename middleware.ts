@@ -22,9 +22,14 @@ const strictLimit = new Ratelimit({
   prefix: "rl:strict",
 })
 
+// Rutas con URL fija que merecen el límite estricto (10 req/10min). El rate limit de los
+// server actions de signin/signup vive dentro de las propias actions vía
+// `lib/rate-limit.ts#checkAuthRateLimit` porque los server actions van por POST a la
+// página actual sin URL distintiva.
 const STRICT_PATHS = [
-  "/api/auth",
+  "/auth/",
   "/api/webpay/initiate",
+  "/api/webpay/commit",
 ]
 
 function isStrictPath(pathname: string) {

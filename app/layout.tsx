@@ -15,6 +15,7 @@ import { ShippingAddressProvider } from "@/context/shipping-context"
 import { CommentProvider } from "@/context/comment-context"
 import { CustomerProvider } from "@/context/customer-context"
 import PushProvider from "@/components/push-provider"
+import PwaInstallBanner from "@/components/pwa-install-banner"
 import { safeJsonForScript } from "@/lib/utils"
 
 
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
     default: "CashBak — Compra y recupera tu dinero",
     template: "%s | CashBak",
   },
-  description: "CashBak es el marketplace chileno donde compras en múltiples tiendas y recuperas parte de tu dinero si se cumple tu evento deportivo. Cashback real en Chile.",
+  description: "Marketplace chileno de cashback deportivo. Compra en CashBak y recupera hasta el 100% de tu dinero si se cumple tu evento deportivo.",
   keywords: [
     "cashback Chile",
     "cashbak",
@@ -52,6 +53,14 @@ export const metadata: Metadata = {
     url: "https://cashbak.cl",
     title: "CashBak — Compra y recupera tu dinero",
     description: "Compra en tiendas chilenas y recupera hasta el 100% de tu dinero con cashback si se cumple tu evento deportivo.",
+    images: [
+      {
+        url: "https://cashbak.cl/img/logo.png",
+        width: 576,
+        height: 200,
+        alt: "CashBak — Marketplace chileno de cashback deportivo",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -105,6 +114,17 @@ export default function RootLayout({
             }),
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: safeJsonForScript({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "CashBak",
+              url: "https://cashbak.cl",
+            }),
+          }}
+        />
         <Analytics />
         <PostHogProvider>
         <ProductsProvider>
@@ -117,6 +137,7 @@ export default function RootLayout({
                         <CartProvider>
                           <ShippingAddressProvider>
                             <PushProvider />
+                            <PwaInstallBanner />
                             <ClientLayout>{children}</ClientLayout>
                           </ShippingAddressProvider>
                         </CartProvider>
