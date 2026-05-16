@@ -15,7 +15,6 @@ import { ShippingAddressProvider } from "@/context/shipping-context"
 import { CommentProvider } from "@/context/comment-context"
 import { CustomerProvider } from "@/context/customer-context"
 import PushProvider from "@/components/push-provider"
-import PwaInstallBanner from "@/components/pwa-install-banner"
 import { safeJsonForScript } from "@/lib/utils"
 
 
@@ -137,8 +136,7 @@ export default function RootLayout({
                         <CartProvider>
                           <ShippingAddressProvider>
                             <PushProvider />
-                            <PwaInstallBanner />
-                            <ClientLayout>{children}</ClientLayout>
+<ClientLayout>{children}</ClientLayout>
                           </ShippingAddressProvider>
                         </CartProvider>
                     </ProductSelectionProvider>
