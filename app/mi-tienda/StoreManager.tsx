@@ -1153,6 +1153,7 @@ function ProductRow({
                   max={9999}
                   value={stockValues["Única"] ?? 0}
                   onChange={e => setStockValues({ "Única": Math.max(0, Number(e.target.value)) })}
+                  onFocus={e => e.target.select()}
                   autoFocus
                   className="w-20 text-sm border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
@@ -1168,6 +1169,7 @@ function ProductRow({
                       max={9999}
                       value={stockValues[size] ?? 0}
                       onChange={e => setStockValues(prev => ({ ...prev, [size]: Math.max(0, Number(e.target.value)) }))}
+                      onFocus={e => e.target.select()}
                       autoFocus={size === "S"}
                       className="w-full text-sm text-center border border-gray-300 rounded-lg px-1 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
@@ -1581,6 +1583,7 @@ function ProductFormModal({
                     <div className="text-xs text-gray-500 mb-1 font-medium">{s}</div>
                     <input type="number" min={0} max={999} value={stockSizes[s]}
                       onChange={e => setStockSizes(prev => ({ ...prev, [s]: Math.max(0, Number(e.target.value)) }))}
+                      onFocus={e => e.target.select()}
                       className="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-700" />
                   </div>
                 ))}
@@ -1590,6 +1593,7 @@ function ProductFormModal({
                 <label className="text-sm text-gray-600">Cantidad disponible</label>
                 <input type="number" min={0} max={9999} value={stockSingle}
                   onChange={e => setStockSingle(Math.max(0, Number(e.target.value)))}
+                  onFocus={e => e.target.select()}
                   className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-700" />
               </div>
             )}

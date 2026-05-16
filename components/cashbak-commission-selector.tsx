@@ -70,6 +70,17 @@ export default function CashbakCommissionSelector({ price, gananciaCLP, onChange
           </button>
         ))}
 
+        {/* Botón dinámico para valor custom no preset */}
+        {!otroMode && price > 0 && !PRESETS.includes(currentPct) && (
+          <button
+            type="button"
+            onClick={() => { setOtroMode(true); setCustomInput(String(currentPct)) }}
+            className="px-4 py-2 rounded-lg text-sm font-semibold border transition-colors cursor-pointer bg-green-900 text-white border-green-900"
+          >
+            {currentPct}%
+          </button>
+        )}
+
         {/* Otro — cuando está activo se convierte en un chip editable */}
         {otroMode ? (
           <div className="flex items-center gap-1 bg-green-900 border border-green-900 rounded-lg px-3 py-2">
