@@ -19,7 +19,6 @@ export default async function ProductsPage() {
     supabase
       .from("products")
       .select("id, name, price, cost, description, image, category, category_name, category_names, brand, stock, margin_pct, net_margin, store_id")
-      .eq("status", "active")
       .order("id", { ascending: false }),
     supabase
       .from("stores")

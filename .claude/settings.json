@@ -20,7 +20,8 @@
       "Bash(ls /Users/sebastianmoreno/Desktop/cashbak/public/sitemap* /Users/sebastianmoreno/Desktop/cashbak/public/robots*)",
       "Bash(grep -n \"comment\\\\|star\\\\|insert\\\\|purchase\\\\|order\\\\|reseña\\\\|review\" /Users/sebastianmoreno/Desktop/cashbak/app/product/[id]/[slug]/page.tsx)",
       "Bash(git -C /Users/sebastianmoreno/Desktop/cashbak diff --stat HEAD)",
-      "Bash(git -C /Users/sebastianmoreno/Desktop/cashbak status --short)"
+      "Bash(git -C /Users/sebastianmoreno/Desktop/cashbak status --short)",
+      "Bash(git -C /Users/sebastianmoreno/Desktop/cashbak show HEAD:\"app/products/page.tsx\")"
     ],
     "additionalDirectories": [
       "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]",
