@@ -136,24 +136,24 @@
       gsap.set("#hk-grid", { opacity: 0 });
 
       // pill + grid breathe in
-      tl.to("#hk-grid", { opacity: 1, duration: 1.4, ease: "power1.out" }, 0);
-      tl.to("#hk-pill", { y: 0, opacity: 1, duration: 0.65, ease: "expo.out" }, 0.1);
+      tl.to("#hk-grid", { opacity: 1, duration: 1.75, ease: "power1.out" }, 0.0);
+      tl.to("#hk-pill", { y: 0, opacity: 1, duration: 0.8125, ease: "expo.out" }, 0.125);
 
       // logo with bounce-in
-      tl.to("#hk-logo", { scale: 1, opacity: 1, duration: 0.95, ease: "back.out(1.5)" }, 0.3);
+      tl.to("#hk-logo", { scale: 1, opacity: 1, duration: 1.1875, ease: "back.out(1.5)" }, 0.375);
 
       // wordmark
-      tl.to("#hk-wordmark", { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.75);
+      tl.to("#hk-wordmark", { y: 0, opacity: 1, duration: 0.875, ease: "power3.out" }, 0.9375);
 
       // headline reveal
-      tl.from("#hk-l1", { yPercent: 110, duration: 1.05, ease: "power3.out" }, 1.15);
-      tl.to("#hk-sub", { y: 0, opacity: 1, duration: 0.8, ease: "expo.out" }, 1.95);
+      tl.from("#hk-l1", { yPercent: 110, duration: 1.3125, ease: "power3.out" }, 1.4375);
+      tl.to("#hk-sub", { y: 0, opacity: 1, duration: 1.0, ease: "expo.out" }, 2.4375);
 
       // continuous fluid drift across the entire 4s
-      tl.fromTo("#hk-blob-a", { x: 0, y: 0 }, { x: -40, y: 30, duration: 4, ease: "sine.inOut" }, 0);
-      tl.fromTo("#hk-blob-b", { x: 0, y: 0 }, { x: 30, y: -20, duration: 4, ease: "sine.inOut" }, 0);
-      tl.fromTo(".stage", { scale: 1 }, { scale: 1.03, duration: 4, ease: "power1.inOut" }, 0);
-      tl.fromTo("#hk-logo", { rotation: -1 }, { rotation: 1.5, duration: 4, ease: "sine.inOut" }, 0);
+      tl.fromTo("#hk-blob-a", { x: 0, y: 0 }, { x: -40, y: 30, duration: 5.0, ease: "sine.inOut" }, 0.0);
+      tl.fromTo("#hk-blob-b", { x: 0, y: 0 }, { x: 30, y: -20, duration: 5.0, ease: "sine.inOut" }, 0.0);
+      tl.fromTo(".stage", { scale: 1 }, { scale: 1.03, duration: 5.0, ease: "power1.inOut" }, 0.0);
+      tl.fromTo("#hk-logo", { rotation: -1 }, { rotation: 1.5, duration: 5.0, ease: "sine.inOut" }, 0.0);
 
       window.__timelines["hook"] = tl;
     </script>

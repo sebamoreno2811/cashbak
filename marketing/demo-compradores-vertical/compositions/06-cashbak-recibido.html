@@ -252,28 +252,28 @@
       gsap.set("#cb-hero", { y: 30, opacity: 0 });
 
       // grid
-      tl.to("#cb-grid", { opacity: 1, duration: 1.2, ease: "power1.out" }, 0);
+      tl.to("#cb-grid", { opacity: 1, duration: 1.4495, ease: "power1.out" }, 0.0);
 
       // phone slides up
-      tl.to("#cb-phone", { y: 0, opacity: 1, scale: 1, duration: 1.0, ease: "power3.out" }, 0.2);
+      tl.to("#cb-phone", { y: 0, opacity: 1, scale: 1, duration: 1.2079, ease: "power3.out" }, 0.2416);
 
       // notification drops in
-      tl.to("#cb-notif", { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.5)" }, 1.1);
-      tl.to("#cb-notif", { x: -10, duration: 0.08, yoyo: true, repeat: 5, ease: "sine.inOut" }, 1.7);
-      tl.set("#cb-notif", { x: 0 }, 2.2);
+      tl.to("#cb-notif", { y: 0, opacity: 1, scale: 1, duration: 0.8455, ease: "back.out(1.5)" }, 1.3287);
+      tl.to("#cb-notif", { x: -10, duration: 0.0966, yoyo: true, repeat: 5, ease: "sine.inOut" }, 2.0534);
+      tl.set("#cb-notif", { x: 0 }, 2.6574);
 
       // amount card emerges
-      tl.to("#cb-amount", { y: 0, opacity: 1, scale: 1, duration: 0.75, ease: "back.out(1.4)" }, 2.0);
-      tl.to("#cb-amount-val", { scale: 1, duration: 0.6, ease: "back.out(1.7)" }, 2.4);
-      tl.to("#cb-amount-val", { scale: 1.05, duration: 0.4, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" }, 3.0);
+      tl.to("#cb-amount", { y: 0, opacity: 1, scale: 1, duration: 0.9059, ease: "back.out(1.4)" }, 2.4158);
+      tl.to("#cb-amount-val", { scale: 1, duration: 0.7247, ease: "back.out(1.7)" }, 2.899);
+      tl.to("#cb-amount-val", { scale: 1.05, duration: 0.4832, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" }, 3.6237);
 
       // hero line
-      tl.to("#cb-hero", { y: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 3.4);
+      tl.to("#cb-hero", { y: 0, opacity: 1, duration: 0.8455, ease: "expo.out" }, 4.1069);
 
       // ambient drift
-      tl.fromTo("#cb-blob-a", { x: 0, y: 0 }, { x: -40, y: 30, duration: 5, ease: "sine.inOut" }, 0);
-      tl.fromTo("#cb-blob-b", { x: 0, y: 0 }, { x: 30, y: -20, duration: 5, ease: "sine.inOut" }, 0);
-      tl.fromTo("#cb-phone", { rotation: -0.4 }, { rotation: 0.4, duration: 5, ease: "sine.inOut" }, 0.5);
+      tl.fromTo("#cb-blob-a", { x: 0, y: 0 }, { x: -40, y: 30, duration: 6.0395, ease: "sine.inOut" }, 0.0);
+      tl.fromTo("#cb-blob-b", { x: 0, y: 0 }, { x: 30, y: -20, duration: 6.0395, ease: "sine.inOut" }, 0.0);
+      tl.fromTo("#cb-phone", { rotation: -0.4 }, { rotation: 0.4, duration: 6.0395, ease: "sine.inOut" }, 0.604);
 
       window.__timelines["cashbak"] = tl;
     </script>

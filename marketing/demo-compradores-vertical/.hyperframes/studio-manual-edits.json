@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "edits": [
+    {
+      "kind": "box-size",
+      "target": {
+        "sourceFile": "compositions/07-cierre.html",
+        "selector": "#cl-url",
+        "id": "cl-url"
+      },
+      "width": 1069,
+      "height": 132,
+      "updatedAt": "2026-05-14T03:22:29.151Z"
+    },
+    {
+      "kind": "path-offset",
+      "target": {
+        "sourceFile": "compositions/07-cierre.html",
+        "selector": "#cl-url",
+        "id": "cl-url"
+      },
+      "x": 40,
+      "y": 0,
+      "updatedAt": "2026-05-14T03:31:03.983Z"
+    }
+  ]
+}

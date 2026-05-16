@@ -270,30 +270,28 @@
       gsap.set("#cp-status", { y: 30, opacity: 0 });
 
       // header
-      tl.to("#cp-pill", { x: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 0.05);
-      tl.to("#cp-url", { x: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 0.15);
+      tl.to("#cp-pill", { x: 0, opacity: 1, duration: 0.6101, ease: "expo.out" }, 0.061);
+      tl.to("#cp-url", { x: 0, opacity: 1, duration: 0.6101, ease: "expo.out" }, 0.183);
 
       // check seal
-      tl.to("#cp-check", { scale: 1, opacity: 1, duration: 0.7, ease: "back.out(1.7)" }, 0.3);
-      tl.to("#cp-check", { scale: 1.05, duration: 0.35, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" }, 1.0);
-      tl.to("#cp-title", { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.7);
-      tl.to("#cp-sub", { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" }, 0.95);
+      tl.to("#cp-check", { scale: 1, opacity: 1, duration: 0.8542, ease: "back.out(1.7)" }, 0.3661);
+      tl.to("#cp-check", { scale: 1.05, duration: 0.4271, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" }, 1.2203);
+      tl.to("#cp-title", { y: 0, opacity: 1, duration: 0.7322, ease: "power3.out" }, 0.8542);
+      tl.to("#cp-sub", { y: 0, opacity: 1, duration: 0.6101, ease: "power2.out" }, 1.1593);
 
       // receipt
-      tl.to("#cp-receipt", { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: "power3.out" }, 1.4);
+      tl.to("#cp-receipt", { y: 0, opacity: 1, scale: 1, duration: 0.8542, ease: "power3.out" }, 1.7084);
 
       // status
-      tl.to("#cp-status", { y: 0, opacity: 1, duration: 0.6, ease: "power2.out" }, 2.0);
+      tl.to("#cp-status", { y: 0, opacity: 1, duration: 0.7322, ease: "power2.out" }, 2.4405);
 
       // emphasis on event row glow pulse
       tl.fromTo("#cp-event",
         { boxShadow: "0 0 0 rgba(5,150,105,0)" },
-        { boxShadow: "0 0 28px rgba(5,150,105,0.25)", duration: 0.8, yoyo: true, repeat: 1, ease: "sine.inOut" },
-        2.5
-      );
+        { boxShadow: "0 0 28px rgba(5,150,105,0.25)", duration: 0.9762, yoyo: true, repeat: 1, ease: "sine.inOut" }, 3.0507);
 
       // ambient drift
-      tl.fromTo("#cp-receipt", { y: 0 }, { y: -6, duration: 5, ease: "sine.inOut" }, 0);
+      tl.fromTo("#cp-receipt", { y: 0 }, { y: -6, duration: 6.1013, ease: "sine.inOut" }, 0.0);
 
       window.__timelines["compra"] = tl;
     </script>

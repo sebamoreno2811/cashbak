@@ -57,17 +57,19 @@
       }
       [data-composition-id="cierre"] .url {
         font-weight: 900; font-size: 132px;
-        color: #ffffff;
         letter-spacing: -0.025em;
         line-height: 1;
         position: relative; z-index: 2;
         overflow: hidden;
+      }
+      [data-composition-id="cierre"] .url span {
+        display: inline-block;
         background: linear-gradient(180deg, #ffffff 0%, #d1fae5 100%);
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
+        color: #ffffff; /* fallback */
       }
-      [data-composition-id="cierre"] .url span { display: inline-block; }
 
       [data-composition-id="cierre"] .sub {
         margin-top: 36px;
@@ -105,7 +107,7 @@
           <img src="../assets/logo.png" alt="CashBak" />
         </div>
         <div class="pre" id="cl-pre">Compra en</div>
-        <div class="url"><span id="cl-url">www.cashbak.cl</span></div>
+        <div class="url"><span id="cl-url" style="font-size: 120px">www.cashbak.cl</span></div>
         <p class="sub" id="cl-sub">Tu producto + tu CashBak.</p>
         <div class="cta" id="cl-cta">
           <span>Ver productos</span>
@@ -125,23 +127,23 @@
       gsap.set("#cl-sub", { y: 24, opacity: 0 });
       gsap.set("#cl-cta", { y: 30, opacity: 0, scale: 0.92, transformOrigin: "50% 50%" });
 
-      tl.to("#cl-grid", { opacity: 1, duration: 1.2, ease: "power1.out" }, 0);
-      tl.to("#cl-logo", { scale: 1, opacity: 1, duration: 0.85, ease: "back.out(1.5)" }, 0.1);
-      tl.to("#cl-pre", { y: 0, opacity: 1, duration: 0.55, ease: "power2.out" }, 0.55);
-      tl.to("#cl-url", { yPercent: 0, duration: 0.95, ease: "power3.out" }, 0.75);
-      tl.to("#cl-sub", { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 1.5);
+      tl.to("#cl-grid", { opacity: 1, duration: 1.5429, ease: "power1.out" }, 0.0);
+      tl.to("#cl-logo", { scale: 1, opacity: 1, duration: 1.0929, ease: "back.out(1.5)" }, 0.1286);
+      tl.to("#cl-pre", { y: 0, opacity: 1, duration: 0.7071, ease: "power2.out" }, 0.7071);
+      tl.to("#cl-url", { yPercent: 0, duration: 1.2214, ease: "power3.out" }, 0.9643);
+      tl.to("#cl-sub", { y: 0, opacity: 1, duration: 0.7714, ease: "expo.out" }, 1.9286);
 
-      tl.to("#cl-cta", { y: 0, opacity: 1, scale: 1, duration: 0.65, ease: "back.out(1.5)" }, 1.95);
-      tl.to("#cl-cta", { scale: 1.06, duration: 0.4, yoyo: true, repeat: 3, ease: "sine.inOut", transformOrigin: "50% 50%" }, 2.7);
+      tl.to("#cl-cta", { y: 0, opacity: 1, scale: 1, duration: 0.8357, ease: "back.out(1.5)" }, 2.5071);
+      tl.to("#cl-cta", { scale: 1.06, duration: 0.5143, yoyo: true, repeat: 3, ease: "sine.inOut", transformOrigin: "50% 50%" }, 3.4714);
 
       // ambient drift
-      tl.fromTo("#cl-blob-a", { x: 0, y: 0 }, { x: -30, y: 30, duration: 5, ease: "sine.inOut" }, 0);
-      tl.fromTo("#cl-blob-b", { x: 0, y: 0 }, { x: 30, y: -20, duration: 5, ease: "sine.inOut" }, 0);
-      tl.fromTo(".stage", { scale: 1 }, { scale: 1.03, duration: 5, ease: "power1.inOut" }, 0);
-      tl.fromTo("#cl-logo", { rotation: -1 }, { rotation: 1.5, duration: 5, ease: "sine.inOut" }, 0);
+      tl.fromTo("#cl-blob-a", { x: 0, y: 0 }, { x: -30, y: 30, duration: 6.4286, ease: "sine.inOut" }, 0.0);
+      tl.fromTo("#cl-blob-b", { x: 0, y: 0 }, { x: 30, y: -20, duration: 6.4286, ease: "sine.inOut" }, 0.0);
+      tl.fromTo(".stage", { scale: 1 }, { scale: 1.03, duration: 6.4286, ease: "power1.inOut" }, 0.0);
+      tl.fromTo("#cl-logo", { rotation: -1 }, { rotation: 1.5, duration: 6.4286, ease: "sine.inOut" }, 0.0);
 
       // final fade out (allowed on last scene)
-      tl.to(["#cl-logo", "#cl-pre", "#cl-url", "#cl-sub", "#cl-cta"], { opacity: 0.0, duration: 0.4, ease: "power1.in" }, 4.6);
+      tl.to(["#cl-logo", "#cl-pre", "#cl-url", "#cl-sub", "#cl-cta"], { opacity: 0.0, duration: 0.5143, ease: "power1.in" }, 5.1429);
 
       window.__timelines["cierre"] = tl;
     </script>

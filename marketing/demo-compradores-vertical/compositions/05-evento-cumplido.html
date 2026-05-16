@@ -299,39 +299,39 @@
       gsap.set("#ec-burst .ray", { scaleY: 0, opacity: 0, transformOrigin: "50% 0%" });
 
       // grid in
-      tl.to("#ec-grid", { opacity: 1, duration: 1.2, ease: "power1.out" }, 0);
+      tl.to("#ec-grid", { opacity: 1, duration: 1.44, ease: "power1.out" }, 0.0);
 
       // live tag
-      tl.to("#ec-live", { y: 0, opacity: 1, duration: 0.55, ease: "expo.out" }, 0.2);
+      tl.to("#ec-live", { y: 0, opacity: 1, duration: 0.66, ease: "expo.out" }, 0.24);
 
       // scoreboard frame
-      tl.to("#ec-sb", { y: 0, opacity: 1, scale: 1, duration: 0.75, ease: "power3.out" }, 0.5);
+      tl.to("#ec-sb", { y: 0, opacity: 1, scale: 1, duration: 0.9, ease: "power3.out" }, 0.6);
 
       // brasil score in first
-      tl.to("#ec-d2", { scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.7)" }, 1.0);
+      tl.to("#ec-d2", { scale: 1, opacity: 1, duration: 0.66, ease: "back.out(1.7)" }, 1.2);
 
       // chile score in last with emphasis (the winning goal)
-      tl.to("#ec-d1", { scale: 1.2, opacity: 1, duration: 0.6, ease: "back.out(2)" }, 1.5);
-      tl.to("#ec-d1", { scale: 1, duration: 0.4, ease: "power2.out" }, 2.1);
+      tl.to("#ec-d1", { scale: 1.2, opacity: 1, duration: 0.72, ease: "back.out(2)" }, 1.8);
+      tl.to("#ec-d1", { scale: 1, duration: 0.48, ease: "power2.out" }, 2.52);
 
       // burst rays
       tl.to("#ec-burst .ray", {
-        scaleY: 1, opacity: 1, duration: 0.5, ease: "power3.out",
+        scaleY: 1, opacity: 1, duration: 0.6, ease: "power3.out",
         stagger: { each: 0.03, from: "random" }
-      }, 1.7);
-      tl.to("#ec-burst .ray", { opacity: 0, duration: 0.7, ease: "power2.in" }, 2.4);
+      }, 2.04);
+      tl.to("#ec-burst .ray", { opacity: 0, duration: 0.84, ease: "power2.in" }, 2.88);
 
       // bet card slides in (recall from beat 3)
-      tl.to("#ec-bet", { y: 0, opacity: 1, scale: 1, duration: 0.65, ease: "back.out(1.4)" }, 2.5);
-      tl.to("#ec-bet", { scale: 1.03, duration: 0.4, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" }, 3.2);
+      tl.to("#ec-bet", { y: 0, opacity: 1, scale: 1, duration: 0.78, ease: "back.out(1.4)" }, 3.0);
+      tl.to("#ec-bet", { scale: 1.03, duration: 0.48, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" }, 3.84);
 
       // result message
-      tl.to("#ec-msg", { y: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 3.4);
+      tl.to("#ec-msg", { y: 0, opacity: 1, duration: 0.84, ease: "expo.out" }, 4.08);
 
       // ambient drift
-      tl.fromTo("#ec-blob-a", { x: 0, y: 0 }, { x: -40, y: 30, duration: 5, ease: "sine.inOut" }, 0);
-      tl.fromTo("#ec-blob-b", { x: 0, y: 0 }, { x: 30, y: -20, duration: 5, ease: "sine.inOut" }, 0);
-      tl.fromTo(".stage", { scale: 1 }, { scale: 1.025, duration: 5, ease: "power1.inOut" }, 0);
+      tl.fromTo("#ec-blob-a", { x: 0, y: 0 }, { x: -40, y: 30, duration: 6.0, ease: "sine.inOut" }, 0.0);
+      tl.fromTo("#ec-blob-b", { x: 0, y: 0 }, { x: 30, y: -20, duration: 6.0, ease: "sine.inOut" }, 0.0);
+      tl.fromTo(".stage", { scale: 1 }, { scale: 1.025, duration: 6.0, ease: "power1.inOut" }, 0.0);
 
       window.__timelines["evcumplido"] = tl;
     </script>

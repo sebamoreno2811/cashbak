@@ -255,47 +255,47 @@
       }
 
       // header in
-      tl.to("#pp-pill", { x: 0, opacity: 1, duration: 0.55, ease: "expo.out" }, 0.05);
-      tl.to("#pp-url", { x: 0, opacity: 1, duration: 0.55, ease: "expo.out" }, 0.15);
-      tl.to("#pp-h1", { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.3);
-      tl.to("#pp-sub", { y: 0, opacity: 1, duration: 0.55, ease: "power2.out" }, 0.55);
+      tl.to("#pp-pill", { x: 0, opacity: 1, duration: 0.6722, ease: "expo.out" }, 0.0611);
+      tl.to("#pp-url", { x: 0, opacity: 1, duration: 0.6722, ease: "expo.out" }, 0.1833);
+      tl.to("#pp-h1", { y: 0, opacity: 1, duration: 0.8556, ease: "power3.out" }, 0.3667);
+      tl.to("#pp-sub", { y: 0, opacity: 1, duration: 0.6722, ease: "power2.out" }, 0.6722);
 
       // cards stagger with rotation correction (fluid feel)
       const cards = ["#pc-1", "#pc-2", "#pc-3", "#pc-4"];
       cards.forEach((sel, i) => {
         tl.to(sel,
-          { y: 0, opacity: 1, scale: 1, rotation: 0, duration: 0.7, ease: "back.out(1.2)" },
+          { y: 0, opacity: 1, scale: 1, rotation: 0, duration: 0.8556, ease: "back.out(1.2)" },
           0.75 + i * 0.10
         );
       });
 
       // hand flies in and lands on the hero card (pc-1 center, computed at tween start)
-      tl.to("#pp-cursor", { opacity: 1, duration: 0.25 }, 1.7);
+      tl.to("#pp-cursor", { opacity: 1, duration: 0.3056 }, 2.0778);
       tl.to("#pp-cursor", {
         x: () => __pc1Center().x,
         y: () => __pc1Center().y,
-        duration: 1.0,
+        duration: 1.2222,
         ease: "power3.inOut"
-      }, 1.7);
+      }, 2.0778);
 
       // tap ring pulse exactly when the hand lands (click moment)
       tl.fromTo("#pp-cursor .tap-ring",
         { scale: 0, opacity: 0.9 },
-        { scale: 2.6, opacity: 0, duration: 0.7, ease: "power2.out" }, 2.7);
+        { scale: 2.6, opacity: 0, duration: 0.8556, ease: "power2.out" }, 3.3);
 
       // hand "press" micro-bounce
-      tl.to("#pp-cursor .hand-wrap", { scale: 0.88, duration: 0.12, ease: "power2.out", transformOrigin: "50% 0%" }, 2.7);
-      tl.to("#pp-cursor .hand-wrap", { scale: 1, duration: 0.28, ease: "back.out(2)", transformOrigin: "50% 0%", overwrite: "auto" }, 2.84);
+      tl.to("#pp-cursor .hand-wrap", { scale: 0.88, duration: 0.1467, ease: "power2.out", transformOrigin: "50% 0%" }, 3.3);
+      tl.to("#pp-cursor .hand-wrap", { scale: 1, duration: 0.3422, ease: "back.out(2)", transformOrigin: "50% 0%", overwrite: "auto" }, 3.4711);
 
       // hero card responds to the click (slight delay for natural feel)
-      tl.to("#pc-1", { scale: 1.045, duration: 0.45, ease: "power3.out", transformOrigin: "50% 50%" }, 2.78);
-      tl.to("#pc-1-ring", { opacity: 1, borderWidth: 4, duration: 0.4, ease: "power2.out" }, 2.78);
-      tl.to("#pc-1", { y: -4, duration: 0.55, ease: "sine.inOut", yoyo: true, repeat: 1 }, 3.05);
+      tl.to("#pc-1", { scale: 1.045, duration: 0.55, ease: "power3.out", transformOrigin: "50% 50%" }, 3.3978);
+      tl.to("#pc-1-ring", { opacity: 1, borderWidth: 4, duration: 0.4889, ease: "power2.out" }, 3.3978);
+      tl.to("#pc-1", { y: -4, duration: 0.6722, ease: "sine.inOut", yoyo: true, repeat: 1 }, 3.7278);
 
       // continuous fluid drift across full 4.5s
-      tl.fromTo(".grid", { y: 0 }, { y: -12, duration: 4.5, ease: "sine.inOut" }, 0);
-      tl.fromTo("#pc-2", { rotation: 0 }, { rotation: 0.6, duration: 4.5, ease: "sine.inOut" }, 0);
-      tl.fromTo("#pc-3", { rotation: 0 }, { rotation: -0.6, duration: 4.5, ease: "sine.inOut" }, 0);
+      tl.fromTo(".grid", { y: 0 }, { y: -12, duration: 5.5, ease: "sine.inOut" }, 0.0);
+      tl.fromTo("#pc-2", { rotation: 0 }, { rotation: 0.6, duration: 5.5, ease: "sine.inOut" }, 0.0);
+      tl.fromTo("#pc-3", { rotation: 0 }, { rotation: -0.6, duration: 5.5, ease: "sine.inOut" }, 0.0);
 
       window.__timelines["producto"] = tl;
     </script>

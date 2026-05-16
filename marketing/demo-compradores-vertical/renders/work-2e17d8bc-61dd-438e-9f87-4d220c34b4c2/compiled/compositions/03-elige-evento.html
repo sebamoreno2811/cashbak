@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      [data-composition-id="evento"] { width: 1080px; height: 1920px; overflow: hidden; font-family: "Inter", system-ui, sans-serif; color: #111827; }
+
+      [data-composition-id="evento"] .stage {
+        width: 1080px; height: 1920px; position: relative;
+        background:
+          radial-gradient(ellipse 90% 50% at 50% 0%, rgba(16,185,129,0.10), transparent 60%),
+          linear-gradient(180deg, #f9fafb 0% 18%, #ffffff 18% 100%);
+        padding: 110px 70px 110px;
+        display: flex; flex-direction: column;
+      }
+
+      [data-composition-id="evento"] .header-row {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 28px;
+      }
+      [data-composition-id="evento"] .pill-paso {
+        display: inline-flex; align-items: center; gap: 12px;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #fff;
+        border-radius: 999px;
+        font-weight: 800; font-size: 26px; letter-spacing: 0.06em;
+        box-shadow: 0 12px 28px rgba(5,150,105,0.40);
+      }
+      [data-composition-id="evento"] .pill-paso .num {
+        background: rgba(255,255,255,0.25); padding: 4px 10px; border-radius: 999px;
+        font-weight: 900; font-size: 22px;
+      }
+      [data-composition-id="evento"] .url-pill {
+        display: inline-flex; align-items: center; gap: 10px;
+        padding: 12px 22px;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        color: #6b7280;
+        font-weight: 600; font-size: 22px;
+        box-shadow: 0 6px 18px rgba(17,24,39,0.06);
+      }
+      [data-composition-id="evento"] .url-pill .lock { color: #10b981; font-size: 18px; }
+
+      [data-composition-id="evento"] .h1 {
+        font-weight: 900; font-size: 84px; line-height: 1.02;
+        letter-spacing: -0.025em; color: #111827;
+        margin-bottom: 10px;
+      }
+      [data-composition-id="evento"] .h1 .green {
+        background: linear-gradient(120deg, #10b981 0%, #059669 60%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      [data-composition-id="evento"] .sub-h1 {
+        font-weight: 500; font-size: 32px; line-height: 1.3;
+        color: #6b7280;
+        margin-bottom: 36px;
+        max-width: 800px;
+      }
+
+      /* mini product card */
+      [data-composition-id="evento"] .pcard-mini {
+        display: flex; align-items: center; gap: 22px;
+        padding: 18px;
+        background: #fff; border: 1px solid #eef2f7; border-radius: 22px;
+        box-shadow: 0 12px 28px rgba(17,24,39,0.07);
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+      }
+      [data-composition-id="evento"] .pcard-mini .imgbox {
+        flex: 0 0 130px;
+        width: 130px; height: 130px; border-radius: 16px;
+        background: linear-gradient(160deg, #f9fafb, #f3f4f6);
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden;
+      }
+      [data-composition-id="evento"] .pcard-mini .imgbox img {
+        max-width: 90%; max-height: 90%; object-fit: contain;
+      }
+      [data-composition-id="evento"] .pcard-mini .info { flex: 1 1 auto; min-width: 0; }
+      [data-composition-id="evento"] .pcard-mini .name {
+        font-weight: 700; font-size: 30px; color: #111827; margin-bottom: 4px;
+      }
+      [data-composition-id="evento"] .pcard-mini .price {
+        font-weight: 800; font-size: 32px; color: #111827;
+        font-variant-numeric: tabular-nums;
+      }
+      [data-composition-id="evento"] .pcard-mini .badge-mini {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #fff;
+        padding: 6px 14px; border-radius: 999px;
+        font-weight: 800; font-size: 18px;
+        box-shadow: 0 6px 14px rgba(5,150,105,0.40);
+        align-self: flex-start;
+        margin-bottom: 6px;
+        display: inline-block;
+      }
+
+      /* bets list */
+      [data-composition-id="evento"] .bets {
+        display: flex; flex-direction: column; gap: 18px;
+      }
+      [data-composition-id="evento"] .bet {
+        display: flex; align-items: center; gap: 22px;
+        padding: 26px 30px;
+        border: 1.5px solid #e5e7eb; border-radius: 22px;
+        background: #fff; color: #111827;
+        box-shadow: 0 10px 24px rgba(17,24,39,0.06);
+        position: relative;
+        overflow: hidden;
+        will-change: transform;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+      }
+      [data-composition-id="evento"] .bet .bg-glow {
+        position: absolute; inset: 0;
+        background: linear-gradient(135deg, #10b981, #059669);
+        opacity: 0;
+        z-index: 0;
+      }
+      [data-composition-id="evento"] .bet.is-selected .bg-glow {
+        opacity: 1;
+      }
+      [data-composition-id="evento"] .bet > * { position: relative; z-index: 1; }
+
+      [data-composition-id="evento"] .bet.is-selected {
+        border-color: transparent;
+        box-shadow: 0 22px 48px rgba(5,150,105,0.45);
+      }
+      [data-composition-id="evento"] .bet.is-selected .name,
+      [data-composition-id="evento"] .bet.is-selected .pct {
+        color: #fff;
+      }
+      [data-composition-id="evento"] .bet .ico {
+        flex: 0 0 64px;
+        width: 64px; height: 64px; border-radius: 14px;
+        background: rgba(16,185,129,0.12);
+        display: flex; align-items: center; justify-content: center;
+        color: #10b981;
+      }
+      [data-composition-id="evento"] .bet.is-selected .ico {
+        background: rgba(255,255,255,0.22); color: #fff;
+      }
+      [data-composition-id="evento"] .bet .ico svg { width: 34px; height: 34px; }
+      [data-composition-id="evento"] .bet .name {
+        flex: 1 1 auto; min-width: 0;
+        font-weight: 700; font-size: 30px;
+        color: inherit;
+      }
+      [data-composition-id="evento"] .bet .pct {
+        flex: 0 0 auto;
+        font-weight: 900; font-size: 40px;
+        color: inherit;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.01em;
+      }
+
+      /* cursor (hand) — anchor at fingertip, GSAP x/y positions the click point directly */
+      [data-composition-id="evento"] .cursor {
+        position: absolute;
+        top: 0; left: 0;
+        width: 0; height: 0;
+        z-index: 8;
+        pointer-events: none;
+        will-change: transform;
+      }
+      [data-composition-id="evento"] .cursor .hand-wrap {
+        position: absolute;
+        width: 80px; height: 80px;
+        top: -3px;
+        left: -32px;
+        filter: drop-shadow(0 10px 22px rgba(0,0,0,0.42));
+      }
+      [data-composition-id="evento"] .cursor .hand {
+        width: 80px; height: 80px; display: block;
+        image-rendering: pixelated;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: crisp-edges;
+      }
+      [data-composition-id="evento"] .cursor .tap-ring {
+        position: absolute;
+        top: -55px;
+        left: -55px;
+        width: 110px;
+        height: 110px;
+        border-radius: 999px;
+        background: rgba(16,185,129,0.32);
+        border: 3px solid rgba(16,185,129,0.85);
+        transform: scale(0);
+        transform-origin: 50% 50%;
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="evento" data-start="0" data-width="1080" data-height="1920">
+      <div class="stage">
+        <div class="header-row">
+          <div class="pill-paso" id="ev-pill">
+            <span class="num">2</span>
+            <span>Elige evento</span>
+          </div>
+          <div class="url-pill" id="ev-url">
+            <span class="lock">●</span>
+            <span>cashbak.cl</span>
+          </div>
+        </div>
+
+        <h1 class="h1" id="ev-h1">
+          Y un evento
+          <span class="green">deportivo.</span>
+        </h1>
+        <p class="sub-h1" id="ev-sub">Mientras más difícil, más CashBak ganas.</p>
+
+        <div class="pcard-mini" id="ev-pcard">
+          <div class="imgbox"><img src="../assets/zapatillas-2.png" alt="Zapatillas" /></div>
+          <div class="info">
+            <span class="badge-mini">CashBak hasta 100%</span>
+            <div class="name">Zapatillas Running Pro</div>
+            <div class="price">$39.990</div>
+          </div>
+        </div>
+
+        <div class="bets" id="ev-bets">
+          <div class="bet" id="bet-1">
+            <span class="bg-glow"></span>
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span>
+            <span class="name">Chile le gana a Brasil</span>
+            <span class="pct">100%</span>
+          </div>
+          <div class="bet" id="bet-2">
+            <span class="bg-glow"></span>
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2 L12 22 M2 12 L22 12"/></svg></span>
+            <span class="name">Francia gana el Mundial</span>
+            <span class="pct">70%</span>
+          </div>
+          <div class="bet" id="bet-3">
+            <span class="bg-glow"></span>
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg></span>
+            <span class="name">Bayern gana la Champions</span>
+            <span class="pct">50%</span>
+          </div>
+        </div>
+
+        <div class="cursor" id="ev-cursor">
+          <span class="tap-ring"></span>
+          <span class="hand-wrap">
+            <img class="hand" src="../assets/puntero_mano.png" alt="cursor" />
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      gsap.set("#ev-pill", { x: -60, opacity: 0 });
+      gsap.set("#ev-url", { x: 60, opacity: 0 });
+      gsap.set("#ev-h1", { y: 36, opacity: 0 });
+      gsap.set("#ev-sub", { y: 24, opacity: 0 });
+      gsap.set("#ev-pcard", { y: 30, opacity: 0, scale: 0.96, transformOrigin: "50% 50%" });
+      // Los 3 eventos entran con stagger uniforme; bet-1 se selecciona al final.
+      gsap.set(["#bet-1", "#bet-2", "#bet-3"], { y: 24, opacity: 0 });
+      gsap.set("#ev-cursor", { x: 940, y: 1680, opacity: 0 });
+      gsap.set("#ev-cursor .tap-ring", { scale: 0, opacity: 0 });
+
+      // Compute bet-1 layout center relative to .stage on demand.
+      // We re-evaluate at tween start time using GSAP function values so that
+      // any font/layout settling is captured.
+      const __stage = document.querySelector('[data-composition-id="evento"] .stage');
+      function __bet1Center() {
+        const bet1 = document.getElementById("bet-1");
+        if (!__stage || !bet1) return { x: 540, y: 700 };
+        let el = bet1, ox = 0, oy = 0;
+        while (el && el !== __stage) {
+          ox += el.offsetLeft;
+          oy += el.offsetTop;
+          el = el.offsetParent;
+        }
+        return { x: ox + bet1.offsetWidth / 2, y: oy + bet1.offsetHeight / 2 };
+      }
+
+      // header
+      tl.to("#ev-pill", { x: 0, opacity: 1, duration: 0.55, ease: "expo.out" }, 0.05);
+      tl.to("#ev-url", { x: 0, opacity: 1, duration: 0.55, ease: "expo.out" }, 0.15);
+      tl.to("#ev-h1", { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.3);
+      tl.to("#ev-sub", { y: 0, opacity: 1, duration: 0.55, ease: "power2.out" }, 0.55);
+
+      // mini product card
+      tl.to("#ev-pcard", { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.2)" }, 0.85);
+
+      // Los 3 eventos entran con stagger uniforme
+      tl.to("#bet-1", { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 1.15);
+      tl.to("#bet-2", { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 1.25);
+      tl.to("#bet-3", { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 1.35);
+
+      // mano vuela hasta el centro real de bet-1 (computado al iniciar el tween)
+      tl.to("#ev-cursor", { opacity: 1, duration: 0.25 }, 2.4);
+      tl.to("#ev-cursor", {
+        x: () => __bet1Center().x,
+        y: () => __bet1Center().y,
+        duration: 1.05,
+        ease: "power3.inOut"
+      }, 2.4);
+
+      // tap ring justo cuando aterriza (3.45s)
+      tl.fromTo("#ev-cursor .tap-ring",
+        { scale: 0, opacity: 0.9 },
+        { scale: 2.6, opacity: 0, duration: 0.7, ease: "power2.out" }, 3.45);
+
+      // micro-press de la mano
+      tl.to("#ev-cursor .hand-wrap", { scale: 0.88, duration: 0.12, ease: "power2.out", transformOrigin: "50% 0%" }, 3.45);
+      tl.to("#ev-cursor .hand-wrap", { scale: 1, duration: 0.28, ease: "back.out(2)", transformOrigin: "50% 0%", overwrite: "auto" }, 3.59);
+
+      // selección: la clase is-selected hace TODO el cambio visual atómicamente
+      // (bg-glow opaque + textos blancos) — sin tween para evitar cualquier
+      // estado intermedio "blanco sobre blanco".
+      tl.add(() => {
+        const el = document.getElementById("bet-1");
+        if (el) el.classList.add("is-selected");
+      }, 3.5);
+
+      // atenuar los otros bets para reforzar el foco
+      tl.to(["#bet-2", "#bet-3"], { opacity: 0.5, duration: 0.5, ease: "power2.out" }, 3.5);
+
+      // (sin drift en pcard para evitar overlap con la entrada)
+
+      window.__timelines["evento"] = tl;
+    </script>
+  </body>
+</html>

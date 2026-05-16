@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      [data-composition-id="cashbak"] { width: 1080px; height: 1920px; overflow: hidden; font-family: "Inter", system-ui, sans-serif; color: #ffffff; }
+
+      [data-composition-id="cashbak"] .stage {
+        width: 1080px; height: 1920px; position: relative;
+        background:
+          radial-gradient(ellipse 80% 60% at 50% 30%, rgba(16,185,129,0.32), transparent 60%),
+          linear-gradient(160deg, #052e1a 0%, #14532d 38%, #166534 70%, #059669 130%);
+        padding: 110px 70px;
+        display: flex; flex-direction: column; align-items: center;
+      }
+      [data-composition-id="cashbak"] .blob-a {
+        position: absolute; top: -260px; right: -260px;
+        width: 1100px; height: 1100px;
+        background: radial-gradient(circle, rgba(52,211,153,0.30), transparent 60%);
+        will-change: transform;
+      }
+      [data-composition-id="cashbak"] .blob-b {
+        position: absolute; bottom: -240px; left: -240px;
+        width: 900px; height: 900px;
+        background: radial-gradient(circle, rgba(255,255,255,0.05), transparent 65%);
+        will-change: transform;
+      }
+      [data-composition-id="cashbak"] .grid-overlay {
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 80px 80px;
+        mask-image: radial-gradient(ellipse 70% 50% at 50% 50%, #000 30%, transparent 80%);
+        -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 50%, #000 30%, transparent 80%);
+      }
+
+      /* phone */
+      [data-composition-id="cashbak"] .phone-wrap {
+        width: 100%;
+        position: relative; z-index: 2;
+        display: flex; flex-direction: column; align-items: center;
+        margin-top: 6px;
+      }
+      [data-composition-id="cashbak"] .phone {
+        width: 720px; height: 1340px;
+        background: #0a1f15;
+        border: 14px solid #0a0a0a;
+        border-radius: 78px;
+        box-shadow: 0 60px 140px rgba(0,0,0,0.55), 0 0 0 1px rgba(167,243,208,0.15) inset;
+        position: relative;
+        overflow: hidden;
+      }
+      [data-composition-id="cashbak"] .phone .notch {
+        position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+        width: 220px; height: 36px; background: #0a0a0a; border-radius: 999px;
+        z-index: 5;
+      }
+      [data-composition-id="cashbak"] .phone .screen {
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16,185,129,0.35), transparent 60%),
+          linear-gradient(180deg, #0b3024 0%, #052e1a 60%, #04130b 100%);
+        padding: 80px 40px 40px;
+        display: flex; flex-direction: column; gap: 24px;
+      }
+
+      [data-composition-id="cashbak"] .status-bar {
+        display: flex; align-items: center; justify-content: space-between;
+        color: #a7f3d0; font-weight: 700; font-size: 22px;
+        margin-top: 2px;
+      }
+      [data-composition-id="cashbak"] .status-bar .icons {
+        display: inline-flex; gap: 8px; align-items: center; font-size: 18px;
+      }
+
+      [data-composition-id="cashbak"] .day {
+        color: #d1fae5; font-weight: 600; font-size: 24px;
+        text-align: center;
+      }
+      [data-composition-id="cashbak"] .time {
+        color: #ffffff; font-weight: 800; font-size: 92px;
+        text-align: center; letter-spacing: -0.02em;
+        line-height: 1;
+        margin-top: -8px;
+      }
+
+      /* notification card */
+      [data-composition-id="cashbak"] .notif {
+        background: rgba(255,255,255,0.10);
+        border: 1px solid rgba(255,255,255,0.16);
+        backdrop-filter: blur(14px);
+        border-radius: 28px;
+        padding: 20px;
+        margin-top: 18px;
+        display: flex; flex-direction: column; gap: 14px;
+        will-change: transform;
+        position: relative;
+      }
+      [data-composition-id="cashbak"] .notif .header {
+        display: flex; align-items: center; gap: 12px;
+      }
+      [data-composition-id="cashbak"] .notif .app-ico {
+        width: 56px; height: 56px; border-radius: 14px;
+        background: #ffffff;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.30);
+      }
+      [data-composition-id="cashbak"] .notif .app-ico img { width: 40px; height: 40px; object-fit: contain; }
+      [data-composition-id="cashbak"] .notif .meta {
+        flex: 1 1 auto;
+      }
+      [data-composition-id="cashbak"] .notif .meta .app {
+        font-weight: 800; font-size: 22px; color: #ffffff; letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      [data-composition-id="cashbak"] .notif .meta .now {
+        font-size: 18px; color: rgba(255,255,255,0.65); margin-top: 2px;
+      }
+      [data-composition-id="cashbak"] .notif .body {
+        display: flex; flex-direction: column; gap: 6px;
+      }
+      [data-composition-id="cashbak"] .notif .body .title {
+        font-weight: 800; font-size: 28px; color: #ffffff;
+        letter-spacing: -0.005em;
+      }
+      [data-composition-id="cashbak"] .notif .body .text {
+        font-size: 22px; color: rgba(255,255,255,0.85); line-height: 1.3;
+      }
+
+      /* main amount card */
+      [data-composition-id="cashbak"] .amount-card {
+        margin-top: 10px;
+        background: linear-gradient(135deg, rgba(16,185,129,0.30), rgba(5,150,105,0.20));
+        border: 1.5px solid rgba(167,243,208,0.40);
+        backdrop-filter: blur(14px);
+        border-radius: 28px;
+        padding: 28px 26px 30px;
+        position: relative;
+        overflow: hidden;
+      }
+      [data-composition-id="cashbak"] .amount-card .label {
+        font-weight: 700; font-size: 20px; letter-spacing: 0.18em;
+        text-transform: uppercase; color: #a7f3d0;
+        margin-bottom: 8px;
+      }
+      [data-composition-id="cashbak"] .amount-card .amount {
+        font-weight: 900; font-size: 116px; line-height: 1;
+        color: #ffffff;
+        letter-spacing: -0.025em;
+        font-variant-numeric: tabular-nums;
+        background: linear-gradient(180deg, #ffffff 0%, #d1fae5 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      [data-composition-id="cashbak"] .amount-card .from {
+        margin-top: 12px;
+        display: flex; align-items: center; gap: 12px;
+        color: #d1fae5; font-size: 22px;
+      }
+      [data-composition-id="cashbak"] .amount-card .from .check {
+        width: 30px; height: 30px; border-radius: 999px;
+        background: #10b981;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      [data-composition-id="cashbak"] .amount-card .from .check svg { width: 18px; height: 18px; color: #fff; }
+      [data-composition-id="cashbak"] .amount-card .ev {
+        margin-top: 4px; color: #ffffff; font-weight: 700;
+      }
+
+      /* hero text below phone */
+      [data-composition-id="cashbak"] .hero-line {
+        margin-top: 36px;
+        font-weight: 900; font-size: 64px; line-height: 1.05;
+        text-align: center;
+        letter-spacing: -0.02em;
+        position: relative; z-index: 2;
+        max-width: 900px;
+      }
+      [data-composition-id="cashbak"] .hero-line .green {
+        background: linear-gradient(180deg, #ffffff 0%, #d1fae5 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="cashbak" data-start="0" data-width="1080" data-height="1920">
+      <div class="stage">
+        <div class="blob-a" id="cb-blob-a"></div>
+        <div class="blob-b" id="cb-blob-b"></div>
+        <div class="grid-overlay" id="cb-grid"></div>
+
+        <div class="phone-wrap">
+          <div class="phone" id="cb-phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar">
+                <span>9:41</span>
+                <span class="icons">●●● ◐ ▮</span>
+              </div>
+              <div class="day">jueves 21 de noviembre</div>
+              <div class="time">9:41</div>
+
+              <div class="notif" id="cb-notif">
+                <div class="header">
+                  <div class="app-ico"><img src="../assets/logo.png" alt="CashBak" /></div>
+                  <div class="meta">
+                    <div class="app">CashBak</div>
+                    <div class="now">ahora</div>
+                  </div>
+                </div>
+                <div class="body">
+                  <div class="title">¡Tu CashBak ya está en tu cuenta! 🎉</div>
+                  <div class="text">Chile le ganó a Brasil. Te transferimos el 100% de tu compra.</div>
+                </div>
+              </div>
+
+              <div class="amount-card" id="cb-amount">
+                <div class="label">Transferencia recibida</div>
+                <div class="amount" id="cb-amount-val">+$39.990</div>
+                <div class="from">
+                  <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,12 10,18 20,7" /></svg></span>
+                  <span>De CashBak a tu cuenta</span>
+                </div>
+                <div class="ev">Por: Chile le ganó a Brasil</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-line" id="cb-hero">
+          <span class="green">Directo a tu cuenta, sin rodeos.</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      gsap.set("#cb-grid", { opacity: 0 });
+      gsap.set("#cb-phone", { y: 120, opacity: 0, scale: 0.9, transformOrigin: "50% 100%" });
+      gsap.set("#cb-notif", { y: -260, opacity: 0, scale: 0.95, transformOrigin: "50% 0%" });
+      gsap.set("#cb-amount", { y: 80, opacity: 0, scale: 0.9, transformOrigin: "50% 50%" });
+      gsap.set("#cb-amount-val", { scale: 0.7, transformOrigin: "50% 50%" });
+      gsap.set("#cb-hero", { y: 30, opacity: 0 });
+
+      // grid
+      tl.to("#cb-grid", { opacity: 1, duration: 1.2, ease: "power1.out" }, 0);
+
+      // phone slides up
+      tl.to("#cb-phone", { y: 0, opacity: 1, scale: 1, duration: 1.0, ease: "power3.out" }, 0.2);
+
+      // notification drops in
+      tl.to("#cb-notif", { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.5)" }, 1.1);
+      tl.to("#cb-notif", { x: -10, duration: 0.08, yoyo: true, repeat: 5, ease: "sine.inOut" }, 1.7);
+      tl.set("#cb-notif", { x: 0 }, 2.2);
+
+      // amount card emerges
+      tl.to("#cb-amount", { y: 0, opacity: 1, scale: 1, duration: 0.75, ease: "back.out(1.4)" }, 2.0);
+      tl.to("#cb-amount-val", { scale: 1, duration: 0.6, ease: "back.out(1.7)" }, 2.4);
+      tl.to("#cb-amount-val", { scale: 1.05, duration: 0.4, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" }, 3.0);
+
+      // hero line
+      tl.to("#cb-hero", { y: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 3.4);
+
+      // ambient drift
+      tl.fromTo("#cb-blob-a", { x: 0, y: 0 }, { x: -40, y: 30, duration: 5, ease: "sine.inOut" }, 0);
+      tl.fromTo("#cb-blob-b", { x: 0, y: 0 }, { x: 30, y: -20, duration: 5, ease: "sine.inOut" }, 0);
+      tl.fromTo("#cb-phone", { rotation: -0.4 }, { rotation: 0.4, duration: 5, ease: "sine.inOut" }, 0.5);
+
+      window.__timelines["cashbak"] = tl;
+    </script>
+  </body>
+</html>

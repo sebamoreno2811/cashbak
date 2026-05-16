@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      [data-composition-id="hook"] { width: 1080px; height: 1920px; overflow: hidden; font-family: "Inter", system-ui, sans-serif; color: #111827; }
+
+      [data-composition-id="hook"] .stage {
+        width: 1080px; height: 1920px; position: relative;
+        background:
+          radial-gradient(ellipse 80% 60% at 50% 30%, rgba(16,185,129,0.32), transparent 60%),
+          linear-gradient(160deg, #052e1a 0%, #14532d 32%, #166534 70%, #059669 130%);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 160px 80px;
+        color: #fff;
+      }
+      [data-composition-id="hook"] .blob-a {
+        position: absolute; top: -260px; right: -260px;
+        width: 1100px; height: 1100px;
+        background: radial-gradient(circle, rgba(52,211,153,0.30), transparent 60%);
+        will-change: transform;
+      }
+      [data-composition-id="hook"] .blob-b {
+        position: absolute; bottom: -240px; left: -240px;
+        width: 900px; height: 900px;
+        background: radial-gradient(circle, rgba(255,255,255,0.05), transparent 65%);
+        will-change: transform;
+      }
+      [data-composition-id="hook"] .grid-overlay {
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 80px 80px;
+        mask-image: radial-gradient(ellipse 70% 50% at 50% 50%, #000 30%, transparent 80%);
+        -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 50%, #000 30%, transparent 80%);
+      }
+
+      [data-composition-id="hook"] .pill-top {
+        position: relative; z-index: 3;
+        display: inline-flex; align-items: center; gap: 14px;
+        padding: 14px 28px;
+        background: rgba(16,185,129,0.16);
+        border: 1px solid rgba(167,243,208,0.35);
+        backdrop-filter: blur(8px);
+        border-radius: 999px;
+        color: #d1fae5;
+        font-weight: 800; font-size: 26px; letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 56px;
+      }
+      [data-composition-id="hook"] .pill-top .dot {
+        width: 12px; height: 12px; border-radius: 999px;
+        background: #34d399; box-shadow: 0 0 18px rgba(52,211,153,0.95);
+      }
+
+      [data-composition-id="hook"] .logo {
+        width: 168px; height: 168px; margin-bottom: 30px;
+        background: #fff; border-radius: 40px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow:
+          0 24px 64px rgba(5,150,105,0.55),
+          0 0 0 1px rgba(255,255,255,0.18) inset;
+        position: relative; z-index: 2;
+      }
+      [data-composition-id="hook"] .logo img { width: 116px; height: 116px; object-fit: contain; }
+
+      [data-composition-id="hook"] .wordmark {
+        font-weight: 800; font-size: 64px; letter-spacing: -0.02em;
+        color: #ffffff; margin-bottom: 96px; position: relative; z-index: 2;
+      }
+      [data-composition-id="hook"] .wordmark .accent { color: #a7f3d0; }
+
+      [data-composition-id="hook"] .h1 {
+        font-weight: 900; font-size: 144px; letter-spacing: -0.028em;
+        line-height: 0.98; text-align: center; max-width: 920px;
+        position: relative; z-index: 2;
+        color: #ffffff;
+        text-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      }
+      [data-composition-id="hook"] .h1 .line { display: block; overflow: hidden; padding: 0 4px 8px; }
+      [data-composition-id="hook"] .h1 .line span { display: inline-block; }
+
+      [data-composition-id="hook"] .sub {
+        margin-top: 28px;
+        font-weight: 800; font-size: 80px;
+        color: #a7f3d0;
+        max-width: 920px;
+        text-align: center;
+        line-height: 1.04;
+        letter-spacing: -0.02em;
+        position: relative; z-index: 2;
+      }
+      [data-composition-id="hook"] .sub .num {
+        color: #ffffff; font-weight: 900;
+        background: linear-gradient(180deg, #ffffff 0%, #d1fae5 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="hook" data-start="0" data-width="1080" data-height="1920">
+      <div class="stage">
+        <div class="blob-a" id="hk-blob-a"></div>
+        <div class="blob-b" id="hk-blob-b"></div>
+        <div class="grid-overlay" id="hk-grid"></div>
+
+        <div class="pill-top" id="hk-pill">
+          <span class="dot"></span>
+          <span>CashBak · Marketplace</span>
+        </div>
+        <div class="logo" id="hk-logo">
+          <img src="../assets/logo.png" alt="CashBak" />
+        </div>
+        <div class="wordmark" id="hk-wordmark">Cash<span class="accent">Bak</span></div>
+        <h1 class="h1">
+          <span class="line"><span id="hk-l1">Compra hoy.</span></span>
+        </h1>
+        <p class="sub" id="hk-sub">Recibe hasta <span class="num">100%</span> de vuelta.</p>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      gsap.set("#hk-pill", { y: -30, opacity: 0 });
+      gsap.set("#hk-logo", { scale: 0.7, opacity: 0, transformOrigin: "50% 50%" });
+      gsap.set("#hk-wordmark", { y: 30, opacity: 0 });
+      gsap.set("#hk-sub", { y: 36, opacity: 0 });
+      gsap.set("#hk-grid", { opacity: 0 });
+
+      // pill + grid breathe in
+      tl.to("#hk-grid", { opacity: 1, duration: 1.4, ease: "power1.out" }, 0);
+      tl.to("#hk-pill", { y: 0, opacity: 1, duration: 0.65, ease: "expo.out" }, 0.1);
+
+      // logo with bounce-in
+      tl.to("#hk-logo", { scale: 1, opacity: 1, duration: 0.95, ease: "back.out(1.5)" }, 0.3);
+
+      // wordmark
+      tl.to("#hk-wordmark", { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.75);
+
+      // headline reveal
+      tl.from("#hk-l1", { yPercent: 110, duration: 1.05, ease: "power3.out" }, 1.15);
+      tl.to("#hk-sub", { y: 0, opacity: 1, duration: 0.8, ease: "expo.out" }, 1.95);
+
+      // continuous fluid drift across the entire 4s
+      tl.fromTo("#hk-blob-a", { x: 0, y: 0 }, { x: -40, y: 30, duration: 4, ease: "sine.inOut" }, 0);
+      tl.fromTo("#hk-blob-b", { x: 0, y: 0 }, { x: 30, y: -20, duration: 4, ease: "sine.inOut" }, 0);
+      tl.fromTo(".stage", { scale: 1 }, { scale: 1.03, duration: 4, ease: "power1.inOut" }, 0);
+      tl.fromTo("#hk-logo", { rotation: -1 }, { rotation: 1.5, duration: 4, ease: "sine.inOut" }, 0);
+
+      window.__timelines["hook"] = tl;
+    </script>
+  </body>
+</html>
