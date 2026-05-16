@@ -1158,7 +1158,7 @@ function ProductRow({
                   onChange={e => setStockValues({ "Única": e.target.value.replace(/[^0-9]/g, "") })}
                   onBlur={e => { if (e.target.value === "") setStockValues({ "Única": "0" }) }}
                   onFocus={e => e.target.select()}
-                  onKeyDown={e => { if ([".", ",", "-", "+", "e", "E"].includes(e.key)) e.preventDefault() }}
+                  onKeyDown={e => { if (!/^[0-9]$/.test(e.key) && !["Backspace","Delete","ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Tab","Home","End","Enter"].includes(e.key)) e.preventDefault() }}
                   autoFocus
                   className="w-20 text-sm border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
@@ -1176,7 +1176,7 @@ function ProductRow({
                       onChange={e => setStockValues(prev => ({ ...prev, [size]: e.target.value.replace(/[^0-9]/g, "") }))}
                       onBlur={e => { if (e.target.value === "") setStockValues(prev => ({ ...prev, [size]: "0" })) }}
                       onFocus={e => e.target.select()}
-                      onKeyDown={e => { if ([".", ",", "-", "+", "e", "E"].includes(e.key)) e.preventDefault() }}
+                      onKeyDown={e => { if (!/^[0-9]$/.test(e.key) && !["Backspace","Delete","ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Tab","Home","End","Enter"].includes(e.key)) e.preventDefault() }}
                       autoFocus={size === "S"}
                       className="w-full text-sm text-center border border-gray-300 rounded-lg px-1 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
@@ -1592,7 +1592,7 @@ function ProductFormModal({
                       onChange={e => setStockSizes(prev => ({ ...prev, [s]: e.target.value.replace(/[^0-9]/g, "") }))}
                       onBlur={e => { if (e.target.value === "") setStockSizes(prev => ({ ...prev, [s]: "0" })) }}
                       onFocus={e => e.target.select()}
-                      onKeyDown={e => { if ([".", ",", "-", "+", "e", "E"].includes(e.key)) e.preventDefault() }}
+                      onKeyDown={e => { if (!/^[0-9]$/.test(e.key) && !["Backspace","Delete","ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Tab","Home","End","Enter"].includes(e.key)) e.preventDefault() }}
                       className="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-700" />
                   </div>
                 ))}
@@ -1604,7 +1604,7 @@ function ProductFormModal({
                   onChange={e => setStockSingle(e.target.value.replace(/[^0-9]/g, ""))}
                   onBlur={e => { if (e.target.value === "") setStockSingle("0") }}
                   onFocus={e => e.target.select()}
-                  onKeyDown={e => { if ([".", ",", "-", "+", "e", "E"].includes(e.key)) e.preventDefault() }}
+                  onKeyDown={e => { if (!/^[0-9]$/.test(e.key) && !["Backspace","Delete","ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Tab","Home","End","Enter"].includes(e.key)) e.preventDefault() }}
                   className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-700" />
               </div>
             )}
