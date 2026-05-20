@@ -15,15 +15,22 @@ export default async function ProductsPage() {
 
   const cutoff = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
 
-  const [{ data: products }, { data: stores }, { data: bets }] = await Promise.all([
-    supabase
-      .from("products")
-      .select("id, name, price, cost, description, image, category, category_name, category_names, brand, stock, margin_pct, net_margin, store_id")
-      .order("id", { ascending: false }),
-    supabase
-      .from("stores")
-      .select("id, name, slug, logo_url")
-      .eq("status", "approved"),
+  const { data: stores } = await supabase
+    .from("stores")
+    .select("id, name, slug, logo_url")
+    .eq("status", "approved")
+
+  const approvedIds = (stores ?? []).map((s: Store) => s.id)
+
+  const productsQuery = supabase
+    .from("products")
+    .select("id, name, price, cost, description, image, category, category_name, category_names, brand, stock, margin_pct, net_margin, store_id")
+    .order("id", { ascending: false })
+
+  const [{ data: products }, { data: bets }] = await Promise.all([
+    approvedIds.length > 0
+      ? productsQuery.or(`store_id.is.null,store_id.in.(${approvedIds.join(",")})`)
+      : productsQuery.is("store_id", null),
     supabase
       .from("bets")
       .select("id, name, odd, sport, category, end_date, is_winner")

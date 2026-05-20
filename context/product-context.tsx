@@ -24,15 +24,21 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true)
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
 
-      if (error) {
-        setError(error.message)
-      } else {
-        setProducts(data as Product[])
-      }
+      const { data: stores } = await supabase
+        .from("stores")
+        .select("id")
+        .eq("status", "approved")
+
+      const approvedIds = (stores ?? []).map((s: { id: string }) => s.id)
+
+      const query = supabase.from("products").select("*")
+      const { data, error } = approvedIds.length > 0
+        ? await query.or(`store_id.is.null,store_id.in.(${approvedIds.join(",")})`)
+        : await query.is("store_id", null)
+
+      if (error) setError(error.message)
+      else setProducts(data as Product[])
 
       setLoading(false)
     }

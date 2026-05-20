@@ -22,7 +22,12 @@
       "Bash(git -C /Users/sebastianmoreno/Desktop/cashbak diff --stat HEAD)",
       "Bash(git -C /Users/sebastianmoreno/Desktop/cashbak status --short)",
       "Bash(git -C /Users/sebastianmoreno/Desktop/cashbak show HEAD:\"app/products/page.tsx\")",
-      "Bash(node -e \"const l = require\\('/Users/sebastianmoreno/Desktop/cashbak/node_modules/lucide-react'\\); const keys = Object.keys\\(l\\).filter\\(k => k.toLowerCase\\(\\).includes\\('store'\\) || k.toLowerCase\\(\\).includes\\('shop'\\)\\); console.log\\(keys\\)\")"
+      "Bash(node -e \"const l = require\\('/Users/sebastianmoreno/Desktop/cashbak/node_modules/lucide-react'\\); const keys = Object.keys\\(l\\).filter\\(k => k.toLowerCase\\(\\).includes\\('store'\\) || k.toLowerCase\\(\\).includes\\('shop'\\)\\); console.log\\(keys\\)\")",
+      "Bash(supabase --version)",
+      "Bash(supabase status *)",
+      "Bash(supabase db execute --project-ref zabvosjuoeieiljltiad --sql ' *)",
+      "Bash(supabase --help)",
+      "Bash(curl -s -X POST https://zabvosjuoeieiljltiad.supabase.co/rest/v1/rpc/exec_sql -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphYnZvc2p1b2VpZWlsamx0aWFkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzU4MDA3NiwiZXhwIjoyMDYzMTU2MDc2fQ.BnS21aSpX1OC2faGWJhRcuHPSbU8QePi1H033jnF5tQ' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphYnZvc2p1b2VpZWlsamx0aWFkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzU4MDA3NiwiZXhwIjoyMDYzMTU2MDc2fQ.BnS21aSpX1OC2faGWJhRcuHPSbU8QePi1H033jnF5tQ' -H 'Content-Type: application/json' -d '{\"sql\": \"SELECT 1\"}')"
     ],
     "additionalDirectories": [
       "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]",

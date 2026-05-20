@@ -8,12 +8,20 @@ type Props = { params: Promise<{ id: string; slug: string }> }
 
 const getProduct = cache(async (id: string) => {
   const supabase = createSupabaseClientWithoutCookies()
-  const { data } = await supabase
+  const { data: product } = await supabase
     .from("products")
     .select("*")
     .eq("id", id)
     .single()
-  return data
+  if (!product) return null
+  if (!product.store_id) return product
+  const { data: store } = await supabase
+    .from("stores")
+    .select("status")
+    .eq("id", product.store_id)
+    .single()
+  if (!store || store.status !== "approved") return null
+  return product
 })
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
