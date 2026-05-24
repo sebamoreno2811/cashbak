@@ -4,14 +4,26 @@ import { createSupabaseClientWithoutCookies } from "@/utils/supabase/server"
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
 import { escapeHtml } from "@/lib/utils"
+import { timingSafeEqual } from "crypto"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://cashbak.cl"
 const EMAIL_FROM = process.env.EMAIL_FROM || "support@cashbak.cl"
 
+// B-02: comparación constante en tiempo del Bearer del cron. El riesgo de timing
+// attack sobre HTTPS con un secret aleatorio es muy bajo, pero el costo de cerrarlo
+// es nulo y deja el patrón listo si mañana movemos el secret a un sitio menos protegido.
+function isAuthorizedCron(authHeader: string | null): boolean {
+  const expected = process.env.CRON_SECRET
+  if (!expected) return false
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return false
+  const provided = authHeader.slice("Bearer ".length)
+  if (provided.length !== expected.length) return false
+  return timingSafeEqual(Buffer.from(provided), Buffer.from(expected))
+}
+
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization")
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCron(request.headers.get("authorization"))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

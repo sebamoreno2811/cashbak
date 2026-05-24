@@ -147,58 +147,15 @@ export async function verifyCartStock(cartItems: { productId: number; quantity: 
   }
 }
 
-export async function updateProductStock(cartItems: any[]) {
-  try {
-    const admin = createSupabaseAdminClient()
-
-    for (const item of cartItems) {
-      const size = item.size
-
-      const { data: productData, error: fetchError } = await admin
-        .from("products")
-        .select("stock")
-        .eq("id", item.productId)
-        .single()
-
-      if (fetchError || !productData) {
-        return { success: false, error: `Error al obtener stock del producto ${item.productId}` }
-      }
-
-      const currentStock = productData.stock || {}
-      const availableStock = currentStock[size] ?? 0
-
-      if (availableStock < item.quantity) {
-        return {
-          success: false,
-          error: `Stock insuficiente para ${item.product?.name ?? item.productId} (talla ${size})`,
-        }
-      }
-
-      const newStockValue = availableStock - item.quantity
-      const updatedStock = { ...currentStock, [size]: newStockValue }
-
-      // Optimistic locking: solo actualiza si sigue habiendo stock suficiente
-      const { error: updateError, count } = await admin
-        .from("products")
-        .update({ stock: updatedStock })
-        .eq("id", item.productId)
-        .gte(`stock->>${size}`, item.quantity)
-        .select()
-
-      if (updateError) {
-        return { success: false, error: `Error al actualizar stock del producto ${item.productId}` }
-      }
-
-      if (count === 0) {
-        return {
-          success: false,
-          error: `Stock agotado para ${item.product?.name ?? item.productId} (talla ${size}). Otro cliente compró el último.`,
-        }
-      }
-    }
-
-    return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message || "Error al actualizar stock" }
-  }
-}
+// updateProductStock eliminada (C-01).
+//
+// Era una server action que cualquier visitante podía invocar sin autenticación
+// con el service-role client, lo que permitía DoS contra los vendedores enumerando
+// IDs de productos y enviando quantity arbitrario.
+//
+// La descontada real de stock vive en lib/order-creation.ts (paso "6. Descontar stock
+// con optimistic locking"), que corre exclusivamente después de tx.commit() autorizado
+// por Transbank en /api/webpay/commit.
+//
+// La función updateProductStock(productId, stock) que usan los vendedores desde
+// /mi-tienda vive en app/mi-tienda/actions.ts y sí valida ownership de la tienda.

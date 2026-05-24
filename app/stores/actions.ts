@@ -14,13 +14,23 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://cashbak.cl"
 export async function notifyStoreSubmitted(storeId: string) {
   const supabase = await createClient()
 
+  // C-01: esta es una server action invocable por cualquier visitante. Sin estos checks
+  // un atacante puede disparar emails a admin + a cualquier email registrado en stores,
+  // gastando cuota de Resend y quemando reputación SPF/DKIM de cashbak.cl.
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
   const { data: store } = await supabase
     .from("stores")
-    .select("name, email, whatsapp, category")
+    .select("name, email, whatsapp, category, owner_id")
     .eq("id", storeId)
     .single()
 
   if (!store) return
+  if ((store as { owner_id: string }).owner_id !== user.id) {
+    console.warn("[notifyStoreSubmitted] storeId no pertenece al usuario", { storeId, userId: user.id })
+    return
+  }
 
   // Email al admin
   console.log("[notifyStoreSubmitted] Enviando email al admin:", ADMIN_EMAIL, "desde:", EMAIL_FROM)

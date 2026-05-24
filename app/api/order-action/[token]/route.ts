@@ -31,12 +31,25 @@ export async function GET(
 
   // 2. Ejecutar acción
   if (action === "mark_shipped") {
+    // M-06: claim atómico del token antes de tocar la orden, igual que en
+    // confirm_received. Sin esto, dos clicks paralelos al link pueden disparar
+    // dos updates simultáneos. El daño práctico es bajo (la acción es idempotente),
+    // pero el patrón es consistente y nos cubre si la lógica del estado se complica.
+    const { data: claimedShip } = await supabase
+      .from("order_tokens")
+      .update({ used: true })
+      .eq("id", tokenRow.id)
+      .eq("used", false)
+      .select("id")
+
+    if (!claimedShip || claimedShip.length === 0) {
+      return NextResponse.redirect(`${APP_URL}/order-action-result?status=already_used`)
+    }
+
     await supabase
       .from("orders")
       .update({ shipping_status: "Enviado", updated_at: new Date().toISOString() })
       .eq("id", order_id)
-
-    await supabase.from("order_tokens").update({ used: true }).eq("id", tokenRow.id)
 
     return NextResponse.redirect(`${APP_URL}/order-action-result?status=shipped`)
 

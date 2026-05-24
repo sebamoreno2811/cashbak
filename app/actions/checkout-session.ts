@@ -1,6 +1,6 @@
 "use server"
 
-import { createSupabaseClientWithCookies, createSupabaseAdminClient } from "@/utils/supabase/server"
+import { createSupabaseClientWithCookies } from "@/utils/supabase/server"
 
 export async function saveCheckoutSession(data: {
   orderIdClient: string
@@ -12,6 +12,24 @@ export async function saveCheckoutSession(data: {
   const supabase = await createSupabaseClientWithCookies()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "No autenticado" }
+
+  // Anti-hijack (M-07b): si ya existe una sesión con este order_id_client, debe ser del
+  // mismo usuario. Sin esto un usuario autenticado podría pisar la sesión de checkout
+  // de otro si llegara a conocer/enumerar su order_id_client.
+  const { data: existing } = await supabase
+    .from("checkout_sessions")
+    .select("user_id")
+    .eq("order_id_client", data.orderIdClient)
+    .maybeSingle()
+
+  if (existing && (existing as { user_id: string }).user_id !== user.id) {
+    console.warn(
+      "[checkout-session] intento de pisar sesión ajena",
+      "order_id_client=", data.orderIdClient,
+      "actor=", user.id
+    )
+    return { error: "No se pudo guardar la sesión" }
+  }
 
   const { error } = await supabase.from("checkout_sessions").upsert({
     user_id: user.id,
@@ -25,23 +43,13 @@ export async function saveCheckoutSession(data: {
 
   if (error) {
     console.error("[checkout-session] Error guardando sesión:", error)
-    return { error: error.message }
+    return { error: "No se pudo guardar la sesión" }
   }
   return { error: null }
 }
 
-export async function getCheckoutSession(orderIdClient: string) {
-  const admin = createSupabaseAdminClient()
-  const { data } = await admin
-    .from("checkout_sessions")
-    .select("*")
-    .eq("order_id_client", orderIdClient)
-    .gt("expires_at", new Date().toISOString())
-    .maybeSingle()
-  return data
-}
-
-export async function deleteCheckoutSession(orderIdClient: string) {
-  const admin = createSupabaseAdminClient()
-  await admin.from("checkout_sessions").delete().eq("order_id_client", orderIdClient)
-}
+// Nota: getCheckoutSession y deleteCheckoutSession se eliminaron (C-01) porque eran
+// server actions invocables por cualquier visitante con el service-role client y sin
+// verificación de ownership. La lectura/borrado real de checkout_sessions vive en
+// lib/order-creation.ts (server-only, llamado únicamente desde /api/webpay/commit
+// tras tx.commit() autorizado por Transbank).

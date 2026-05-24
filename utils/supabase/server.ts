@@ -35,12 +35,23 @@ export const createSupabaseAdminClient = () => {
   )
 }
 
+/**
+ * Cliente server sin cookies y con SERVICE_ROLE.
+ *
+ * H-04: el fallback previo a NEXT_PUBLIC_SUPABASE_ANON_KEY hacía que un deploy mal
+ * configurado (rotación de service-role olvidada, typo en env de Vercel) corriera
+ * silenciosamente con privilegios de anon. Los crons y route handlers que dependen
+ * de esto necesitan SÍ o SÍ permisos elevados — preferimos error ruidoso a
+ * comportamiento inconsistente.
+ */
 export const createSupabaseClientWithoutCookies = () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !supabaseKey) {
-    throw new Error("Missing Supabase environment variables")
+    throw new Error(
+      "Missing SUPABASE_SERVICE_ROLE_KEY o NEXT_PUBLIC_SUPABASE_URL. createSupabaseClientWithoutCookies requiere ambos."
+    )
   }
 
   return createServerClient(supabaseUrl, supabaseKey, {

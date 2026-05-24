@@ -9,6 +9,15 @@
 // - `frame-ancestors 'none'` + `X-Frame-Options: DENY` previene clickjacking.
 // - HSTS con preload requiere que cashbak.cl esté listo para 2 años de TLS continuo.
 // - `connect-src` lista los dominios outbound que el browser realmente usa.
+// - M-02: en producción el sandbox webpay3gint queda fuera del CSP — solo se permite
+//   webpay3g (ambiente real). En dev sí se permiten ambos para poder probar.
+// - M-03: Permissions-Policy ampliada con sensores/APIs que la app no usa.
+const isProd = process.env.NODE_ENV === "production"
+
+const webpayHosts = isProd
+  ? "https://webpay3g.transbank.cl"
+  : "https://webpay3gint.transbank.cl https://webpay3g.transbank.cl"
+
 const securityHeaders = [
   {
     key: "Strict-Transport-Security",
@@ -28,21 +37,35 @@ const securityHeaders = [
   },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+    value: [
+      "camera=()",
+      "microphone=()",
+      "geolocation=()",
+      "interest-cohort=()",
+      "browsing-topics=()",
+      "payment=(self)",
+      "usb=()",
+      "magnetometer=()",
+      "accelerometer=()",
+      "gyroscope=()",
+      "midi=()",
+      "serial=()",
+      "bluetooth=()",
+    ].join(", "),
   },
   {
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
       "base-uri 'self'",
-      "form-action 'self' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl",
+      `form-action 'self' ${webpayHosts}`,
       "frame-ancestors 'none'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.posthog.com https://*.i.posthog.com https://va.vercel-scripts.com https://*.vercel-insights.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.i.posthog.com https://api.anthropic.com https://*.vercel-insights.com https://va.vercel-scripts.com",
-      "frame-src 'self' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl",
+      `frame-src 'self' ${webpayHosts}`,
       "object-src 'none'",
       "upgrade-insecure-requests",
     ].join("; "),

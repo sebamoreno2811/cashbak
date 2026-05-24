@@ -127,8 +127,15 @@ export async function createOrderFromWebpayCommit({
   // ── 4. Crear orden ────────────────────────────────────────────────────────────
   // El authorizationCode de Webpay queda solo en logs server-side para no contaminar
   // cashback_transfer_note (que admin usa para notas de cashback).
+  // M-07: enmascarar el código completo. Aparece en boletas de Transbank y los logs de
+  // Vercel los puede ver cualquiera con acceso al dashboard del proyecto. Sirve para
+  // correlacionar pero no necesitamos el valor exacto.
   if (authorizationCode) {
-    console.log(`[createOrderFromWebpayCommit] webpay_auth=${authorizationCode} buyOrder=${buyOrder}`)
+    const masked =
+      authorizationCode.length > 4
+        ? `${authorizationCode.slice(0, 2)}***${authorizationCode.slice(-2)}`
+        : "***"
+    console.log(`[createOrderFromWebpayCommit] webpay_auth=${masked} buyOrder=${buyOrder}`)
   }
 
   const { data: orderData, error: orderError } = await admin

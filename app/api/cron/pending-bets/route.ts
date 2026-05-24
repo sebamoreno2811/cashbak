@@ -1,14 +1,24 @@
 import { createSupabaseClientWithoutCookies } from "@/utils/supabase/server"
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
+import { timingSafeEqual } from "crypto"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const EMAIL_FROM = process.env.EMAIL_FROM || "support@cashbak.cl"
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "cashbak.ops@gmail.com"
 
+// B-02: comparación constante en tiempo del Bearer del cron.
+function isAuthorizedCron(authHeader: string | null): boolean {
+  const expected = process.env.CRON_SECRET
+  if (!expected) return false
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return false
+  const provided = authHeader.slice("Bearer ".length)
+  if (provided.length !== expected.length) return false
+  return timingSafeEqual(Buffer.from(provided), Buffer.from(expected))
+}
+
 export async function GET(req: Request) {
-  const authHeader = req.headers.get("authorization")
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCron(req.headers.get("authorization"))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

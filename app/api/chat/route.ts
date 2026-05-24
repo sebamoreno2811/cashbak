@@ -326,9 +326,12 @@ export async function POST(req: NextRequest) {
       headers: { "Content-Type": "application/json; charset=utf-8" },
     })
   } catch (err: any) {
+    // H-02: loguear server-side, devolver mensaje genérico al cliente. Los detalles
+    // de Anthropic (status, modelo, rate limit org-level) no le sirven al usuario y
+    // sí le dan información a un atacante que esté probando límites del sistema.
     console.error("[/api/chat] Anthropic error:", err?.status, err?.message, err?.error)
     return new Response(
-      JSON.stringify({ error: `Anthropic error: ${err?.status} — ${err?.message}` }),
+      JSON.stringify({ error: "El asistente no está disponible en este momento. Intenta de nuevo en unos segundos." }),
       { status: 500, headers: { "Content-Type": "application/json; charset=utf-8" } }
     )
   }

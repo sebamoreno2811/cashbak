@@ -3,6 +3,30 @@ import { Options, IntegrationApiKeys, Environment, IntegrationCommerceCodes } fr
 import { NextResponse } from "next/server"
 import { createSupabaseClientWithCookies } from "@/utils/supabase/server"
 
+/**
+ * M-04: validación tipada de items recibidos del cliente.
+ *
+ * Sin esto, payloads con tipos raros (quantity negativo, string, object) o tamaños
+ * absurdos (10k items) llegan al cálculo de monto. Hoy el `amount <= 0` mitiga el
+ * caso obvio, pero conviene defender en profundidad y rechazar input malformado
+ * antes de tocar la DB.
+ */
+type ValidatedItem = { productId: number; quantity: number }
+
+function validateItems(raw: unknown): { ok: true; items: ValidatedItem[] } | { ok: false } {
+  if (!Array.isArray(raw) || raw.length === 0 || raw.length > 50) return { ok: false }
+  const out: ValidatedItem[] = []
+  for (const i of raw) {
+    if (typeof i !== "object" || i === null) return { ok: false }
+    const productId = Number((i as { productId?: unknown }).productId)
+    const quantity = Number((i as { quantity?: unknown }).quantity)
+    if (!Number.isInteger(productId) || productId <= 0) return { ok: false }
+    if (!Number.isInteger(quantity) || quantity <= 0 || quantity > 100) return { ok: false }
+    out.push({ productId, quantity })
+  }
+  return { ok: true, items: out }
+}
+
 export async function POST(request: Request) {
   try {
     // Verificar que el usuario este autenticado antes de iniciar un pago
@@ -13,11 +37,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-    const { orderId, items, shippingCost: rawShipping } = await request.json()
+    const { orderId, items: rawItems, shippingCost: rawShipping } = await request.json()
 
-    if (!orderId || !Array.isArray(items) || items.length === 0) {
+    if (!orderId || typeof orderId !== "string" || orderId.length > 64) {
       return NextResponse.json({ error: "Datos de la orden inválidos" }, { status: 400 })
     }
+
+    const itemsCheck = validateItems(rawItems)
+    if (!itemsCheck.ok) {
+      return NextResponse.json({ error: "Items inválidos" }, { status: 400 })
+    }
+    const items = itemsCheck.items
 
     // Calcular monto server-side desde precios en DB — nunca confiar en el cliente
     const productIds = items.map((i: { productId: number }) => i.productId)
