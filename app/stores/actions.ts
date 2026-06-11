@@ -153,11 +153,45 @@ export async function adminDeleteStore(storeId: string) {
   const { data: customer } = await supabase.from("customers").select("role").eq("id", user.id).single()
   if (customer?.role !== "admin") return { error: "No autorizado" }
 
-  const { error: prodError } = await supabase.from("products").delete().eq("store_id", storeId)
-  if (prodError) return { error: prodError.message }
+  const { data: products } = await supabase.from("products").select("id").eq("store_id", storeId)
+  const productIds = (products ?? []).map((p: { id: number }) => p.id)
 
-  const { error } = await supabase.from("stores").delete().eq("id", storeId)
-  if (error) return { error: error.message }
+  let hasOrderedProducts = false
+
+  if (productIds.length > 0) {
+    const { data: orderedItems } = await supabase
+      .from("order_items")
+      .select("product_id")
+      .in("product_id", productIds)
+
+    const orderedIds = new Set((orderedItems ?? []).map((i: { product_id: number }) => i.product_id))
+    const deletableIds = productIds.filter((id: number) => !orderedIds.has(id))
+    hasOrderedProducts = orderedIds.size > 0
+
+    if (deletableIds.length > 0) {
+      const { error: prodError } = await supabase.from("products").delete().in("id", deletableIds)
+      if (prodError) return { error: prodError.message }
+    }
+
+    if (hasOrderedProducts) {
+      // Productos con órdenes asociadas no se pueden borrar (FK en order_items): se marcan sin stock
+      const { error: stockError } = await supabase
+        .from("products")
+        .update({ stock: {} })
+        .in("id", Array.from(orderedIds))
+      if (stockError) return { error: stockError.message }
+    }
+  }
+
+  if (hasOrderedProducts) {
+    // La tienda tiene historial de órdenes: no se puede borrar sin perder esa información,
+    // se marca como eliminada para ocultarla del marketplace.
+    const { error } = await supabase.from("stores").update({ status: "deleted" }).eq("id", storeId)
+    if (error) return { error: error.message }
+  } else {
+    const { error } = await supabase.from("stores").delete().eq("id", storeId)
+    if (error) return { error: error.message }
+  }
 
   revalidatePath("/admin/tiendas")
   return { success: true }
@@ -171,8 +205,20 @@ export async function adminDeleteProduct(productId: number) {
   const { data: customer } = await supabase.from("customers").select("role").eq("id", user.id).single()
   if (customer?.role !== "admin") return { error: "No autorizado" }
 
-  const { error } = await supabase.from("products").delete().eq("id", productId)
-  if (error) return { error: error.message }
+  const { data: orderedItems } = await supabase
+    .from("order_items")
+    .select("product_id")
+    .eq("product_id", productId)
+    .limit(1)
+
+  if (orderedItems && orderedItems.length > 0) {
+    // Tiene órdenes asociadas (FK en order_items): no se puede borrar, se marca sin stock
+    const { error } = await supabase.from("products").update({ stock: {} }).eq("id", productId)
+    if (error) return { error: error.message }
+  } else {
+    const { error } = await supabase.from("products").delete().eq("id", productId)
+    if (error) return { error: error.message }
+  }
 
   revalidatePath("/admin/tiendas")
   return { success: true }

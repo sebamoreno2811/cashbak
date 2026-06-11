@@ -13,7 +13,7 @@ interface Store {
   instagram: string | null
   facebook: string | null
   tiktok: string | null
-  status: "pending" | "approved" | "rejected"
+  status: "pending" | "approved" | "rejected" | "deleted"
   reject_reason: string | null
   created_at: string
   owner_id: string
@@ -42,6 +42,7 @@ export default async function AdminTiendasPage() {
   const pending = stores?.filter((s: Store) => s.status === "pending") ?? []
   const approved = stores?.filter((s: Store) => s.status === "approved") ?? []
   const rejected = stores?.filter((s: Store) => s.status === "rejected") ?? []
+  const deleted = stores?.filter((s: Store) => s.status === "deleted") ?? []
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
@@ -49,7 +50,7 @@ export default async function AdminTiendasPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Panel de tiendas</h1>
           <p className="text-gray-500 text-sm mt-1">
-            {pending.length} pendiente{pending.length !== 1 ? "s" : ""} · {approved.length} aprobada{approved.length !== 1 ? "s" : ""} · {rejected.length} rechazada{rejected.length !== 1 ? "s" : ""}
+            {pending.length} pendiente{pending.length !== 1 ? "s" : ""} · {approved.length} aprobada{approved.length !== 1 ? "s" : ""} · {rejected.length} rechazada{rejected.length !== 1 ? "s" : ""} · {deleted.length} eliminada{deleted.length !== 1 ? "s" : ""}
           </p>
         </div>
 
@@ -78,6 +79,16 @@ export default async function AdminTiendasPage() {
           <section className="space-y-3">
             <h2 className="text-sm font-semibold text-red-700 uppercase tracking-wide">Rechazadas</h2>
             {rejected.map((store: Store) => (
+              <StoreCard key={store.id} store={store} />
+            ))}
+          </section>
+        )}
+
+        {/* Eliminadas */}
+        {deleted.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Eliminadas</h2>
+            {deleted.map((store: Store) => (
               <StoreCard key={store.id} store={store} />
             ))}
           </section>
@@ -155,8 +166,9 @@ function StatusBadge({ status }: { status: Store["status"] }) {
     pending: "bg-amber-100 text-amber-800",
     approved: "bg-emerald-100 text-emerald-800",
     rejected: "bg-red-100 text-red-700",
+    deleted: "bg-gray-200 text-gray-600",
   }
-  const labels = { pending: "Pendiente", approved: "Aprobada", rejected: "Rechazada" }
+  const labels = { pending: "Pendiente", approved: "Aprobada", rejected: "Rechazada", deleted: "Eliminada" }
   return (
     <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${styles[status]}`}>
       {labels[status]}

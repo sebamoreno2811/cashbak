@@ -30,6 +30,20 @@ export default async function MiTiendaPage() {
     )
   }
 
+  if (store.status === "deleted") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center space-y-4">
+          <div className="text-5xl">🚫</div>
+          <h1 className="text-2xl font-bold text-gray-800">Tienda eliminada</h1>
+          <p className="text-gray-500">
+            Tu tienda <strong>{store.name}</strong> fue eliminada por un administrador. Contáctanos si crees que esto es un error.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   const { data: products } = await supabase
     .from("products")
     .select("id, name, price, cost, margin_pct, category_name, category_names, description, image, stock")
