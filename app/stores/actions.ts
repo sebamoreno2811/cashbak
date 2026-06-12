@@ -194,6 +194,8 @@ export async function adminDeleteStore(storeId: string) {
   }
 
   revalidatePath("/admin/tiendas")
+  revalidatePath("/products")
+  revalidatePath("/")
   return { success: true }
 }
 
@@ -221,6 +223,8 @@ export async function adminDeleteProduct(productId: number) {
   }
 
   revalidatePath("/admin/tiendas")
+  revalidatePath("/products")
+  revalidatePath("/")
   return { success: true }
 }
 
