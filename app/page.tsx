@@ -381,8 +381,6 @@ function CarouselRow({
           maskImage: "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",
           WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",
         } : {}}
-        onMouseEnter={() => { if (!dragRef.current.active) pausedRef.current = true }}
-        onMouseLeave={() => { if (!dragRef.current.active) pausedRef.current = false }}
         onFocusCapture={onFocusCapture}
         onBlurCapture={onBlurCapture}
         onMouseDown={onMouseDown}
