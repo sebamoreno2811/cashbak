@@ -31,7 +31,9 @@
       "Bash(cp /tmp/check-carousel.js ./check-carousel.js)",
       "Bash(node check-carousel.js)",
       "Bash(tail -40 /tmp/cashbak-dev.log)",
-      "Read(//private/tmp/**)"
+      "Read(//private/tmp/**)",
+      "Bash(cp /tmp/check-autoscroll.js ./check-autoscroll.js)",
+      "Bash(node ./check-autoscroll.js)"
     ],
     "additionalDirectories": [
       "/Users/sebastianmoreno/Desktop/cashbak/app/product/[id]",

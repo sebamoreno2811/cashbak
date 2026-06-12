@@ -268,11 +268,18 @@ function CarouselRow({
     return () => mq.removeEventListener("change", onChange)
   }, [])
 
-  // Check if single set overflows the container
+  // Check if single set overflows the container. El contenido puede estar
+  // renderizado como una sola copia (aún no autoScroll) o duplicado (autoScroll
+  // activo), así que medimos el ancho de una sola copia según cuántos hijos hay.
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const check = () => setAutoScroll(el.scrollWidth / 2 > el.clientWidth + 10)
+    const check = () => {
+      const inner = el.firstElementChild as HTMLElement | null
+      const childCount = inner?.children.length ?? items.length
+      const multiplier = items.length > 0 ? childCount / items.length : 1
+      setAutoScroll(el.scrollWidth / multiplier > el.clientWidth + 10)
+    }
     check()
     window.addEventListener("resize", check)
     return () => window.removeEventListener("resize", check)
