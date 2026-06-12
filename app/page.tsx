@@ -303,13 +303,29 @@ function CarouselRow({
     dragRef.current = { active: true, startX: e.pageX - el.offsetLeft, scrollLeft: el.scrollLeft }
     pausedRef.current = true
   }
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!dragRef.current.active) return
-    const el = ref.current
-    if (!el) return
-    el.scrollLeft = dragRef.current.scrollLeft - (e.pageX - el.offsetLeft - dragRef.current.startX) * 1.2
-  }
-  const onMouseUp = () => { dragRef.current.active = false; pausedRef.current = false }
+
+  // Escuchar mousemove/mouseup en window: si el usuario suelta el botón fuera del carrusel
+  // (muy común al arrastrarlo), los handlers del propio div nunca se disparan y el carrusel
+  // queda pausado para siempre.
+  useEffect(() => {
+    const onWindowMouseMove = (e: MouseEvent) => {
+      if (!dragRef.current.active) return
+      const el = ref.current
+      if (!el) return
+      el.scrollLeft = dragRef.current.scrollLeft - (e.pageX - el.offsetLeft - dragRef.current.startX) * 1.2
+    }
+    const onWindowMouseUp = () => {
+      if (!dragRef.current.active) return
+      dragRef.current.active = false
+      pausedRef.current = false
+    }
+    window.addEventListener("mousemove", onWindowMouseMove)
+    window.addEventListener("mouseup", onWindowMouseUp)
+    return () => {
+      window.removeEventListener("mousemove", onWindowMouseMove)
+      window.removeEventListener("mouseup", onWindowMouseUp)
+    }
+  }, [])
 
   // Pausar al enfocar cualquier elemento dentro (WCAG 2.2.2 — teclado)
   const onFocusCapture = () => { pausedRef.current = true }
@@ -359,12 +375,10 @@ function CarouselRow({
           WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",
         } : {}}
         onMouseEnter={() => { if (!dragRef.current.active) pausedRef.current = true }}
-        onMouseLeave={() => { pausedRef.current = false; dragRef.current.active = false }}
+        onMouseLeave={() => { if (!dragRef.current.active) pausedRef.current = false }}
         onFocusCapture={onFocusCapture}
         onBlurCapture={onBlurCapture}
         onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
       >
         <div className="flex gap-4 py-2 w-max px-8">
           {(autoScroll && !userPaused && !prefersReduced ? doubled : items).map((product, idx) => (
