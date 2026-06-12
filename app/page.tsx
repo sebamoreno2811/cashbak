@@ -256,6 +256,7 @@ function CarouselRow({
   const [userPaused, setUserPaused] = useState(false)
   const pausedRef = useRef(false)
   const dragRef = useRef({ active: false, startX: 0, scrollLeft: 0 })
+  const scrollPosRef = useRef(0)
 
   // Detectar prefers-reduced-motion para desactivar auto-scroll
   const [prefersReduced, setPrefersReduced] = useState(false)
@@ -290,13 +291,21 @@ function CarouselRow({
     if (!autoScroll || userPaused || prefersReduced) return
     const el = ref.current
     if (!el) return
+    scrollPosRef.current = el.scrollLeft
     let rafId: number
     const tick = () => {
-      if (!pausedRef.current) {
-        el.scrollLeft += 0.6
-        if (el.scrollLeft >= el.scrollWidth / 2) {
-          el.scrollLeft -= el.scrollWidth / 2
+      if (pausedRef.current) {
+        // Resincroniza con la posición real (puede haber cambiado por drag/teclado)
+        scrollPosRef.current = el.scrollLeft
+      } else {
+        // Acumulamos en un float aparte: Safari redondea scrollLeft a entero,
+        // así que sumar 0.6 directo sobre el valor leído nunca avanza (siempre trunca a 0).
+        scrollPosRef.current += 0.6
+        const half = el.scrollWidth / 2
+        if (scrollPosRef.current >= half) {
+          scrollPosRef.current -= half
         }
+        el.scrollLeft = scrollPosRef.current
       }
       rafId = requestAnimationFrame(tick)
     }
