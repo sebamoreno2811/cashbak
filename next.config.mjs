@@ -88,6 +88,27 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      // URLs antiguas con dos segmentos: strip del slug, el handler de /producto/[handle]
+      // detecta el ID decimal y redirige al handle canónico.
+      {
+        source: "/product/:id/:slug*",
+        destination: "/producto/:id",
+        permanent: true,
+      },
+      {
+        source: "/producto/:id/:slug*",
+        destination: "/producto/:id",
+        permanent: true,
+      },
+      {
+        source: "/product/:id",
+        destination: "/producto/:id",
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {

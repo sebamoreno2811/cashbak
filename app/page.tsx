@@ -424,7 +424,7 @@ function ProductCard({
 }) {
   const maxCashbak = calculateMaxProductCashbak(product, bets)
   const selectedCashbak = selectedBetOdd ? calculateProductCashbak(product, selectedBetOdd) : 0
-  const productHref = `/product/${product.id}/${toSlug(product.name)}`
+  const productHref = `/producto/${toSlug(product.name)}-${product.id.toString(36)}`
   const priceLabel = `$${product.price.toLocaleString("es-CL", { maximumFractionDigits: 0 })}`
 
   // Accesibilidad: se usa el patrón "card con link de nombre que se expande".

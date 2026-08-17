@@ -298,7 +298,7 @@ function ProductCard({
   const maxCashbak = calculateMaxProductCashbak(product, bets)
   const selectedCashbak = selectedBetOdd ? calculateProductCashbak(product, selectedBetOdd) : null
 
-  const productHref = `/product/${product.id}/${toSlug(product.name)}`
+  const productHref = `/producto/${toSlug(product.name)}-${product.id.toString(36)}`
 
   return (
     <Link href={productHref} className="group cursor-pointer">

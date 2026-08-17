@@ -27,6 +27,19 @@ function slugify(text: string) {
   return text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
 }
 
+// Extrae el ID numérico del handle (e.g. "camiseta-retro-j" → 19)
+function numericIdFromHandle(handle: string): string | null {
+  const parts = handle.split("-")
+  if (parts.length < 2) return null
+  const last = parts[parts.length - 1]
+  const n = parseInt(last, 36)
+  if (!isNaN(n) && n > 0 && n.toString(36) === last) return String(n)
+  // Compatibilidad con formato antiguo (ID decimal puro)
+  const dec = parseInt(handle, 10)
+  if (!isNaN(dec) && dec > 0) return String(dec)
+  return null
+}
+
 function getInitials(name: string) {
   return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
 }
@@ -148,7 +161,8 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
   const { addItem, items } = useCart()
 
   useEffect(() => {
-    const target = product ?? (!loading && products ? products.find(p => p.id.toString() === params.id) ?? null : null)
+    const numericId = numericIdFromHandle(params.id as string)
+    const target = product ?? (!loading && products ? products.find(p => numericId && p.id.toString() === numericId) ?? null : null)
     if (!target) return
 
     if (!product) setProduct(target)

@@ -194,7 +194,7 @@ export default function OrdersPage() {
                         </span>
                       </div>
                       {product?.image && (
-                        <Link href={`/product/${product.id}/${toSlug(product.name)}`} className="block">
+                        <Link href={`/producto/${toSlug(product.name)}-${product.id.toString(36)}`} className="block">
                           <img
                             src={product.image}
                             alt={product.name}

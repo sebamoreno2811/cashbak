@@ -169,7 +169,7 @@ function ProductCard({
   const selectedCashbak = selectedBetOdd ? calculateProductCashbak(product, selectedBetOdd) : null
 
   return (
-    <Link href={`/product/${product.id}/${toSlug(product.name)}`} className="group cursor-pointer">
+    <Link href={`/producto/${toSlug(product.name)}-${product.id.toString(36)}`} className="group cursor-pointer">
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 h-full flex flex-col">
         <div className="relative aspect-square overflow-hidden">
           <Image
